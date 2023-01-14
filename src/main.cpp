@@ -172,9 +172,12 @@ Board   *parse_following_turns() {
     int half_move_clock;
     int full_move;
 
-    cin >> board >> color >> castling >> en_passant >> half_move_clock >> full_move; cin.ignore();
-    cin >> LASTMOVE; cin.ignore();
-    cin >> DRAW; cin.ignore();
+    cin >> board >> color >> castling >> en_passant >> half_move_clock >> full_move;
+    //cin.ignore();
+    cin >> LASTMOVE;
+    //cin.ignore();
+    cin >> DRAW;
+    //cin.ignore();
 
     return new Board(board, color, castling, en_passant, half_move_clock, full_move);
     // cerr << "\tChessBot: board = " << board << endl;

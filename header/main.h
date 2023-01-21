@@ -28,9 +28,9 @@ class Board {
                 Black - lower case
                 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1
             */
-            parse_board(_board);
+            _parse_board(_board);
             player_turn = _color == "w" ? 1 : -1;
-            parse_castling(_castling);
+            _parse_castling(_castling);
             en_passant = _en_passant;
             half_turn_remaning = _half_move_clock;
             game_turn = _full_move;
@@ -107,7 +107,7 @@ class Board {
             return tolower(column_name) - 97;
         }
 
-        void    parse_board(string fen_board) {
+        void    _parse_board(string fen_board) {
 
             int cell_i = 0;
 
@@ -116,7 +116,7 @@ class Board {
 
                 int piece = fen_board[i];
                 
-                if (isdigit(fen_board[i]))
+                if (isdigit(piece))
                     cell_i += atoi(&fen_board[i]);
                 else if (piece != '/')
                 {
@@ -127,7 +127,7 @@ class Board {
             }
         }
 
-        void    parse_castling(string castling_fen)
+        void    _parse_castling(string castling_fen)
         {
             int _castles[4] = {-1, -1, -1, -1};
             int white_castles_i = 0;
@@ -141,7 +141,7 @@ class Board {
                     _castles[2 + black_castles_i++] = _to_column_nbr(castling_fen[i]);
             }
             memcpy(castles, _castles, sizeof(int) * 4);
-            cerr << "Castle parsing end for: " << castling_fen << endl;
+            // cerr << "Castle parsing end for: " << castling_fen << endl;
         }
 
 };

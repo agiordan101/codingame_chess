@@ -78,6 +78,6 @@ int main()
         board->log();
 
         cout << "random" << endl;
-        exit(0);
+        // exit(0);
     }
 }

@@ -8,6 +8,11 @@ Project created in local, thanks to CodinGame SDK environment and CodinGame ches
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 
+### Branches
+
+- main  ->  Stable best version used in CodinGame
+- dev   ->  Stable version in devlopment (base for new branches, base for comparison, etc...)
+
 ## Get started
 
 ### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
@@ -21,7 +26,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ### THC the library is a C++ implementation of the rules of standard chess. (Import posiions using FEN / Export possible moves from a position / GUI?)
 https://github.com/billforsternz/thc-chess-library
 
-### Times check
+### Time
 https://stackoverflow.com/questions/21856025/getting-an-accurate-execution-time-in-c-micro-seconds
 
 ## Notes (12.01.23)

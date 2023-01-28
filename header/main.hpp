@@ -1,3 +1,6 @@
+# ifndef MAIN
+# define MAIN
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -120,3 +123,5 @@ class Board {
         void    _parse_castling(string castling_fen);
 
 };
+
+#endif

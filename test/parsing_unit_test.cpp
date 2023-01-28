@@ -1,14 +1,3 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <list>
-// #include <bitset>
-// #include <climits>
-#include <cstring>
-
-using namespace std;
-
 #include "../header/main.h"
 
 int main()

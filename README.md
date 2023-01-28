@@ -18,8 +18,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
 `g++ src/main.cpp -o mychessbot.out && cp mychessbot.out ../codingame-chess/.`
 
-### Compile & Run C++ parsing unittest
-`g++ test/parsing_unit_test.cpp -o mychessbot_unittest.out && ./mychessbot_unittest.out`
+### Compile & Run C++ Board unittests
+`g++ test/unittests_Board.cpp -o unittest_Board.out -h header/* && ./unittest_Board.out`
 
 ### Run python test script for main.cpp parsing
 `python3 test/parsing_unit_tests.py`

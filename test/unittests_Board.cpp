@@ -10,6 +10,7 @@ int    constructor_unittest()
     int full_move = 1;
     
     cerr << "\n[UNITTEST] Board - constructor_unittest() is starting " << endl;
+    cerr << "\n[UNITTEST] Board - FEN: " << fen_board << endl;
     Board *board = new Board(fen_board, color, castling, en_passant, half_move_clock, full_move);
     board->log();
 

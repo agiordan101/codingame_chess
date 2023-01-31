@@ -14,14 +14,23 @@ namespace ChessEngine {
 
     /* STRUCTURES */
 
-    typedef enum _pieces {
-        pawns = 1,
-        knights = 3,
-        bishops = 3,
-        rooks = 5,
-        queens = 9,
-        king = 42
-    }           e_pieces;
+    typedef enum _pieces_value {
+        pawns_v = 1,
+        knights_v = 3,
+        bishops_v = 3,
+        rooks_v = 5,
+        queens_v = 9,
+        king_v = 42
+    }           e_pieces_value;
+
+    typedef enum _pieces_num {
+        pawns_n = 1,
+        knights_n = 2,
+        bishops_n = 3,
+        rooks_n = 4,
+        queens_n = 5,
+        king_n = 6
+    }           e_pieces_num;
 
     /* CLASSES */
 
@@ -31,6 +40,9 @@ namespace ChessEngine {
         int src_y;
         int dst_x;
         int dst_y;
+        bool castle;
+        bool promotion;
+        bool en_passant;
 
         public:
             
@@ -42,51 +54,51 @@ namespace ChessEngine {
 
     /* STATIC FUNCTIONS */
 
-    int     PIECE_letter_to_value(char piece)
+    inline int     PIECE_letter_to_value(char piece)
     {
         switch (piece) {
             case 'p':
-                return pawns;
+                return pawns_n;
                 break ;
             case 'n':
-                return knights;
+                return knights_n;
                 break ;
             case 'b':
-                return bishops;
+                return bishops_n;
                 break ;
             case 'r':
-                return rooks;
+                return rooks_n;
                 break ;
             case 'q':
-                return queens;
+                return queens_n;
                 break ;
             case 'k':
-                return king;
+                return king_n;
                 break ;
             case 'P':
-                return -pawns;
+                return -pawns_n;
                 break ;
             case 'N':
-                return -knights;
+                return -knights_n;
                 break ;
             case 'B':
-                return -bishops;
+                return -bishops_n;
                 break ;
             case 'R':
-                return -rooks;
+                return -rooks_n;
                 break ;
             case 'Q':
-                return -queens;
+                return -queens_n;
                 break ;
             case 'K':
-                return -king;
+                return -king_n;
                 break ;
             default:
                 return 0;
         }
     }
 
-    int     COLUMN_name_to_index(char column_name)
+    inline int     COLUMN_name_to_index(char column_name)
     {
         return tolower(column_name) - 97;
     }
@@ -101,6 +113,7 @@ namespace ChessEngine {
 
 class Board {
     /*
+        Board represent all FEN data
         White = 1
         Black = -1
     */
@@ -116,6 +129,7 @@ class Board {
 
         Board(string _board, string _color, string _castling, string _en_passant, int _half_move_clock, int _full_move);
         void    log();
+        int     apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, ChessEngine::e_pieces_num promotion, bool en_passant);
 
     private:
 

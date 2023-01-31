@@ -47,18 +47,41 @@ void    Board::_parse_board(string fen_board) {
 }
 
 void    Board::_parse_castling(string castling_fen)
-        {
-            int _castles[4] = {-1, -1, -1, -1};
-            int white_castles_i = 0;
-            int black_castles_i = 0;
+{
+    int _castles[4] = {-1, -1, -1, -1};
+    int white_castles_i = 0;
+    int black_castles_i = 0;
 
-            for (int i = 0; i < castling_fen.length(); i++)
-            {
-                if (islower(castling_fen[i]))
-                    _castles[white_castles_i++] = ChessEngine::COLUMN_name_to_index(castling_fen[i]);
-                if (isupper(castling_fen[i]))
-                    _castles[2 + black_castles_i++] = ChessEngine::COLUMN_name_to_index(castling_fen[i]);
-            }
-            memcpy(castles, _castles, sizeof(int) * 4);
-            // cerr << "Castle parsing end for: " << castling_fen << endl;
-        }
+    for (int i = 0; i < castling_fen.length(); i++)
+    {
+        if (islower(castling_fen[i]))
+            _castles[white_castles_i++] = ChessEngine::COLUMN_name_to_index(castling_fen[i]);
+        if (isupper(castling_fen[i]))
+            _castles[2 + black_castles_i++] = ChessEngine::COLUMN_name_to_index(castling_fen[i]);
+    }
+    memcpy(castles, _castles, sizeof(int) * 4);
+    // cerr << "Castle parsing end for: " << castling_fen << endl;
+}
+
+int     Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, ChessEngine::e_pieces_num promotion, bool en_passant)
+{
+    board[dst_y][dst_x] = board[src_y][src_x];
+    board[src_y][src_x] = 0;
+    if (castle)
+    {
+        // Rook move
+        int side = dst_x < src_x ? 1 : -1;
+        board[dst_y][dst_x + side] = board[dst_y][dst_x - side];
+        board[dst_y][dst_x - side] = 0;
+    }
+    else if (promotion)
+    {
+        // Promote the pawn
+        board[dst_y][dst_x] = board[dst_y][dst_x] < 0 ? -promotion : promotion;
+    }
+    else if (en_passant)
+    {
+        // Eat the pawn
+        board[src_y][dst_x] = 0;
+    }
+}

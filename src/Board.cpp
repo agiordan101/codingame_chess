@@ -16,14 +16,21 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 
 void Board::log() {
     cerr << "\n\tChessBot: Board description " << board << endl;
-    // for (int y = 0; y < 8; y++)
-    //     for (int x = 0; x < 8; x++)
-    //         cerr << " " << board[y][x] << endl;
     cerr << "\tChessBot: Board: Color w=1|b=0: " << player_turn << endl;
     cerr << "\tChessBot: Board: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
     cerr << "\tChessBot: Board: En passant: " << en_passant << endl;
     cerr << "\tChessBot: Board: half_turn_remaning: " << half_turn_remaning << endl;
     cerr << "\tChessBot: Board: game_turn: " << game_turn << endl;
+}
+
+void Board::show_board() {
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+            cerr << " " << (board[y][x] == 0 ? '0' : (char)(board[y][x]));
+        cerr << endl;
+    }
 }
 
 void    Board::_parse_board(string fen_board) {
@@ -39,8 +46,9 @@ void    Board::_parse_board(string fen_board) {
             cell_i += atoi(&fen_board[i]);
         else if (piece != '/')
         {
-            board[cell_i / 8][cell_i % 8] = ChessEngine::PIECE_letter_to_value(piece);
-            cerr << cell_i / 8 << " | " << cell_i % 8 << " -> " << (char)(piece) << " = " << board[cell_i / 8][cell_i % 8] << endl;
+            board[cell_i / 8][cell_i % 8] = piece;
+            // board[cell_i / 8][cell_i % 8] = ChessEngine::PIECE_letter_to_number(piece);
+            // cerr << cell_i / 8 << " | " << cell_i % 8 << " -> " << (char)(piece) << " = " << board[cell_i / 8][cell_i % 8] << endl;
             cell_i++;
         }
     }

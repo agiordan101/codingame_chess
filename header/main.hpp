@@ -54,7 +54,10 @@ namespace ChessEngine {
 
     /* STATIC FUNCTIONS */
 
-    inline int     PIECE_letter_to_value(char piece)
+    inline int     PIECE_letter_to_number(char piece)
+    /*
+        Useless ? Keep ASCII value of the letter as number/symbol ?
+    */
     {
         switch (piece) {
             case 'p':
@@ -130,6 +133,7 @@ class Board {
         Board(string _board, string _color, string _castling, string _en_passant, int _half_move_clock, int _full_move);
         void    log();
         int     apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, ChessEngine::e_pieces_num promotion, bool en_passant);
+        void    show_board();
 
     private:
 

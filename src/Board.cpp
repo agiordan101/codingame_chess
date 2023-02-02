@@ -6,6 +6,7 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
         Black - lower case
         rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1
     */
+    _fen_board = _board;
     _parse_board(_board);
     player_turn = _color == "w" ? 1 : -1;
     _parse_castling(_castling);
@@ -25,15 +26,69 @@ void Board::log() {
 
 void Board::show_board() {
 
+    cerr << " ---------------" << endl;
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
             cerr << " " << (board[y][x] == 0 ? '0' : (char)(board[y][x]));
         cerr << endl;
     }
+    cerr << " ---------------" << endl;
 }
 
-void    Board::_parse_board(string fen_board) {
+void Board::reset_board(string new_fen_board)
+{
+    if (!new_fen_board.empty())
+        _fen_board = new_fen_board;
+
+    cerr << "Reset board to fen: " << _fen_board << endl;
+    _parse_board(_fen_board);
+}
+
+void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant)
+{
+    board[dst_y][dst_x] = board[src_y][src_x];
+    board[src_y][src_x] = 0;
+    if (castle)
+    {
+        // Rook move
+        int side = dst_x < src_x ? -1 : 1;
+        int x;
+        for (x = dst_x; 0 <= x && x < 8; x += side)
+            if (toupper(board[dst_y][x]) == 'R')
+                break ;
+
+        board[dst_y][dst_x - side] = board[dst_y][x];
+        board[dst_y][x] = 0;
+    }
+    else if (promotion)
+    {
+        // Promote the pawn (toupper necesary ? We'll see...)
+        board[dst_y][dst_x] = board[dst_y][dst_x] > 'a' ? tolower(promotion) : toupper(promotion);
+    }
+    else if (en_passant)
+    {
+        // Eat the pawn
+        board[src_y][dst_x] = 0;
+    }
+}
+
+// --- OPERATORS ---
+
+bool    Board::operator ==(string fen_board) {
+
+    Board *test_board = new Board(fen_board, "w", "Ahah", "-", 0, 0);
+
+    for (int y = 0; y < 8; y++)
+        for (int x = 0; x < 8; x++)
+            if (this->board[y][x] != test_board->board[y][x])
+                return false;
+    return true;            
+}
+
+// --- PRIVATE METHODS ---
+
+void Board::_parse_board(string fen_board) {
 
     int cell_i = 0;
 
@@ -54,7 +109,7 @@ void    Board::_parse_board(string fen_board) {
     }
 }
 
-void    Board::_parse_castling(string castling_fen)
+void Board::_parse_castling(string castling_fen)
 {
     int _castles[4] = {-1, -1, -1, -1};
     int white_castles_i = 0;
@@ -69,27 +124,4 @@ void    Board::_parse_castling(string castling_fen)
     }
     memcpy(castles, _castles, sizeof(int) * 4);
     // cerr << "Castle parsing end for: " << castling_fen << endl;
-}
-
-int     Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, ChessEngine::e_pieces_num promotion, bool en_passant)
-{
-    board[dst_y][dst_x] = board[src_y][src_x];
-    board[src_y][src_x] = 0;
-    if (castle)
-    {
-        // Rook move
-        int side = dst_x < src_x ? 1 : -1;
-        board[dst_y][dst_x + side] = board[dst_y][dst_x - side];
-        board[dst_y][dst_x - side] = 0;
-    }
-    else if (promotion)
-    {
-        // Promote the pawn
-        board[dst_y][dst_x] = board[dst_y][dst_x] < 0 ? -promotion : promotion;
-    }
-    else if (en_passant)
-    {
-        // Eat the pawn
-        board[src_y][dst_x] = 0;
-    }
 }

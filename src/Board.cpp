@@ -131,3 +131,27 @@ void Board::_parse_castling(string castling_fen)
     memcpy(castles, _castles, sizeof(int) * 4);
     // cerr << "Castle parsing end for: " << castling_fen << endl;
 }
+
+void Board::_find_moves_pawns(int x, int y) {
+
+}
+
+void Board::_find_moves_knights(int x, int y) {
+
+}
+
+void Board::_find_moves_bishops(int x, int y) {
+
+}
+
+void Board::_find_moves_rooks(int x, int y) {
+
+}
+
+void Board::_find_moves_queens(int x, int y) {
+
+}
+
+void Board::_find_moves_king(int x, int y) {
+
+}

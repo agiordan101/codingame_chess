@@ -83,6 +83,13 @@ namespace ChessEngine {
             string  _fen_board; 
             void    _parse_board(string fen_board);
             void    _parse_castling(string castling_fen);
+            
+            void    _find_moves_pawns(int x, int y);
+            void    _find_moves_knights(int x, int y);
+            void    _find_moves_bishops(int x, int y);
+            void    _find_moves_rooks(int x, int y);
+            void    _find_moves_queens(int x, int y);
+            void    _find_moves_king(int x, int y);
 
     };
 

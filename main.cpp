@@ -1,4 +1,4 @@
-#include "../header/main.hpp"
+#include "header/main.hpp"
 
 // To debug: cerr << "\tChessBot: Debug messages..." << endl;
 
@@ -58,7 +58,6 @@ Board   *parse_following_turns() {
     Board *b = new Board(board, color, castling, en_passant, half_move_clock, full_move);
     return b;
 }
-
 
 int main()
 {

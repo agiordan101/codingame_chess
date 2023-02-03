@@ -1,5 +1,7 @@
 #include "../header/main.hpp"
 
+// --- PUBLIC METHODS ---
+
 Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_move_clock, int _full_move) {
     /*  
         White - upper case
@@ -36,8 +38,8 @@ void Board::show_board() {
     cerr << " ---------------" << endl;
 }
 
-void Board::reset_board(string new_fen_board)
-{
+void Board::reset_board(string new_fen_board) {
+
     if (!new_fen_board.empty())
         _fen_board = new_fen_board;
 
@@ -45,8 +47,8 @@ void Board::reset_board(string new_fen_board)
     _parse_board(_fen_board);
 }
 
-void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant)
-{
+void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
+
     board[dst_y][dst_x] = board[src_y][src_x];
     board[src_y][src_x] = 0;
     if (castle)
@@ -71,6 +73,10 @@ void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, 
         // Eat the pawn
         board[src_y][dst_x] = 0;
     }
+}
+
+void Board::find_moves() {
+
 }
 
 // --- OPERATORS ---

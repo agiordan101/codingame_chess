@@ -1,4 +1,8 @@
-#include "header/main.hpp"
+// #include "ChessEngine/ChessEngine.hpp"
+#include "ChessEngine/Board.hpp"
+// #include "ChessEngine/Move.hpp"
+
+using namespace std;
 
 // To debug: cerr << "\tChessBot: Debug messages..." << endl;
 

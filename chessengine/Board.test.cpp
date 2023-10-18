@@ -1,4 +1,4 @@
-#include "../header/main.hpp"
+#include "Board.hpp"
 
 Board   *constructor_unittest()
 {
@@ -147,13 +147,13 @@ int     apply_move_unittests(Board *board)
     return 0;
 }
 
-int main()
-{
-    int errors = 0;
+// int main()
+// {
+//     int errors = 0;
 
-    cerr << "\n[UNITTEST] Board - Start unit tests " << endl;
-    Board *board = constructor_unittest();
-    apply_move_unittests(board);
+//     cerr << "\n[UNITTEST] Board - Start unit tests " << endl;
+//     Board *board = constructor_unittest();
+//     apply_move_unittests(board);
 
-    cerr << "\n[UNITTEST] Board - Errors count: " << errors << endl;
-}
+//     cerr << "\n[UNITTEST] Board - Errors count: " << errors << endl;
+// }

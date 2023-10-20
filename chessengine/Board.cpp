@@ -43,7 +43,7 @@ void Board::reset_board(string new_fen_board) {
     if (!new_fen_board.empty())
         _fen_board = new_fen_board;
 
-    cerr << "Reset board to fen: " << _fen_board << endl;
+    // cerr << "Reset board to fen: " << _fen_board << endl;
     _parse_board(_fen_board);
 }
 

@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-using namespace std;
-
 class Board {
     /*
         Board represent all FEN data

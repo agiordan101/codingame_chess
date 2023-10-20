@@ -13,6 +13,17 @@ External libraries are used to test & debug my own chess engine (times, valids m
 - main  ->  Stable best version used in CodinGame
 - dev   ->  Stable version in devlopment (base for new branches, base for comparison, etc...)
 
+### Unit testing
+
+All unit tests file must have the class name their are testing, with ".test.cpp" as suffix.
+
+Inside the file :
+
+- A main function (Named as "mainTest{className}"): that call all unit test launchers.
+- One region per class method, with multiple unit test functions and their associated launcher.
+- Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
+- Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
+
 ## Get started
 
 ### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes

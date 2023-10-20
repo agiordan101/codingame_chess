@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 /* STRUCTURES */
 
 typedef enum _pieces_value {

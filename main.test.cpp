@@ -1,6 +1,15 @@
-#include "ChessEngine/Board.hpp"
+#include <iostream>
+using namespace std;
+
+int mainTestBoard();
 
 int main()
 {
-    cerr << "\tChessBot: My chess bot is starting !...!" << endl;
+    int successCount = 0;
+
+    cerr << "[UNITTEST] Start ..." << endl;
+
+    successCount += mainTestBoard();
+
+    cerr << "[UNITTEST] End: " << successCount << " test were successfull !" << endl;
 }

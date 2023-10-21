@@ -2,11 +2,32 @@
 
 CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 
+## Get started
+
+### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
+`g++ main_codingame.cpp chessengine/* -o mychessbot.out && cp mychessbot.out ../codingame-chess/.`
+
+### Compile & Run unittests
+`g++ main.test.cpp chessengine/* -o unittests.out && ./unittests.out`
+
+### Compile & Run project main
+`g++ main.cpp chessengine/* -o chessproject.out && ./chessproject.out`
+
+### Run python test script for main.cpp parsing
+`python3 test/parsing_unit_tests.py`
+
 ## Description
 
 Project created in local, thanks to CodinGame SDK environment and CodinGame chess-engine to simulate exact same executions.
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
+
+## Roadmap
+
+- Finish the chess engine with unit tests
+    * Write find_moves methods
+
+## Project explanations
 
 ### Branches
 
@@ -23,17 +44,6 @@ Inside the file :
 - One region per class method, with multiple unit test functions and their associated launcher.
 - Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
 - Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
-
-## Get started
-
-### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`g++ main_codingame.cpp chessengine/* -o mychessbot.out && cp mychessbot.out ../codingame-chess/.`
-
-### Compile & Run C++ Board unittests
-`g++ main.test.cpp chessengine/* -o unittest_Board.out && ./unittest_Board.out`
-
-### Run python test script for main.cpp parsing
-`python3 test/parsing_unit_tests.py`
 
 ## Externals C++ libraries
 

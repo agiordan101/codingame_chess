@@ -11,6 +11,7 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
     _fen_board = _board;
     _parse_board(_board);
     player_turn = _color == "w" ? 1 : -1;
+    lower_case_pieces = _color == "b";
     _parse_castling(_castling);
     en_passant = _en_passant;
     half_turn_remaning = _half_move_clock;
@@ -75,8 +76,58 @@ void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, 
     }
 }
 
-void Board::find_moves() {
+vector<Move> Board::find_moves() {
 
+    vector<Move> moves;
+    vector<Move> piece_moves;
+    char piece_letter;
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            piece_letter = board[y][x];
+
+            // Skip empty cells
+            if (piece_letter == 0)
+                continue ;
+
+            // Only consider our own pieces
+            if (lower_case_pieces)
+            {
+                if (isupper(piece_letter))
+                    continue;
+            }
+            else if (islower(piece_letter))
+                continue;
+
+            switch (tolower(piece_letter))
+            {
+                case 'p':
+                    piece_moves = _find_moves_pawns(x, y);
+                    break;
+                case 'n':
+                    piece_moves = _find_moves_knights(x, y);
+                    break;
+                case 'b':
+                    piece_moves = _find_moves_bishops(x, y);
+                    break;
+                case 'r':
+                    piece_moves = _find_moves_rooks(x, y);
+                    break;
+                case 'k':
+                    piece_moves = _find_moves_king(x, y);
+                    break;
+                case 'q':
+                    piece_moves = _find_moves_queens(x, y);
+                    break;
+            }
+
+            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
+        }
+    }
+
+    return moves;
 }
 
 // --- OPERATORS ---
@@ -132,26 +183,44 @@ void Board::_parse_castling(string castling_fen)
     // cerr << "Castle parsing end for: " << castling_fen << endl;
 }
 
-void Board::_find_moves_pawns(int x, int y) {
+vector<Move>    Board::_find_moves_pawns(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }
 
-void Board::_find_moves_knights(int x, int y) {
+vector<Move>    Board::_find_moves_knights(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }
 
-void Board::_find_moves_bishops(int x, int y) {
+vector<Move>    Board::_find_moves_bishops(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }
 
-void Board::_find_moves_rooks(int x, int y) {
+vector<Move>    Board::_find_moves_rooks(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }
 
-void Board::_find_moves_queens(int x, int y) {
+vector<Move>    Board::_find_moves_queens(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }
 
-void Board::_find_moves_king(int x, int y) {
+vector<Move>    Board::_find_moves_king(int x, int y) {
+    
+    vector<Move> moves;
 
+    return moves;
 }

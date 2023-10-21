@@ -11,5 +11,5 @@ int main()
 
     successCount += mainTestBoard();
 
-    cerr << "[UNITTEST] End: " << successCount << " test were successfull !" << endl;
+    cerr << "[UNITTEST] End: " << successCount << " tests were successfull !" << endl;
 }

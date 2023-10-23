@@ -25,7 +25,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ## Roadmap
 
 - Finish the chess engine with unit tests
-    * Write find_moves methods
+    * Implement Board::find_moves methods
+    * Implement Board::is_end_game() method
 
 ## Project explanations
 

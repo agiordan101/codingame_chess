@@ -10,10 +10,12 @@ int apply_move_validMove_ApplyIt(int testIndex, Board *board, string initial_boa
 
     if (!(*board == requested_board))
     {
-        cerr << "[UNITTEST] Board - apply_move_validMove_ApplyIt() - Test " << testIndex << " - !!! FAILURE !!!" << endl;
-        cerr << "[UNITTEST] Board - apply_move_validMove_ApplyIt() - Test " << testIndex << " - FEN board requested: " << requested_board << endl;
-        board->log();
+        cerr << "\n---------- Board - apply_move_validMove_ApplyIt() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "- Move applied : " << endl;
         move->log();
+        cerr << "\n- Final board : " << endl;
+        board->log();
+        cerr << "\n- Requested FEN : " << requested_board << endl;
         return 0;
     }
 

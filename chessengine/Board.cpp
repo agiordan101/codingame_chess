@@ -20,11 +20,11 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 
 void Board::log() {
     // cerr << "\n\tBoard description " << board << endl;
-    cerr << "\tBoard: Color w=1|b=0: " << player_turn << endl;
-    cerr << "\tBoard: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
-    cerr << "\tBoard: En passant: " << en_passant << endl;
-    cerr << "\tBoard: half_turn_remaning: " << half_turn_remaning << endl;
-    cerr << "\tBoard: game_turn: " << game_turn << endl;
+    cerr << "Board: Color w=1|b=0: " << player_turn << endl;
+    cerr << "Board: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
+    cerr << "Board: En passant: " << en_passant << endl;
+    cerr << "Board: half_turn_remaning: " << half_turn_remaning << endl;
+    cerr << "Board: game_turn: " << game_turn << endl;
     show_board();
 }
 
@@ -115,19 +115,6 @@ int Board::is_end_game()
         return 1;
 
     return 0;
-}
-
-// --- OPERATORS ---
-
-bool    Board::operator ==(string fen_board) {
-
-    Board *test_board = new Board(fen_board, "w", "Ahah", "-", 0, 0);
-
-    for (int y = 0; y < 8; y++)
-        for (int x = 0; x < 8; x++)
-            if (this->board[y][x] != test_board->board[y][x])
-                return false;
-    return true;            
 }
 
 // --- PRIVATE METHODS ---
@@ -238,4 +225,17 @@ vector<Move>    Board::_find_moves_king(int x, int y) {
     vector<Move> moves;
 
     return moves;
+}
+
+// --- OPERATORS ---
+
+bool    Board::operator ==(string fen_board) {
+
+    Board *test_board = new Board(fen_board, "w", "Ahah", "-", 0, 0);
+
+    for (int y = 0; y < 8; y++)
+        for (int x = 0; x < 8; x++)
+            if (this->board[y][x] != test_board->board[y][x])
+                return false;
+    return true;            
 }

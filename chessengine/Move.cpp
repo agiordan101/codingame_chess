@@ -1,5 +1,6 @@
 #include "Move.hpp"
 
+// --- PUBLIC METHODS ---
 
 Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant)
 {
@@ -21,6 +22,8 @@ void Move::log() {
     cout << "Move: Promote to " << this->promotion << endl;
     cout << "Move: En passant ? - " << this->en_passant << endl;
 }
+
+// --- OPERATORS ---
 
 bool Move::operator==(const Move &other)
 {

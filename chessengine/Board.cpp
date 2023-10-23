@@ -19,12 +19,13 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
-    cerr << "\n\tChessBot: Board description " << board << endl;
-    cerr << "\tChessBot: Board: Color w=1|b=0: " << player_turn << endl;
-    cerr << "\tChessBot: Board: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
-    cerr << "\tChessBot: Board: En passant: " << en_passant << endl;
-    cerr << "\tChessBot: Board: half_turn_remaning: " << half_turn_remaning << endl;
-    cerr << "\tChessBot: Board: game_turn: " << game_turn << endl;
+    // cerr << "\n\tBoard description " << board << endl;
+    cerr << "\tBoard: Color w=1|b=0: " << player_turn << endl;
+    cerr << "\tBoard: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
+    cerr << "\tBoard: En passant: " << en_passant << endl;
+    cerr << "\tBoard: half_turn_remaning: " << half_turn_remaning << endl;
+    cerr << "\tBoard: game_turn: " << game_turn << endl;
+    show_board();
 }
 
 void Board::show_board() {
@@ -46,34 +47,6 @@ void Board::reset_board(string new_fen_board) {
 
     // cerr << "Reset board to fen: " << _fen_board << endl;
     _parse_board(_fen_board);
-}
-
-void Board::apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
-
-    board[dst_y][dst_x] = board[src_y][src_x];
-    board[src_y][src_x] = 0;
-    if (castle)
-    {
-        // Rook move
-        int side = dst_x < src_x ? -1 : 1;
-        int x;
-        for (x = dst_x; 0 <= x && x < 8; x += side)
-            if (toupper(board[dst_y][x]) == 'R')
-                break ;
-
-        board[dst_y][dst_x - side] = board[dst_y][x];
-        board[dst_y][x] = 0;
-    }
-    else if (promotion)
-    {
-        // Promote the pawn (toupper necesary ? We'll see...)
-        board[dst_y][dst_x] = board[dst_y][dst_x] > 'a' ? tolower(promotion) : toupper(promotion);
-    }
-    else if (en_passant)
-    {
-        // Eat the pawn
-        board[src_y][dst_x] = 0;
-    }
 }
 
 vector<Move> Board::find_moves() {
@@ -127,7 +100,21 @@ vector<Move> Board::find_moves() {
         }
     }
 
+    this->available_moves = moves;
     return moves;
+}
+
+void Board::apply_move(Move move)
+{
+    return _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
+}
+
+int Board::is_end_game()
+{
+    if (available_moves.size() == 0)
+        return 1;
+
+    return 0;
 }
 
 // --- OPERATORS ---
@@ -181,6 +168,34 @@ void Board::_parse_castling(string castling_fen)
     }
     memcpy(castles, _castles, sizeof(int) * 4);
     // cerr << "Castle parsing end for: " << castling_fen << endl;
+}
+
+void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
+
+    board[dst_y][dst_x] = board[src_y][src_x];
+    board[src_y][src_x] = 0;
+    if (castle)
+    {
+        // Rook move
+        int side = dst_x < src_x ? -1 : 1;
+        int x;
+        for (x = dst_x; 0 <= x && x < 8; x += side)
+            if (toupper(board[dst_y][x]) == 'R')
+                break ;
+
+        board[dst_y][dst_x - side] = board[dst_y][x];
+        board[dst_y][x] = 0;
+    }
+    else if (promotion)
+    {
+        // Promote the pawn (toupper necesary ? We'll see...)
+        board[dst_y][dst_x] = board[dst_y][dst_x] > 'a' ? tolower(promotion) : toupper(promotion);
+    }
+    else if (en_passant)
+    {
+        // Eat the pawn
+        board[src_y][dst_x] = 0;
+    }
 }
 
 vector<Move>    Board::_find_moves_pawns(int x, int y) {

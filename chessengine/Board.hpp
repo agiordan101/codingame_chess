@@ -18,8 +18,8 @@ class Board {
     string      en_passant;
     int         half_turn_remaning;
     int         game_turn;
-    Move        moves[100];
-    int         moves_count;
+
+    vector<Move>    available_moves;
 
     public:
 
@@ -29,7 +29,8 @@ class Board {
         void    reset_board(string new_fen_board);
 
         vector<Move>    find_moves();
-        void    apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant);
+        void    apply_move(Move move);
+        int     is_end_game();
         
         bool    operator ==(string fen_board);
 
@@ -38,7 +39,9 @@ class Board {
         string  _fen_board; 
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
-        
+
+        void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant);
+
         vector<Move>    _find_moves_pawns(int x, int y);
         vector<Move>    _find_moves_knights(int x, int y);
         vector<Move>    _find_moves_bishops(int x, int y);

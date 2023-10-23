@@ -12,15 +12,23 @@ int main()
     
     Board *board = new Board(fen_board, color, castling, en_passant, half_move_clock, full_move);
 
-    vector<Move> moves = board->find_moves();
-
-    cout << "Move available count: " << moves.size() << endl;
-    for(Move m : moves)
+    cout << "Start 10 random move from available ones ..." << endl;
+    for (int i = 0; i < 10; i++)
     {
-        cout << "Move src_x = " << m.src_x << endl;
-        cout << "Move src_y = " << m.src_y << endl;
-        cout << "Move dst_x = " << m.dst_x << endl;
-        cout << "Move dst_y = " << m.dst_y << endl;
-        cout << endl;
-    } 
+        vector<Move> moves = board->find_moves();
+
+        cout << "Turn " << i << " - Move available count: " << moves.size() << endl;
+        for(Move m : moves)
+        {
+            cout << endl;
+        } 
+
+        if (board->is_end_game())
+            break;
+
+        Move move = moves[rand() % 10];
+        board->apply_move(move);
+
+        board->log();
+    }
 }

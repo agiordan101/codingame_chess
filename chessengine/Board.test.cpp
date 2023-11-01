@@ -1,21 +1,23 @@
 #include "Board.hpp"
 
-int apply_move_validMove_ApplyIt(int testIndex, Board *board, string initial_board, string requested_board, Move* move)
+#pragma region apply_move
+
+int apply_move_validMove_ApplyIt(int testIndex, Board *board, string initial_fen, string requested_fen, Move* move)
 {
-    board->reset_board(initial_board);
+    board->reset_board(initial_fen);
     // board->show_board();
 
     board->apply_move(*move);
     // board->show_board();
 
-    if (!(*board == requested_board))
+    if (!(*board == requested_fen))
     {
         cerr << "\n---------- Board - apply_move_validMove_ApplyIt() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
         cerr << "- Move applied : " << endl;
         move->log();
         cerr << "\n- Final board : " << endl;
         board->log();
-        cerr << "\n- Requested FEN : " << requested_board << endl;
+        cerr << "\n- Requested FEN : " << requested_fen << endl;
         return 0;
     }
 
@@ -146,8 +148,80 @@ int apply_move_testLauncher(Board *board)
     return successCount;
 }
 
+#pragma endregion apply_move
+
+#pragma region find_moves
+
+int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, string initial_fen, Move *requested_moves, int move_count)
+{
+    // Arrange
+    board->reset_board(initial_fen);
+
+    // Act
+    vector<Move> moves_found = board->find_moves();
+
+    // Assert
+    bool success = true;
+    for (int i = 0; i < move_count; i++)
+    {
+        // Assert the requested move was found by the engine
+        bool isfound = false;
+        for (Move move_f : moves_found)
+        {
+            if (requested_moves[i] == move_f)
+                isfound = true;
+        }
+
+        if (!isfound)
+        {
+            if (success)
+                cerr << "\n---------- Board - find_moves_RegularCases_FindAllMoves() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+
+            cerr << "- This requested move wasn't found by the engine : " << endl;
+            requested_moves[i].log();
+            success = false;
+        }
+    }
+
+    return success ? 1 : 0;
+}
+
+int find_moves_testLauncher(Board *board)
+{
+    int success_count = 0;
+    Move requested_moves[2] = {};
+
+    // No piece -> No moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        0,
+        board,
+        "8/8/8/8/8/8/8/8",
+        requested_moves,
+        0
+    );
+
+    // Pawn tests - White move - Regular
+    // requested_moves[0] = Move(0, 0, 0, 0, false, false, false);
+    // success_count += find_moves_RegularCases_FindAllMoves(
+    //     0,
+    //     board,
+    //     "8/p7/8/8/8/8/8/8",
+    //     requested_moves,
+    //     1
+    // );
+
+    // Pawn tests - Black move - Regular
+    // Pawn tests - White move - 2 cells advance
+    // Pawn tests - Black move - 2 cells advance
+
+    return success_count;
+}
+
+#pragma endregion find_moves
+
 int mainTestBoard()
 {
+    // Default random values
     int successCount = 0;
     string fen_board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     string color = "w";
@@ -159,6 +233,7 @@ int mainTestBoard()
     Board *board = new Board(fen_board, color, castling, en_passant, half_move_clock, full_move);
 
     successCount += apply_move_testLauncher(board);
+    successCount += find_moves_testLauncher(board);
 
     return successCount;
 }

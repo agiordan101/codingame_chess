@@ -200,7 +200,6 @@ int find_moves_testLauncher(Board *board)
         0
     );
 
-    // Pawn tests - White move - Regular
     // requested_moves[0] = Move(0, 0, 0, 0, false, false, false);
     // success_count += find_moves_RegularCases_FindAllMoves(
     //     0,
@@ -210,9 +209,23 @@ int find_moves_testLauncher(Board *board)
     //     1
     // );
 
-    // Pawn tests - Black move - Regular
-    // Pawn tests - White move - 2 cells advance
-    // Pawn tests - Black move - 2 cells advance
+    // White - Pawn tests - Return all Regular moves (6/8) (2 blocked due to 2 opponent pieces)
+    // White - Pawn tests - Return all Captures left and right (10/14) (4 blocked due to 2 opponent pieces)
+    // White - Pawn tests - Return all possible 2 cells advance (4) (4 blocked due to 4 opponent pieces)
+    // White - Pawn tests - Return all promotions (32)
+
+    // White - Knight tests - 1 in the center Return all Regular move (8) (With obstacles)
+    // White - Knight tests - 4 on edges      Return all Regular move (6/8) (2 blocked due to 2 opponent pieces)
+
+    // White - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
+    // White - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
+    // White - Queen tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+
+    // White - King tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+
+    // White - Check tests - King cannot move on a threated cell (By all other pieces)
+    // White - Check tests - Pieces cannot moves if the king get checked
+    // White - Other tests - No move found (Stale mate)
 
     return success_count;
 }

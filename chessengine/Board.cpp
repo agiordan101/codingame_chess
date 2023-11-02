@@ -240,6 +240,13 @@ void Board::_parse_en_passant(string _en_passant)
     en_passant_y = -1;
 }
 
+void Board::_parse_en_passant(string _en_passant)
+{
+    en_passant = _en_passant;
+    en_passant_x = -1;
+    en_passant_y = -1;
+}
+
 void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
 
     board[dst_y][dst_x] = board[src_y][src_x];

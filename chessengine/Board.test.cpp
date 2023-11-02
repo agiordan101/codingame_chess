@@ -152,7 +152,29 @@ int apply_move_testLauncher(Board *board)
 
 #pragma region find_moves
 
-int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, string initial_fen, Move *requested_moves, int move_count)
+bool is_move_in_movelst(Move *move, vector<Move> movelst)
+{
+    for (Move move_f : movelst)
+    {
+        if (*move == move_f)
+            return true;
+    }
+
+    return false;
+}
+
+bool is_move_in_movelst(Move move, Move *movelst, int move_count)
+{
+    for (int i = 0; i < move_count; i++)
+    {
+        if (move == movelst[i])
+            return true;
+    }
+
+    return false;
+}
+
+int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, string initial_fen, Move *requested_moves, int requested_moves_count)
 {
     // Arrange
     board->reset_board(initial_fen);
@@ -160,25 +182,37 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, string ini
     // Act
     vector<Move> moves_found = board->find_moves();
 
-    // Assert
+    // Assert all requested moves were found by the engine
     bool success = true;
-    for (int i = 0; i < move_count; i++)
+    for (int i = 0; i < requested_moves_count; i++)
     {
-        // Assert the requested move was found by the engine
-        bool isfound = false;
-        for (Move move_f : moves_found)
-        {
-            if (requested_moves[i] == move_f)
-                isfound = true;
-        }
-
-        if (!isfound)
+        if (!is_move_in_movelst(&(requested_moves[i]), moves_found))
         {
             if (success)
+            {
                 cerr << "\n---------- Board - find_moves_RegularCases_FindAllMoves() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+                board->log();
+            }
 
             cerr << "- This requested move wasn't found by the engine : " << endl;
             requested_moves[i].log();
+            success = false;
+        }
+    }
+
+    // Assert all moves found by the engine are requested
+    for (int i = 0; i < moves_found.size(); i++)
+    {
+        if (!is_move_in_movelst(moves_found[i], requested_moves, requested_moves_count))
+        {
+            if (success)
+            {
+                cerr << "\n---------- Board - find_moves_RegularCases_FindAllMoves() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+                board->log();
+            }
+
+            cerr << "- This move found by the engine isn't requested : " << endl;
+            moves_found[i].log();
             success = false;
         }
     }
@@ -189,7 +223,112 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, string ini
 int find_moves_testLauncher(Board *board)
 {
     int success_count = 0;
-    Move requested_moves[2] = {};
+    Move requested_moves[10] = {};
+
+    // 0 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
+    // Set turn to white
+    requested_moves[0] = Move(0, 2, 1, 1, false, false, false); // White left pawn captures
+    requested_moves[1] = Move(1, 3, 1, 2, false, false, false); // White left pawn advance 1
+    requested_moves[2] = Move(6, 6, 6, 5, false, false, false); // White right pawn advance 1 but not 2
+    requested_moves[3] = Move(6, 6, 5, 5, false, false, false); // White right pawn captures
+    requested_moves[4] = Move(7, 6, 7, 5, false, false, false); // White right pawn advance 1
+    requested_moves[5] = Move(7, 6, 7, 4, false, false, false); // White right pawn advance 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        0,
+        board,
+        "8/ppp5/P7/1P6/6p1/5p2/5PPP/8",
+        requested_moves,
+        6
+    );
+
+    // 1 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
+    // Set turn to black
+    requested_moves[0] = Move(1, 1, 1, 2, false, false, false); // Black left pawn advance 1 but not 2
+    requested_moves[1] = Move(1, 1, 0, 2, false, false, false); // Black left pawn captures
+    requested_moves[2] = Move(2, 1, 2, 2, false, false, false); // Black left pawn advance 1
+    requested_moves[3] = Move(2, 1, 2, 3, false, false, false); // Black left pawn advance 2
+    requested_moves[4] = Move(5, 5, 6, 6, false, false, false); // Black right pawn captures
+    requested_moves[5] = Move(6, 4, 6, 5, false, false, false); // Black right pawn advance 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        1,
+        board,
+        "8/ppp5/P7/1P6/6p1/5p2/5PPP/8",
+        requested_moves,
+        6
+    );
+
+    // 2 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
+    // Set turn to white
+    requested_moves[0] = Move(0, 2, 1, 1, false, false, false); // White right capture
+    requested_moves[1] = Move(2, 2, 1, 1, false, false, false); // White left capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        2,
+        board,
+        "8/1p6/P1P5/1p6/8/8/8/8",
+        requested_moves,
+        2
+    );
+
+
+    // 3 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
+    // Set turn to black
+    requested_moves[0] = Move(1, 1, 0, 2, false, false, false); // Black left capture
+    requested_moves[1] = Move(1, 1, 2, 2, false, false, false); // Black right capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        2,
+        board,
+        "8/1p6/P1P5/1p6/8/8/8/8",
+        requested_moves,
+        2
+    );
+
+    // 4 - Pawn tests - Return "en passant" black capture left
+    // Set turn to black
+    board->en_passant_x = 1;
+    board->en_passant_y = 2;
+    requested_moves[0] = Move(2, 3, 1, 2, false, false, false); // Black en passant
+    success_count += find_moves_RegularCases_FindAllMoves(
+        2,
+        board,
+        "8/8/8/1pP5/8/8/8/8",
+        requested_moves,
+        1
+    );
+
+    // 4 - Pawn tests - Return "en passant" black capture right
+    // Set turn to white
+    board->en_passant_x = 3;
+    board->en_passant_y = 2;
+    requested_moves[0] = Move(2, 3, 3, 2, false, false, false); // White en passant
+    success_count += find_moves_RegularCases_FindAllMoves(
+        2,
+        board,
+        "8/8/8/2Pp4/8/8/8/8",
+        requested_moves,
+        1
+    );
+
+    // Reset en_passant
+    board->en_passant_x = -1;
+    board->en_passant_y = -1;
+
+    // For both sides - Pawn tests - Return "en passant" white capture left
+    // For both sides - Pawn tests - Return "en passant" white capture right
+    // For both sides - Pawn tests - Return all possible  
+    // For both sides - Pawn tests - Return all promotions (32)
+
+    // For both sides - Knight tests - 1 in the center Return all Regular move (8) (With obstacles)
+    // For both sides - Knight tests - 4 on edges      Return all Regular move (6/8) (2 blocked due to 2 opponent pieces)
+
+    // For both sides - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
+    // For both sides - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
+    // For both sides - Queen tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+
+    // For both sides - King tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+
+    // For both sides - Check tests - King cannot move on a threated cell (By all other pieces)
+    // For both sides - Check tests - Pieces cannot moves if the king get checked
+    // For both sides - Other tests - No move found (Stale mate)
 
     // No piece -> No moves
     success_count += find_moves_RegularCases_FindAllMoves(
@@ -199,33 +338,6 @@ int find_moves_testLauncher(Board *board)
         requested_moves,
         0
     );
-
-    // requested_moves[0] = Move(0, 0, 0, 0, false, false, false);
-    // success_count += find_moves_RegularCases_FindAllMoves(
-    //     0,
-    //     board,
-    //     "8/p7/8/8/8/8/8/8",
-    //     requested_moves,
-    //     1
-    // );
-
-    // White - Pawn tests - Return all Regular moves (6/8) (2 blocked due to 2 opponent pieces)
-    // White - Pawn tests - Return all Captures left and right (10/14) (4 blocked due to 2 opponent pieces)
-    // White - Pawn tests - Return all possible 2 cells advance (4) (4 blocked due to 4 opponent pieces)
-    // White - Pawn tests - Return all promotions (32)
-
-    // White - Knight tests - 1 in the center Return all Regular move (8) (With obstacles)
-    // White - Knight tests - 4 on edges      Return all Regular move (6/8) (2 blocked due to 2 opponent pieces)
-
-    // White - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
-    // White - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
-    // White - Queen tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
-
-    // White - King tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
-
-    // White - Check tests - King cannot move on a threated cell (By all other pieces)
-    // White - Check tests - Pieces cannot moves if the king get checked
-    // White - Other tests - No move found (Stale mate)
 
     return success_count;
 }
@@ -239,7 +351,7 @@ int mainTestBoard()
     string fen_board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     string color = "w";
     string castling = "ahAH";
-    string en_passant = "e2e4";
+    string en_passant = "-";
     int half_move_clock = 0;
     int full_move = 1;
     

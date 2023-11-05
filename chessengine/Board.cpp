@@ -2,7 +2,7 @@
 
 // --- PUBLIC METHODS ---
 
-Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_move_clock, int _full_move) {
+Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move) {
     /*  
         White - upper case
         Black - lower case
@@ -10,20 +10,20 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
     */
     _fen_board = _board;
     _parse_board(_board);
-    player_turn = _color == "w" ? 1 : -1;
-    lower_case_pieces = _color == "b";
+    white_turn = _color == "w";
     _parse_castling(_castling);
-    en_passant = _en_passant;
-    half_turn_remaning = _half_move_clock;
+    _parse_en_passant(_en_passant);
+    half_turn_rule = _half_turn_rule;
     game_turn = _full_move;
 }
 
 void Board::log() {
     // cerr << "\n\tBoard description " << board << endl;
-    cerr << "Board: Color w=1|b=0: " << player_turn << endl;
-    cerr << "Board: Castling: w " << castles[0] << " | " << castles[1] << " | b " << castles[2] << " | " << castles[3] << endl;
-    cerr << "Board: En passant: " << en_passant << endl;
-    cerr << "Board: half_turn_remaning: " << half_turn_remaning << endl;
+    cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
+    cerr << "Board: Castling: w " << castles[0] << " | w " << castles[1] << " | b " << castles[2] << " | b " << castles[3] << endl;
+    cerr << "Board: Kings initial columns: w " << kings_initial_columns[0] << " - b " << kings_initial_columns[1] << endl;
+    cerr << "Board: En passant: Available=" << en_passant_available << " Coordonates= " << en_passant_x << " " << en_passant_y << endl;
+    cerr << "Board: half_turn_rule: " << half_turn_rule << endl;
     cerr << "Board: game_turn: " << game_turn << endl;
     show_board();
 }
@@ -66,12 +66,12 @@ vector<Move> Board::find_moves() {
                 continue ;
 
             // Only consider our own pieces
-            if (lower_case_pieces)
+            if (white_turn)
             {
-                if (isupper(piece_letter))
+                if (islower(piece_letter))
                     continue;
             }
-            else if (islower(piece_letter))
+            else if (isupper(piece_letter))
                 continue;
 
             switch (tolower(piece_letter))
@@ -100,6 +100,8 @@ vector<Move> Board::find_moves() {
         }
     }
 
+    moves.push_back(Move());
+
     this->available_moves = moves;
     return moves;
 }
@@ -109,10 +111,70 @@ void Board::apply_move(Move move)
     return _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
 }
 
+void Board::next_turn() {
+
+    white_turn = !white_turn;
+    half_turn_rule += 1;
+    game_turn += 1;
+
+    if (en_passant_x != -1)
+    {
+        if (en_passant_available)
+        {
+            // Disable en passant if it was available on this turn
+            en_passant_available = false;
+            en_passant_x = -1;
+            en_passant_y = -1;
+        }
+        else
+        {
+            // Set the en passant available if coordonates were just set in this turn
+            en_passant_available = true;
+        }
+    }
+
+    // Disable white castles if they are still available
+    if (castles[0] != -1 || castles[1] != -1)
+    {
+        // Disable player castle if its king moves
+        if (board[kings_initial_columns[0]][7] != 'K')
+        {
+            castles[0] = -1;
+            castles[1] = -1;
+        }
+
+        // Disable side castles if the rook moves
+        if (castles[0] != -1 && board[castles[0]][7] != 'R')
+            castles[0] = -1;
+        if (castles[1] != -1 && board[castles[1]][7] != 'R')
+            castles[1] = -1;
+    }
+
+    // Disable black castles if they are still available
+    if (castles[2] != -1 || castles[3] != -1)
+    {
+        // Disable player castle if its king moves
+        if (board[kings_initial_columns[1]][0] != 'K')
+        {
+            castles[2] = -1;
+            castles[3] = -1;
+        }
+
+        // Disable side castles if the rook moves
+        if (castles[2] != -1 && board[castles[2]][0] != 'r')
+            castles[2] = -1;
+        if (castles[3] != -1 && board[castles[3]][0] != 'r')
+            castles[3] = -1;
+    }
+}
+
 int Board::is_end_game()
 {
     if (available_moves.size() == 0)
         return 1;
+
+    //Implement all weird rules
+    // 50 half turns etc...
 
     return 0;
 }
@@ -154,7 +216,22 @@ void Board::_parse_castling(string castling_fen)
             _castles[2 + black_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
     }
     memcpy(castles, _castles, sizeof(int) * 4);
-    // cerr << "Castle parsing end for: " << castling_fen << endl;
+    
+    // Find kings initial columns
+    for (int i = 0; i < 8; i++)
+    {
+        if (board[i][0] == 'k')
+            kings_initial_columns[0] = i;
+        if (board[i][7] == 'K')
+            kings_initial_columns[1] = i;
+    }
+}
+
+void Board::_parse_en_passant(string _en_passant)
+{
+    en_passant_available = false;
+    en_passant_x = -1;
+    en_passant_y = -1;
 }
 
 void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
@@ -183,12 +260,24 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
         // Eat the pawn
         board[src_y][dst_x] = 0;
     }
+
+    // Only when a pawn jump two cells
+    if (en_passant)
+    {
+        // Save coordinates where the opponent pawn could take it
+        en_passant_x = dst_x;
+        en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
+    }
+
+    next_turn();
 }
 
 vector<Move>    Board::_find_moves_pawns(int x, int y) {
     
     vector<Move> moves;
 
+    // Don't forget to set en_passant boolean at true when a pawn jump two cells
+    
     return moves;
 }
 

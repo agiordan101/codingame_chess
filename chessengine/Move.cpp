@@ -2,6 +2,17 @@
 
 // --- PUBLIC METHODS ---
 
+Move::Move()
+{
+    this->src_x = 0;
+    this->src_y = 0;
+    this->dst_x = 0;
+    this->dst_y = 0;
+    this->castle = false;
+    this->promotion = '_';
+    this->en_passant = false;
+}
+
 Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant)
 {
     this->src_x = _src_x;

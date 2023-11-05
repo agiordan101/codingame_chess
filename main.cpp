@@ -15,18 +15,16 @@ int main()
     cout << "Start 10 random move from available ones ..." << endl;
     for (int i = 0; i < 10; i++)
     {
-        vector<Move> moves = board->find_moves();
-
-        cout << "Turn " << i << " - Move available count: " << moves.size() << endl;
-        for(Move m : moves)
-        {
-            cout << endl;
-        } 
-
         if (board->is_end_game())
             break;
 
+        vector<Move> moves = board->find_moves();
+        cout << "Turn " << i << " - Move available count: " << moves.size() << endl;
+
         Move move = moves[rand() % 10];
+        cout << "Turn " << i << " - Move chose: " << endl;
+        move.log();
+
         board->apply_move(move);
 
         board->log();

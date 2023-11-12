@@ -31,13 +31,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         1,
         new Board("8/p7/8/8/8/8/8/8 b - - 0 1"),
-        new Board("8/8/p7/8/8/8/8/8 w - - 0 1"),
+        new Board("8/8/p7/8/8/8/8/8 w - - 1 2"),
         new Move(0, 1, 0, 2, false, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         2,
         new Board("8/1p6/8/8/8/8/8/8 b - - 0 1"),
-        new Board("8/8/8/1p6/8/8/8/8 w - - 0 1"),
+        new Board("8/8/8/1p6/8/8/8/8 w - - 1 2"),
         new Move(1, 1, 1, 3, false, 0, false)
     );
 
@@ -45,13 +45,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         3,
         new Board("8/8/8/8/8/8/4P3/8 w - - 0 1"),
-        new Board("8/8/8/8/8/4P3/8/8 b - - 0 1"),
+        new Board("8/8/8/8/8/4P3/8/8 b - - 1 1"),
         new Move(4, 6, 4, 5, false, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         4,
         new Board("8/8/8/8/8/8/8/3Q4 w - - 0 1"),
-        new Board("8/8/8/8/6Q1/8/8/8 b - - 0 1"),
+        new Board("8/8/8/8/6Q1/8/8/8 b - - 1 1"),
         new Move(3, 7, 6, 4, false, 0, false)
     );
 
@@ -59,13 +59,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         5,
         new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1"),
-        new Board("2kr4/8/8/8/8/8/8/8 w - - 0 1"),
+        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2"),
         new Move(4, 0, 2, 0, true, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         6,
         new Board("4k2r/8/8/8/8/8/8/8 b h - 0 1"),
-        new Board("5rk1/8/8/8/8/8/8/8 w - - 0 1"),
+        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2"),
         new Move(4, 0, 6, 0, true, 0, false)
     );
 
@@ -73,13 +73,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         7,
         new Board("8/8/8/8/8/8/8/R3K3 w A - 0 1"),
-        new Board("8/8/8/8/8/8/8/2KR4 b - - 0 1"),
+        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1"),
         new Move(4, 7, 2, 7, true, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         8,
         new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
-        new Board("8/8/8/8/8/8/8/5RK1 b - - 0 1"),
+        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
         new Move(4, 7, 6, 7, true, 0, false)
     );
 
@@ -87,13 +87,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         9,
         new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
-        new Board("5Q2/8/8/8/8/8/8/8 b - - 0 1"),
+        new Board("5Q2/8/8/8/8/8/8/8 b - - 1 1"),
         new Move(5, 1, 5, 0, false, 'Q', false)
     );
     successCount += apply_move_validMove_ApplyIt(
         10,
         new Board("8/3P4/8/8/8/8/8/8 w - - 0 1"),
-        new Board("3N4/8/8/8/8/8/8/8 b - - 0 1"),
+        new Board("3N4/8/8/8/8/8/8/8 b - - 1 1"),
         new Move(3, 1, 3, 0, false, 'N', false)
     );
 
@@ -102,13 +102,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         11,
         new Board("8/8/8/8/8/8/5p2/8 b - - 0 1"),
-        new Board("8/8/8/8/8/8/8/5r2 w - - 0 1"),
+        new Board("8/8/8/8/8/8/8/5r2 w - - 1 2"),
         new Move(5, 6, 5, 7, false, 'r', false)
     );
     successCount += apply_move_validMove_ApplyIt(
         12,
         new Board("8/8/8/8/8/8/3p4/8 b - - 0 1"),
-        new Board("8/8/8/8/8/8/8/3b4 w - - 0 1"),
+        new Board("8/8/8/8/8/8/8/3b4 w - - 1 2"),
         new Move(3, 6, 3, 7, false, 'b', false)
     );
 
@@ -117,13 +117,13 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         13,
         new Board("8/8/8/4pP2/8/8/8/8 w - - 0 1"),
-        new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
+        new Board("8/8/4P3/8/8/8/8/8 b - b6 1 1"),
         new Move(5, 3, 4, 2, false, 0, true)
     );
     successCount += apply_move_validMove_ApplyIt(
         14,
         new Board("8/8/8/8/2pP4/8/8/8 w - - 0 1"),
-        new Board("8/8/8/8/8/3p4/8/8 b - - 0 1"),
+        new Board("8/8/8/8/8/3p4/8/8 b - d6 1 1"),
         new Move(2, 4, 3, 5, false, 0, true)
     );
 

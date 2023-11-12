@@ -349,12 +349,35 @@ vector<Move>    Board::_find_moves_king(int x, int y) {
 
 bool    Board::operator ==(Board *test_board) {
 
+    // Test equalities on all FEN data
+
+    // Board pieces equality
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)
             if (this->board[y][x] != test_board->board[y][x])
                 return false;
+
+    // Turn equality
+    if (this->white_turn != test_board->white_turn)
+            return false;
     
-    // Implement other tests on class member
+    // Catling rights equality
+    for (int i = 0; i < 4; i++)
+        if (this->castles[i] != test_board->castles[i])
+            return false;
+
+    // En passant equality
+    if (this->en_passant_x != test_board->en_passant_x ||
+        this->en_passant_y != test_board->en_passant_y)
+            return false;
+
+    // Half turn since last capture
+    if (this->half_turn_rule != test_board->half_turn_rule)
+            return false;
+
+    // Game turn
+    if (this->game_turn != test_board->game_turn)
+            return false;
 
     return true;            
 }

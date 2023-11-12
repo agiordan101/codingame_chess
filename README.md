@@ -24,20 +24,27 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Create public functions that test the egality of things Board::is_*_identical(Board *board)
-    - (All of them could be reused to create the "==" operator)
-* Fully implement Create new operator obj == obj
-* Create a static UCI class
-    - Move -> UCI
-    - UCI -> Move
-    - Posision -> UCI
-    - UCI -> Posision
-* Parse en passant UCI representation from FEN
+* Create static notation class
+    - Algebraic notation -> Coordonates : En passant
+    - Coordonates - > Algebraic notation : En passant
+    - Move -> UCI notation : Display out the best move
+    - UCI notation -> Move : Receive a move (Not required)
+* Parse en passant (UCI) from FEN
 * Implement Move::display_UCI() method
 * Board::next_turn() unit tests
-* Board::Board() unit tests
 * Implement Board::find_moves() methods
 * Implement Board::is_end_game() method
+
+* Rules to implement :
+    - Stalemate, while a player isn't under check and no legal move exist. (Pretty much the same as checkmate)
+    - Threefold Repetition.
+    - Fifty-Move rule.
+    - Draw by agreement
+    - Insufficient material, This includes:
+        - King vs king
+        - King+knight vs king
+        - King+bishop vs king
+        - King+bishop vs king+bishop if both bishops are on the same square color.
 
 ## Project explanations
 

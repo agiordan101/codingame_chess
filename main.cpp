@@ -2,15 +2,8 @@
 
 int main()
 {
-    int successCount = 0;
-    string fen_board = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    string color = "w";
-    string castling = "ahAH";
-    string en_passant = "-";
-    int half_move_clock = 0;
-    int full_move = 1;
-    
-    Board *board = new Board(fen_board, color, castling, en_passant, half_move_clock, full_move);
+    // Board *board = new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
+    Board *board = new Board();
     board->log();
 
     int nbMove = 1;

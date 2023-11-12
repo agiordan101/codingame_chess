@@ -2,19 +2,28 @@
 
 // --- PUBLIC METHODS ---
 
-Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move) {
-    /*  
-        White - upper case
-        Black - lower case
-        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1
-    */
-    _fen_board = _board;
-    _parse_board(_board);
-    white_turn = _color == "w";
-    _parse_castling(_castling);
-    _parse_en_passant(_en_passant);
-    half_turn_rule = _half_turn_rule;
-    game_turn = _full_move;
+Board::Board(string _fen) {
+    
+    stringstream ss(_fen);
+    string board;
+    string color;
+    string castling;
+    string en_passant;
+    string half_turn_rule;
+    string game_turn;
+
+    getline(ss, board, ' ');
+    getline(ss, color, ' ');
+    getline(ss, castling, ' ');
+    getline(ss, en_passant, ' ');
+    getline(ss, half_turn_rule, ' ');
+    getline(ss, game_turn, ' ');
+
+    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn));
+}
+
+Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn) {
+    _main_parsing(_board, _color, _castling, _en_passant, half_turn_rule, game_turn);
 }
 
 void Board::log() {
@@ -38,15 +47,6 @@ void Board::show_board() {
         cerr << endl;
     }
     cerr << " ---------------" << endl;
-}
-
-void Board::reset_board(string new_fen_board) {
-
-    if (!new_fen_board.empty())
-        _fen_board = new_fen_board;
-
-    // cerr << "Reset board to fen: " << _fen_board << endl;
-    _parse_board(_fen_board);
 }
 
 vector<Move> Board::find_moves() {
@@ -113,9 +113,12 @@ void Board::apply_move(Move move)
 
 void Board::next_turn() {
 
+    // game turn increment after black turn
+    if (!white_turn)
+        game_turn += 1;
+
     white_turn = !white_turn;
     half_turn_rule += 1;
-    game_turn += 1;
 
     if (en_passant_x != -1)
     {
@@ -181,6 +184,16 @@ int Board::is_end_game()
 
 // --- PRIVATE METHODS ---
 
+void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn)
+{
+    _parse_board(_board);
+    white_turn = _color == "w";
+    _parse_castling(_castling);
+    _parse_en_passant(_en_passant);
+    half_turn_rule = _half_turn_rule;
+    game_turn = _game_turn;
+}
+
 void Board::_parse_board(string fen_board) {
 
     int cell_i = 0;
@@ -205,11 +218,16 @@ void Board::_parse_board(string fen_board) {
 
 void Board::_parse_castling(string castling_fen)
 {
-    int white_castles_i = 0;
-    int black_castles_i = 0;
+    memset(castles, -1, sizeof(int) * 4);
+    memset(kings_initial_columns, -1, sizeof(int) * 2);
+
+    // '-' means that no castling are available
+    if (castling_fen == "-")
+        return ;
 
     // Parse castling fen 'ahAH' into 0707 for example
-    memset(castles, -1, sizeof(int) * 4);
+    int white_castles_i = 0;
+    int black_castles_i = 0;
     for (int i = 0; i < castling_fen.length(); i++)
     {
         if (islower(castling_fen[i]))
@@ -221,7 +239,6 @@ void Board::_parse_castling(string castling_fen)
     //     cout << "Castle parsing " << castles[i] << endl;
 
     // Find kings initial column indexes
-    memset(kings_initial_columns, -1, sizeof(int) * 2);
     for (int i = 0; i < 8; i++)
     {
         if (board[7][i] == 'K')
@@ -240,14 +257,7 @@ void Board::_parse_en_passant(string _en_passant)
     en_passant_y = -1;
 }
 
-void Board::_parse_en_passant(string _en_passant)
-{
-    en_passant = _en_passant;
-    en_passant_x = -1;
-    en_passant_y = -1;
-}
-
-void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, int promotion, bool en_passant) {
+void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant) {
 
     board[dst_y][dst_x] = board[src_y][src_x];
     board[src_y][src_x] = 0;
@@ -265,8 +275,8 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     }
     else if (promotion)
     {
-        // Promote the pawn (toupper necesary ? We'll see...)
-        board[dst_y][dst_x] = board[dst_y][dst_x] > 'a' ? tolower(promotion) : toupper(promotion);
+        // Promote the pawn : A valid piece must have been created in find_move
+        board[dst_y][dst_x] = promotion;
     }
     else if (en_passant)
     {
@@ -331,13 +341,14 @@ vector<Move>    Board::_find_moves_king(int x, int y) {
 
 // --- OPERATORS ---
 
-bool    Board::operator ==(string fen_board) {
-
-    Board *test_board = new Board(fen_board, "w", "Ahah", "-", 0, 0);
+bool    Board::operator ==(Board *test_board) {
 
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)
             if (this->board[y][x] != test_board->board[y][x])
                 return false;
+    
+    // Implement other tests on class member
+
     return true;            
 }

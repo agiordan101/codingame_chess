@@ -137,16 +137,16 @@ void Board::next_turn() {
     if (castles[0] != -1 || castles[1] != -1)
     {
         // Disable player castle if its king moves
-        if (board[kings_initial_columns[0]][7] != 'K')
+        if (board[7][kings_initial_columns[0]] != 'K')
         {
             castles[0] = -1;
             castles[1] = -1;
         }
 
         // Disable side castles if the rook moves
-        if (castles[0] != -1 && board[castles[0]][7] != 'R')
+        if (castles[0] != -1 && board[7][castles[0]] != 'R')
             castles[0] = -1;
-        if (castles[1] != -1 && board[castles[1]][7] != 'R')
+        if (castles[1] != -1 && board[7][castles[1]] != 'R')
             castles[1] = -1;
     }
 
@@ -154,16 +154,16 @@ void Board::next_turn() {
     if (castles[2] != -1 || castles[3] != -1)
     {
         // Disable player castle if its king moves
-        if (board[kings_initial_columns[1]][0] != 'K')
+        if (board[0][kings_initial_columns[1]] != 'k')
         {
             castles[2] = -1;
             castles[3] = -1;
         }
 
         // Disable side castles if the rook moves
-        if (castles[2] != -1 && board[castles[2]][0] != 'r')
+        if (castles[2] != -1 && board[0][castles[2]] != 'r')
             castles[2] = -1;
-        if (castles[3] != -1 && board[castles[3]][0] != 'r')
+        if (castles[3] != -1 && board[0][castles[3]] != 'r')
             castles[3] = -1;
     }
 }
@@ -185,7 +185,8 @@ void Board::_parse_board(string fen_board) {
 
     int cell_i = 0;
 
-    memset(board, 0, sizeof(int) * 64);
+    // memset(board, 0, sizeof(int) * 64);
+    bzero(board, 64);
     for (int i = 0; i < fen_board.length(); i++) {
 
         int piece = fen_board[i];
@@ -204,27 +205,32 @@ void Board::_parse_board(string fen_board) {
 
 void Board::_parse_castling(string castling_fen)
 {
-    int _castles[4] = {-1, -1, -1, -1};
     int white_castles_i = 0;
     int black_castles_i = 0;
 
+    // Parse castling fen 'ahAH' into 0707 for example
+    memset(castles, -1, sizeof(int) * 4);
     for (int i = 0; i < castling_fen.length(); i++)
     {
         if (islower(castling_fen[i]))
-            _castles[white_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
+            castles[white_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
         if (isupper(castling_fen[i]))
-            _castles[2 + black_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
+            castles[2 + black_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
     }
-    memcpy(castles, _castles, sizeof(int) * 4);
-    
-    // Find kings initial columns
+    // for (int i = 0; i < 4; i++)
+    //     cout << "Castle parsing " << castles[i] << endl;
+
+    // Find kings initial column indexes
+    memset(kings_initial_columns, -1, sizeof(int) * 2);
     for (int i = 0; i < 8; i++)
     {
-        if (board[i][0] == 'k')
+        if (board[7][i] == 'K')
             kings_initial_columns[0] = i;
-        if (board[i][7] == 'K')
+        if (board[0][i] == 'k')
             kings_initial_columns[1] = i;
     }
+    // for (int i = 0; i < 2; i++)
+    //     cout << "King initial pos " << kings_initial_columns[i] << endl;
 }
 
 void Board::_parse_en_passant(string _en_passant)

@@ -11,9 +11,11 @@ int main()
     int full_move = 1;
     
     Board *board = new Board(fen_board, color, castling, en_passant, half_move_clock, full_move);
+    board->log();
 
-    cout << "Start 10 random move from available ones ..." << endl;
-    for (int i = 0; i < 10; i++)
+    int nbMove = 1;
+    cout << "\nStart " << nbMove << " random move from available ones ..." << endl;
+    for (int i = 0; i < nbMove; i++)
     {
         vector<Move> moves = board->find_moves();
         cout << "\nTurn " << i << " - Move available count: " << moves.size() << endl;

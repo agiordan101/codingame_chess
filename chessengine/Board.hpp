@@ -7,8 +7,8 @@
 class Board {
     /*
         Board represent all FEN data
-        White = Upper case
-        Black = Lower case
+        White = Upper case = First indexes
+        Black = Lower case = Last indexes
     */
 
     int         board[8][8];

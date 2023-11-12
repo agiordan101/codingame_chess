@@ -24,8 +24,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Debug castling parsing 
-* Debug segfault on weird random move 24320
 * Board::next_turn() unit tests
 * Board::Board() unit tests
 * Create a Board::set_turn() method, with 'w' or 'b' as parameter

@@ -100,7 +100,7 @@ vector<Move> Board::find_moves() {
         }
     }
 
-    moves.push_back(Move());
+    // moves.push_back(Move());
 
     this->available_moves = moves;
     return moves;
@@ -252,9 +252,15 @@ void Board::_parse_castling(string castling_fen)
 
 void Board::_parse_en_passant(string _en_passant)
 {
-    en_passant_available = false;
-    en_passant_x = -1;
-    en_passant_y = -1;
+    if (_en_passant == "-")
+    {
+        en_passant_available = false;
+        en_passant_x = -1;
+        en_passant_y = -1;
+        return ;
+    }
+
+    //Else, parse UCI representation, i.e. e1d2
 }
 
 void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant) {

@@ -27,12 +27,17 @@ External libraries are used to test & debug my own chess engine (times, valids m
 * Create public functions that test the egality of things Board::is_*_identical(Board *board)
     - (All of them could be reused to create the "==" operator)
 * Fully implement Create new operator obj == obj
+* Create a static UCI class
+    - Move -> UCI
+    - UCI -> Move
+    - Posision -> UCI
+    - UCI -> Posision
+* Parse en passant UCI representation from FEN
+* Implement Move::display_UCI() method
 * Board::next_turn() unit tests
 * Board::Board() unit tests
-* Create a Board::set_turn() method, with 'w' or 'b' as parameter
 * Implement Board::find_moves() methods
 * Implement Board::is_end_game() method
-* Implement Move::display_UCI() method
 
 ## Project explanations
 

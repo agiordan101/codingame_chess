@@ -13,6 +13,22 @@ Move::Move()
     this->en_passant = false;
 }
 
+Move::Move(string uci)
+{
+    this->src_x = 0;
+    this->src_y = 0;
+    this->dst_x = 0;
+    this->dst_y = 0;
+    this->castle = false;
+    this->promotion = '_';
+    this->en_passant = false;
+
+    //Implement the uci parsing
+    // Normal move: e2e4, ...
+    // Castling:    e1g1 (Pareil src -> dst)
+    // Promotion:   e7e8q
+}
+
 Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant)
 {
     this->src_x = _src_x;
@@ -32,6 +48,14 @@ void Move::log() {
     cout << "Move: Is castling ? - " << this->castle << endl;
     cout << "Move: Promote to " << this->promotion << endl;
     cout << "Move: En passant ? - " << this->en_passant << endl;
+}
+
+string Move::get_uci()
+{
+    // Normal move: e2e4, ...
+    // Castling:    e1g1 (Pareil src -> dst)
+    // Promotion:   e7e8q
+    return string();
 }
 
 // --- OPERATORS ---

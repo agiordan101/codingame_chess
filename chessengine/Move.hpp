@@ -14,9 +14,11 @@ class Move {
         bool en_passant;
 
         Move();
+        Move(string uci);
         Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant);
         
         void log();
+        string get_uci();
 
         bool operator ==(const Move &other);
 };

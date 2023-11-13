@@ -19,9 +19,21 @@ typedef enum _pieces_value {
 
 /* STATIC FUNCTIONS */
 
-inline int     COLUMN_name_to_index(char column_name)
+inline int  COLUMN_name_to_index(char column_name)
 {
     return tolower(column_name) - 97;
+}
+
+inline void algebraic_to_coord(string algebraic, int &x, int &y)
+{
+    // a1 -> 0, 0
+    return ;
+}
+
+inline string coord_to_algebraic(int x, int y)
+{
+    // 0, 0 -> a1
+    return string();
 }
 
 #endif

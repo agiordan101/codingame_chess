@@ -24,16 +24,17 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Create static notation class
+* Create chess notations translations :
     - Algebraic notation -> Coordonates : En passant
     - Coordonates - > Algebraic notation : En passant
-    - Move -> UCI notation : Display out the best move
-    - UCI notation -> Move : Receive a move (Not required)
+    - Move:: Move -> UCI notation : Display out the best move
+    - Move:: UCI notation -> Move : Receive a move (Not required)
 * Parse en passant (UCI) from FEN
 * Implement Move::display_UCI() method
-* Board::next_turn() unit tests
+* Implement Move::operator==() method
 * Implement Board::find_moves() methods
 * Implement Board::is_end_game() method
+* Board::next_turn() unit tests
 
 * Rules to implement :
     - Stalemate, while a player isn't under check and no legal move exist. (Pretty much the same as checkmate)

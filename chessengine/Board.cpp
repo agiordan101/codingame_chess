@@ -231,9 +231,9 @@ void Board::_parse_castling(string castling_fen)
     for (int i = 0; i < castling_fen.length(); i++)
     {
         if (islower(castling_fen[i]))
-            castles[white_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
+            castles[white_castles_i++] = column_name_to_index(castling_fen[i]);
         if (isupper(castling_fen[i]))
-            castles[2 + black_castles_i++] = COLUMN_name_to_index(castling_fen[i]);
+            castles[2 + black_castles_i++] = column_name_to_index(castling_fen[i]);
     }
     // for (int i = 0; i < 4; i++)
     //     cout << "Castle parsing " << castles[i] << endl;

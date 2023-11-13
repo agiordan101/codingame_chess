@@ -19,21 +19,31 @@ typedef enum _pieces_value {
 
 /* STATIC FUNCTIONS */
 
-inline int  COLUMN_name_to_index(char column_name)
+inline int  column_name_to_index(char column_name)
 {
-    return tolower(column_name) - 97;
+    // a -> 0
+    return tolower(column_name) - 'a';
 }
 
-inline void algebraic_to_coord(string algebraic, int &x, int &y)
+inline char column_index_to_name(int column_id)
+{
+    // 0 -> a
+    return column_id + 'a';
+}
+
+inline void algebraic_to_coord(string algebraic, int *x, int *y)
 {
     // a1 -> 0, 0
-    return ;
+    const char *algebraic_char = algebraic.c_str();
+    *x = column_name_to_index(algebraic_char[0]);
+    *y = algebraic_char[1];
 }
 
 inline string coord_to_algebraic(int x, int y)
 {
     // 0, 0 -> a1
-    return string();
+    char algebraic[2] = {column_index_to_name(x), (char)(y + 'a')};
+    return string(algebraic);
 }
 
 #endif

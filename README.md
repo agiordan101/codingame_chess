@@ -24,11 +24,10 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Create chess notations translations :
-    - Algebraic notation -> Coordonates : En passant
-    - Coordonates - > Algebraic notation : En passant
-    - Move:: Move -> UCI notation : Display out the best move
-    - Move:: UCI notation -> Move : Receive a move (Not required)
+* Global function unit tests: algebraic_to_coord()
+* Global function unit tests: coord_to_algebraic()
+* Move::Move(uci) unit tests
+* Move::get_uci() unit tests
 * Parse en passant (UCI) from FEN
 * Implement Move::display_UCI() method
 * Implement Move::operator==() method

@@ -64,18 +64,21 @@ int to_uci_unittestLauncher()
         "g7g8n"
     );
 
-    // Regular chess castle rule 
+    // Same move with 2 different rules :
+    Move *castling_move = new Move(4, 7, 7, 7, true, false, false);
+
+    //  - Regular chess castle rule
     success_count += to_uci_unittest(
         6,
-        new Move(4, 7, 7, 7, true, false, false),
+        castling_move,
         false,
         "e1g1"
     );
 
-    // Chess960 castle rule 
+    //  - Chess960 castle rule 
     success_count += to_uci_unittest(
         6,
-        new Move(4, 7, 7, 7, true, false, false),
+        castling_move,
         true,
         "e1h1"
     );

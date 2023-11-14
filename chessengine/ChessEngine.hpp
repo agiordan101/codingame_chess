@@ -21,28 +21,40 @@ typedef enum _pieces_value {
 
 inline int  column_name_to_index(char column_name)
 {
-    // a -> 0
+    // 'a' -> 0
     return tolower(column_name) - 'a';
 }
 
 inline char column_index_to_name(int column_id)
 {
-    // 0 -> a
+    // 7 -> 'h'
     return column_id + 'a';
+}
+
+inline int  line_number_to_index(char line_number)
+{
+    // '8' -> 0
+    return 8 - (line_number - '0');
+}
+
+inline char line_index_to_number(int line_index)
+{
+    // 7 -> '1'
+    return (8 - line_index) + '0';
 }
 
 inline void algebraic_to_coord(string algebraic, int *x, int *y)
 {
-    // a1 -> 0, 0
+    // a8 -> 0, 0
     const char *algebraic_char = algebraic.c_str();
     *x = column_name_to_index(algebraic_char[0]);
-    *y = 8 - (algebraic_char[1] - '0');
+    *y = line_number_to_index(algebraic_char[1]);
 }
 
 inline string coord_to_algebraic(int x, int y)
 {
-    // 0, 0 -> a1
-    char algebraic[2] = {column_index_to_name(x), (char)((8 - y) + '0')};
+    // 7, 7 -> h1
+    char algebraic[2] = {column_index_to_name(x), line_index_to_number(y)};
     return string(algebraic);
 }
 

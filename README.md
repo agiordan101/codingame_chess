@@ -24,41 +24,9 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Change castling representation :
-    - Chess960 and regular chess don't write castling UCI moves in the same way :
-        - Regular chess UCI notation:
-            King src : e1
-            King dst : g1 or c1
-        - Chess960 UCI notation :
-            King src 
-            Rook src 
-        - Both rules have g1 and c1 as final positions
-    
-    - Solution :
-        - board.find_move should create castle Move like that:
-            Src : king - Dst : rook
-        
-        - In board.apply_move, if castle == true :
-            Put '0' in both src and dst.
-            Put the king and the rook a their right place:
-                king: g1      c1
-                rook:   f1  b1
-
-        - Move::to_uci() should take a boolean chess960 (default at true).
-            To create castles in Regular chess UCI notation or Chess960 UCI notation
-            (to_uci() are rarely called)
-
-        - But how Move::Move() could makes the difference between a king move and kink castle ?
-            For regular chess, it's obvious: dst_x - src_x > 1
-            For chess960, not: dst_x - src_x could be 1
-                We need the dst piece char
-                Maybe we just don't care about this feature ? See CG input.
-* Global function unit tests: algebraic_to_coord()
-* Global function unit tests: coord_to_algebraic()
-* Move::Move(uci) unit tests
-* Move::to_uci() unit tests
-* Parse en passant (UCI) from FEN
 * Implement Move::operator==() method
+* Move::Move(uci) unit tests
+* Parse en passant (UCI) from FEN
 * Implement Board::is_end_game() method
     * Find a way for Threefold Repetition.
     * Rules to implement :
@@ -72,6 +40,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
             - King+bishop vs king
             - King+bishop vs king+bishop if both bishops are on the same square color.
 
+* Update Board:apply_move()
 * Change empty cells from 0 to '.' ? & show_board()
 * Implement Board::find_moves() methods
 * Board::next_turn() unit tests

@@ -193,15 +193,17 @@ void Board::_parse_castling(string castling_fen)
 
 void Board::_parse_en_passant(string _en_passant)
 {
-    if (_en_passant == "-")
+    en_passant_available = _en_passant != "-";
+
+    if (en_passant_available)
     {
-        en_passant_available = false;
+        algebraic_to_coord(_en_passant, &en_passant_x, &en_passant_y);
+    }
+    else
+    {
         en_passant_x = -1;
         en_passant_y = -1;
-        return ;
     }
-
-    //Else, parse UCI representation, i.e. e1d2
 }
 
 void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant) {

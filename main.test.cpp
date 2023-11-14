@@ -11,7 +11,7 @@ int main()
 
     cerr << "[UNITTEST] Start ..." << endl;
 
-    // successCount += mainTestBoard();
+    successCount += mainTestBoard();
     successCount += unittests_Move();
     successCount += unittests_ChessEngine();
 

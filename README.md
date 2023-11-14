@@ -24,7 +24,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Implement Move::operator==() method
 * Move::Move(uci) unit tests
 * Parse en passant (UCI) from FEN
 * Implement Board::is_end_game() method

@@ -20,5 +20,5 @@ class Move {
         void log();
         string to_uci(bool chess960_rule = true);
 
-        bool operator ==(const Move &other);
+        bool operator ==(const Move *other);
 };

@@ -83,7 +83,15 @@ string Move::to_uci(bool chess960_rule)
 
 // --- OPERATORS ---
 
-bool Move::operator==(const Move &other)
+bool Move::operator==(const Move *other)
 {
-    return false;
+    return
+        this->src_x == other->src_x &&
+        this->src_y == other->src_y &&
+        this->dst_x == other->dst_x &&
+        this->dst_y == other->dst_y &&
+        this->castle == other->castle &&
+        this->promotion == other->promotion &&
+        this->en_passant == other->en_passant
+    ;
 }

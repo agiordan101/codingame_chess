@@ -138,7 +138,7 @@ bool is_move_in_movelst(Move *move, vector<Move> movelst)
 {
     for (Move move_f : movelst)
     {
-        if (*move == move_f)
+        if (*move == &move_f)
             return true;
     }
 
@@ -149,7 +149,7 @@ bool is_move_in_movelst(Move move, Move *movelst, int move_count)
 {
     for (int i = 0; i < move_count; i++)
     {
-        if (move == movelst[i])
+        if (move == &movelst[i])
             return true;
     }
 

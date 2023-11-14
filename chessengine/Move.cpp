@@ -14,7 +14,7 @@ Move::Move()
     this->en_passant = false;
 }
 
-Move::Move(string uci, char src_piece, char dst_piece, bool chess960_rule = true)
+Move::Move(string uci, char src_piece, char dst_piece, bool chess960_rule)
 {
     // Normal move, castles:   e2e4, 
     // Promotion:              e7e8q
@@ -63,7 +63,7 @@ void Move::log() {
     cout << "Move: En passant ? - " << this->en_passant << endl;
 }
 
-string Move::to_uci(bool chess960_rule = true)
+string Move::to_uci(bool chess960_rule)
 {
     // Normal move + castles:   e2e4
     // Promotion:               e7e8q

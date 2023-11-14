@@ -36,13 +36,13 @@ inline void algebraic_to_coord(string algebraic, int *x, int *y)
     // a1 -> 0, 0
     const char *algebraic_char = algebraic.c_str();
     *x = column_name_to_index(algebraic_char[0]);
-    *y = algebraic_char[1];
+    *y = 8 - (algebraic_char[1] - '0');
 }
 
 inline string coord_to_algebraic(int x, int y)
 {
     // 0, 0 -> a1
-    char algebraic[2] = {column_index_to_name(x), (char)(y + 'a')};
+    char algebraic[2] = {column_index_to_name(x), (char)((8 - y) + '0')};
     return string(algebraic);
 }
 

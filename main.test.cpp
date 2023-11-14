@@ -3,6 +3,7 @@ using namespace std;
 
 int mainTestBoard();
 int unittests_Move();
+int unittests_ChessEngine();
 
 int main()
 {
@@ -12,6 +13,7 @@ int main()
 
     // successCount += mainTestBoard();
     successCount += unittests_Move();
+    successCount += unittests_ChessEngine();
 
     cerr << "[UNITTEST] End: " << successCount << " tests were successfull !" << endl;
 }

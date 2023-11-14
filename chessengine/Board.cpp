@@ -221,10 +221,12 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
             rook = 'r';
         }
 
-        // A castle with Chess960 rule is represented by moving the king to its own rook
+        // In this engine, castles are represented by moving the king to its own rook (As Chess960 rules)
+        // First, we remove both pieces
         board[src_y][src_x] = 0;
         board[dst_y][dst_x] = 0;
 
+        // Then, we force THE ONLY valid castle final position
         if (dst_x < src_x)
         {
             // Left castle

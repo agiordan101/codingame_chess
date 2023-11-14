@@ -21,9 +21,9 @@ Move::Move(string uci, char src_piece, char dst_piece, bool chess960_rule)
     const char *uci_char = uci.c_str();
 
     this->src_x = column_name_to_index(uci_char[0]);
-    this->src_y = uci_char[1];
+    this->src_y = line_number_to_index(uci_char[1]);
     this->dst_x = column_name_to_index(uci_char[2]);
-    this->dst_y = uci_char[3];
+    this->dst_y = line_number_to_index(uci_char[3]);
 
     // A castle with Chess960 rule is represented by moving the king to its own rook
     this->castle = tolower(src_piece) == 'k' && tolower(dst_piece) == 'r';
@@ -31,12 +31,30 @@ Move::Move(string uci, char src_piece, char dst_piece, bool chess960_rule)
     if (!chess960_rule && this->castle)
     {
         // Create a real castling UCI: e1g1 or e1c1
-        this->src_x = 3;
-        this->dst_x = this->dst_x < this->src_x ? 1 : 5;
+        this->src_x = 4;
+        this->dst_x = this->dst_x < this->src_x ? 2 : 6;
+    }
+
+    if (chess960_rule)
+    {
+        // A castle with Chess960 rule is represented by moving the king to its own rook
+        this->castle = tolower(src_piece) == 'k' && tolower(dst_piece) == 'r';
+    }
+    else
+    {
+        this->castle = abs(this->dst_x - this->src_x) == 2;
+
+        if (this->castle)
+        {
+            // Because in this engine, castles are represented by moving the king to its own rook (As Chess960 rules)
+            // Transform a real castling UCI: e1g1 or e1c1
+            // To a Chess960 castling UCI:    e1a1 or e1h1 (With rooks at standard cells A or H)
+            this->dst_x = this->dst_x < this->src_x ? 0 : 7;
+        }
     }
 
     // A fifth character represent the promotion  
-    this->promotion = uci_char[4] ? uci_char[4] : '_';
+    this->promotion = uci_char[4] ? uci_char[4] : 0;
 
     // en_passant is generated when a pawn advance 2 cells
     this->en_passant = tolower(src_piece) == 'p' && abs(this->dst_y - this->src_y) == 2;
@@ -59,7 +77,7 @@ void Move::log() {
     cout << "Move: dst_x = " << this->dst_x << endl;
     cout << "Move: dst_y = " << this->dst_y << endl;
     cout << "Move: Is castling ? - " << this->castle << endl;
-    cout << "Move: Promote to " << this->promotion << endl;
+    cout << "Move: Promote to " << (this->promotion ? this->promotion : '0') << endl;
     cout << "Move: En passant ? - " << this->en_passant << endl;
 }
 

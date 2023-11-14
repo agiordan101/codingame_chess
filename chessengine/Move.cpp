@@ -70,13 +70,13 @@ string Move::to_uci(bool chess960_rule)
     if (!chess960_rule && this->castle)
     {
         // Create a real castling UCI: e1g1 or e1c1
-        return coord_to_algebraic(this->src_x, this->src_y) + coord_to_algebraic(this->dst_x < this->src_x ? 1 : 5, this->dst_y);
+        return coord_to_algebraic(this->src_x, this->src_y) + coord_to_algebraic(this->dst_x < this->src_x ? 1 : 6, this->dst_y);
     }
 
     string uci = coord_to_algebraic(this->src_x, this->src_y) + coord_to_algebraic(this->dst_x, this->dst_y);
 
     if (this->promotion)
-        uci += string(1, this->promotion);
+        uci += string(1, tolower(this->promotion));
     
     return uci;
 }

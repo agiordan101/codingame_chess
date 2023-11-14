@@ -14,10 +14,10 @@ Move::Move()
     this->en_passant = false;
 }
 
-Move::Move(string uci, char piece)
+Move::Move(string uci, char src_piece, char dst_piece, bool chess960_rule = true)
 {
-    // Normal move + castles:   e2e4
-    // Promotion:               e7e8q
+    // Normal move, castles:   e2e4, 
+    // Promotion:              e7e8q
     const char *uci_char = uci.c_str();
 
     this->src_x = column_name_to_index(uci_char[0]);
@@ -25,14 +25,21 @@ Move::Move(string uci, char piece)
     this->dst_x = column_name_to_index(uci_char[2]);
     this->dst_y = uci_char[3];
 
-    // A castle in CodinGame with Chess960 rule is represented by moving the king to its own rook
-    this->castle = tolower(piece) == 'k' && abs(this->dst_x - this->src_x) > 1;
+    // A castle with Chess960 rule is represented by moving the king to its own rook
+    this->castle = tolower(src_piece) == 'k' && tolower(dst_piece) == 'r';
+
+    if (!chess960_rule && this->castle)
+    {
+        // Create a real castling UCI: e1g1 or e1c1
+        this->src_x = 3;
+        this->dst_x = this->dst_x < this->src_x ? 1 : 5;
+    }
 
     // A fifth character represent the promotion  
     this->promotion = uci_char[4] ? uci_char[4] : '_';
 
     // en_passant is generated when a pawn advance 2 cells
-    this->en_passant = tolower(piece) == 'p' && abs(this->dst_y - this->src_y) == 2;
+    this->en_passant = tolower(src_piece) == 'p' && abs(this->dst_y - this->src_y) == 2;
 }
 
 Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant)
@@ -56,14 +63,21 @@ void Move::log() {
     cout << "Move: En passant ? - " << this->en_passant << endl;
 }
 
-string Move::get_uci()
+string Move::to_uci(bool chess960_rule = true)
 {
     // Normal move + castles:   e2e4
     // Promotion:               e7e8q
+    if (!chess960_rule && this->castle)
+    {
+        // Create a real castling UCI: e1g1 or e1c1
+        return coord_to_algebraic(this->src_x, this->src_y) + coord_to_algebraic(this->dst_x < this->src_x ? 1 : 5, this->dst_y);
+    }
+
     string uci = coord_to_algebraic(this->src_x, this->src_y) + coord_to_algebraic(this->dst_x, this->dst_y);
 
-    if (this->en_passant)
-        uci += string(1, this->en_passant);
+    if (this->promotion)
+        uci += string(1, this->promotion);
+    
     return uci;
 }
 

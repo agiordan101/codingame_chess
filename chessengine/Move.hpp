@@ -14,11 +14,11 @@ class Move {
         bool en_passant;
 
         Move();
-        Move(string uci, char piece);
+        Move(string uci, char src_piece, char dst_piece, bool chess960_rule = true);
         Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant);
         
         void log();
-        string get_uci();
+        string to_uci(bool chess960_rule = true);
 
         bool operator ==(const Move &other);
 };

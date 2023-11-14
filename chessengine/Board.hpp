@@ -35,7 +35,6 @@ class Board {
 
         vector<Move>    find_moves();
         void    apply_move(Move move);
-        void    next_turn();
         int     is_end_game();
         
         bool    operator ==(Board *test_board);
@@ -48,6 +47,7 @@ class Board {
         void    _parse_en_passant(string _en_passant);
 
         void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant);
+        void    _next_turn();
 
         vector<Move>    _find_moves_pawns(int x, int y);
         vector<Move>    _find_moves_knights(int x, int y);

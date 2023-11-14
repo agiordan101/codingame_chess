@@ -108,67 +108,8 @@ vector<Move> Board::find_moves() {
 
 void Board::apply_move(Move move)
 {
-    return _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
-}
-
-void Board::next_turn() {
-
-    // game turn increment after black turn
-    if (!white_turn)
-        game_turn += 1;
-
-    white_turn = !white_turn;
-    half_turn_rule += 1;
-
-    if (en_passant_x != -1)
-    {
-        if (en_passant_available)
-        {
-            // Disable en passant if it was available on this turn
-            en_passant_available = false;
-            en_passant_x = -1;
-            en_passant_y = -1;
-        }
-        else
-        {
-            // Set the en passant available if coordonates were just set in this turn
-            en_passant_available = true;
-        }
-    }
-
-    // Disable white castles if they are still available
-    if (castles[0] != -1 || castles[1] != -1)
-    {
-        // Disable player castle if its king moves
-        if (board[7][kings_initial_columns[0]] != 'K')
-        {
-            castles[0] = -1;
-            castles[1] = -1;
-        }
-
-        // Disable side castles if the rook moves
-        if (castles[0] != -1 && board[7][castles[0]] != 'R')
-            castles[0] = -1;
-        if (castles[1] != -1 && board[7][castles[1]] != 'R')
-            castles[1] = -1;
-    }
-
-    // Disable black castles if they are still available
-    if (castles[2] != -1 || castles[3] != -1)
-    {
-        // Disable player castle if its king moves
-        if (board[0][kings_initial_columns[1]] != 'k')
-        {
-            castles[2] = -1;
-            castles[3] = -1;
-        }
-
-        // Disable side castles if the rook moves
-        if (castles[2] != -1 && board[0][castles[2]] != 'r')
-            castles[2] = -1;
-        if (castles[3] != -1 && board[0][castles[3]] != 'r')
-            castles[3] = -1;
-    }
+    _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
+    _next_turn();
 }
 
 int Board::is_end_game()
@@ -265,40 +206,121 @@ void Board::_parse_en_passant(string _en_passant)
 
 void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant) {
 
-    board[dst_y][dst_x] = board[src_y][src_x];
-    board[src_y][src_x] = 0;
     if (castle)
     {
-        // Rook move
-        int side = dst_x < src_x ? -1 : 1;
-        int x;
-        for (x = dst_x; 0 <= x && x < 8; x += side)
-            if (toupper(board[dst_y][x]) == 'R')
-                break ;
+        char king;
+        char rook;
+        if (white_turn)
+        {
+            king = 'K';
+            rook = 'R';
+        }
+        else
+        {
+            king = 'k';
+            rook = 'r';
+        }
 
-        board[dst_y][dst_x - side] = board[dst_y][x];
-        board[dst_y][x] = 0;
+        // A castle with Chess960 rule is represented by moving the king to its own rook
+        board[src_y][src_x] = 0;
+        board[dst_y][dst_x] = 0;
+
+        if (dst_x < src_x)
+        {
+            // Left castle
+            board[src_y][1] = king;
+            board[src_y][2] = rook;
+        }
+        else
+        {
+            // Right castle
+            board[src_y][5] = king;
+            board[src_y][4] = rook;
+        }
+
+        return ;
     }
-    else if (promotion)
+    
+    if (promotion)
     {
         // Promote the pawn : A valid piece must have been created in find_move
+        board[src_y][src_x] = 0;
         board[dst_y][dst_x] = promotion;
+        return ;
     }
-    else if (en_passant)
+    
+    if (en_passant)
     {
         // Eat the pawn
         board[src_y][dst_x] = 0;
-    }
 
-    // Only when a pawn jump two cells
-    if (en_passant)
-    {
-        // Save coordinates where the opponent pawn could take it
+        // Only when a pawn jump two cells: Save coordinates where the opponent pawn could take it
         en_passant_x = dst_x;
         en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
     }
 
-    next_turn();
+    board[dst_y][dst_x] = board[src_y][src_x];
+    board[src_y][src_x] = 0;
+}
+
+void Board::_next_turn() {
+
+    // game turn increment after black turn
+    if (!white_turn)
+        game_turn += 1;
+
+    white_turn = !white_turn;
+    half_turn_rule += 1;
+
+    if (en_passant_x != -1)
+    {
+        if (en_passant_available)
+        {
+            // Disable en passant if it was available on this turn
+            en_passant_available = false;
+            en_passant_x = -1;
+            en_passant_y = -1;
+        }
+        else
+        {
+            // Set the en passant available if coordonates were just set in this turn
+            en_passant_available = true;
+        }
+    }
+
+    // Disable white castles if they are still available
+    if (castles[0] != -1 || castles[1] != -1)
+    {
+        // Disable player castle if its king moves
+        if (board[7][kings_initial_columns[0]] != 'K')
+        {
+            castles[0] = -1;
+            castles[1] = -1;
+        }
+
+        // Disable side castles if the rook moves
+        if (castles[0] != -1 && board[7][castles[0]] != 'R')
+            castles[0] = -1;
+        if (castles[1] != -1 && board[7][castles[1]] != 'R')
+            castles[1] = -1;
+    }
+
+    // Disable black castles if they are still available
+    if (castles[2] != -1 || castles[3] != -1)
+    {
+        // Disable player castle if its king moves
+        if (board[0][kings_initial_columns[1]] != 'k')
+        {
+            castles[2] = -1;
+            castles[3] = -1;
+        }
+
+        // Disable side castles if the rook moves
+        if (castles[2] != -1 && board[0][castles[2]] != 'r')
+            castles[2] = -1;
+        if (castles[3] != -1 && board[0][castles[3]] != 'r')
+            castles[3] = -1;
+    }
 }
 
 vector<Move>    Board::_find_moves_pawns(int x, int y) {

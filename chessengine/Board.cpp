@@ -100,6 +100,8 @@ vector<Move> Board::find_moves() {
         }
     }
 
+    //Don't forget to create a move if en_passant=True
+
     // moves.push_back(Move());
 
     this->available_moves = moves;
@@ -232,14 +234,14 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
         if (dst_x < src_x)
         {
             // Left castle
-            board[src_y][1] = king;
-            board[src_y][2] = rook;
+            board[src_y][2] = king;
+            board[src_y][3] = rook;
         }
         else
         {
             // Right castle
-            board[src_y][5] = king;
-            board[src_y][4] = rook;
+            board[src_y][6] = king;
+            board[src_y][5] = rook;
         }
 
         return ;
@@ -257,8 +259,11 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     {
         // Eat the pawn
         board[src_y][dst_x] = 0;
+    }
 
-        // Only when a pawn jump two cells: Save coordinates where the opponent pawn could take it
+    // When a pawn jump two cells: Save coordinates where the opponent pawn could take it
+    if (tolower(board[src_y][src_x]) == 'p' && abs(dst_y - src_y) == 2)
+    {
         en_passant_x = dst_x;
         en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
     }
@@ -331,8 +336,6 @@ vector<Move>    Board::_find_moves_pawns(int x, int y) {
     
     vector<Move> moves;
 
-    // Don't forget to set en_passant boolean at true when a pawn jump two cells
-    
     return moves;
 }
 
@@ -393,7 +396,8 @@ bool    Board::operator ==(Board *test_board) {
             return false;
 
     // En passant equality
-    if (this->en_passant_x != test_board->en_passant_x ||
+    if (this->en_passant_available != test_board->en_passant_available ||
+        this->en_passant_x != test_board->en_passant_x ||
         this->en_passant_y != test_board->en_passant_y)
             return false;
 

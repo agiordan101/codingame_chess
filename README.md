@@ -24,6 +24,25 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
+* Small Board doc to explain how en_passant and castling work in my implementation
+
+    find_move() : pawn could advances by two 
+    apply_move(): pawn advances by two
+        available=false
+        x: 5
+        y: 3
+    next_turn():
+        available=false ? ->
+            available=true
+
+    find_move() : available=true -> Move.enpassant=true
+    apply_move(): pawn take the en passant
+    next_turn():
+        available=true ? ->
+            available=false
+            x: -1
+            y: -1
+
 * Implement Board::is_end_game() method
     * Find a way for Threefold Repetition.
     * Rules to implement :
@@ -36,13 +55,15 @@ External libraries are used to test & debug my own chess engine (times, valids m
             - King+knight vs king
             - King+bishop vs king
             - King+bishop vs king+bishop if both bishops are on the same square color.
-* Small Board doc to explain how en_passant and castling work in my implementation
+
+* Unit test castles deletion if pieces move
 * Find a way to unit test en_passant parsing
 * Update Board:apply_move()
 * Change empty cells from 0 to '.' ? & show_board()
 * Implement Board::find_moves() methods
 * Board::next_turn() unit tests
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests
+* Board::to_fen() ?
 
 ## Project explanations
 

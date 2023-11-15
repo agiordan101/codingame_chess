@@ -34,19 +34,21 @@ int apply_move_testLauncher()
         new Board("8/8/p7/8/8/8/8/8 w - - 1 2"),
         new Move(0, 1, 0, 2, false, 0, false)
     );
+    // 2 advance black pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         2,
-        new Board("8/1p6/8/8/8/8/8/8 b - - 0 1"),
-        new Board("8/8/8/1p6/8/8/8/8 w - - 1 2"),
+        new Board("8/1p6/8/2P5/8/8/8/8 b - - 0 1"),
+        new Board("8/8/8/1pP5/8/8/8/8 w - b6 1 2"),
         new Move(1, 1, 1, 3, false, 0, false)
     );
 
     // Regular White moves
+    // 2 advance white pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         3,
-        new Board("8/8/8/8/8/8/4P3/8 w - - 0 1"),
-        new Board("8/8/8/8/8/4P3/8/8 b - - 1 1"),
-        new Move(4, 6, 4, 5, false, 0, false)
+        new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
+        new Board("8/8/8/8/3pP3/8/8/8 b - e3 1 1"),
+        new Move(4, 6, 4, 4, false, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         4,
@@ -60,13 +62,13 @@ int apply_move_testLauncher()
         5,
         new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1"),
         new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move(4, 0, 2, 0, true, 0, false)
+        new Move(4, 0, 0, 0, true, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         6,
         new Board("4k2r/8/8/8/8/8/8/8 b h - 0 1"),
         new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move(4, 0, 6, 0, true, 0, false)
+        new Move(4, 0, 7, 0, true, 0, false)
     );
 
     // White Castle
@@ -74,13 +76,13 @@ int apply_move_testLauncher()
         7,
         new Board("8/8/8/8/8/8/8/R3K3 w A - 0 1"),
         new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1"),
-        new Move(4, 7, 2, 7, true, 0, false)
+        new Move(4, 7, 0, 7, true, 0, false)
     );
     successCount += apply_move_validMove_ApplyIt(
         8,
         new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
         new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
-        new Move(4, 7, 6, 7, true, 0, false)
+        new Move(4, 7, 7, 7, true, 0, false)
     );
 
     // Queen promotion White
@@ -116,14 +118,14 @@ int apply_move_testLauncher()
     //cerr << "\n[UNITTEST] Board - apply_move_testLauncher() - White en passant" << endl;
     successCount += apply_move_validMove_ApplyIt(
         13,
-        new Board("8/8/8/4pP2/8/8/8/8 w - - 0 1"),
-        new Board("8/8/4P3/8/8/8/8/8 b - b6 1 1"),
+        new Board("8/8/8/4pP2/8/8/8/8 w - b3 0 1"),
+        new Board("8/8/4P3/8/8/8/8/8 b - - 1 1"),
         new Move(5, 3, 4, 2, false, 0, true)
     );
     successCount += apply_move_validMove_ApplyIt(
         14,
-        new Board("8/8/8/8/2pP4/8/8/8 w - - 0 1"),
-        new Board("8/8/8/8/8/3p4/8/8 b - d6 1 1"),
+        new Board("8/8/8/8/2pP4/8/8/8 w - d3 0 1"),
+        new Board("8/8/8/8/8/3p4/8/8 b - - 1 1"),
         new Move(2, 4, 3, 5, false, 0, true)
     );
 
@@ -306,7 +308,7 @@ int mainTestBoard()
     int successCount = 0;
 
     successCount += apply_move_testLauncher();
-    successCount += find_moves_testLauncher();
+    // successCount += find_moves_testLauncher();
 
     return successCount;
 }

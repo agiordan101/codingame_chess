@@ -111,7 +111,8 @@ vector<Move> Board::find_moves() {
 void Board::apply_move(Move move)
 {
     _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
-    _next_turn();
+    _end_turn();
+    _update_fen_history();
 }
 
 int Board::is_end_game()
@@ -213,6 +214,7 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     _parse_en_passant(_en_passant);
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
+    fen_history_index = 0;
 }
 
 void Board::_parse_board(string fen_board) {
@@ -350,7 +352,7 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     board[src_y][src_x] = 0;
 }
 
-void Board::_next_turn() {
+void Board::_end_turn() {
 
     // game turn increment after black turn
     if (!white_turn)
@@ -408,6 +410,14 @@ void Board::_next_turn() {
         if (castles[3] != -1 && board[0][castles[3]] != 'r')
             castles[3] = -1;
     }
+}
+
+void Board::_update_fen_history()
+{
+    fen_history[fen_history_index++] = create_fen();
+
+    if (fen_history_index == FEN_HISTORY_SIZE)
+        fen_history_index = 0;
 }
 
 vector<Move>    Board::_find_moves_pawns(int x, int y) {

@@ -5,6 +5,10 @@
 #include <vector>
 #include <bits/stdc++.h>
 
+// Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
+// So we can assume that a position cannot be repeated at more than 50 moves away
+# define FEN_HISTORY_SIZE 50
+
 class Board {
     /*
         Board represent all FEN data :
@@ -22,6 +26,8 @@ class Board {
     int         game_turn;
 
     vector<Move>    available_moves;
+    string         fen_history[FEN_HISTORY_SIZE];
+    int            fen_history_index;
 
     public:
         int         en_passant_x;
@@ -48,7 +54,8 @@ class Board {
         void    _parse_en_passant(string _en_passant);
 
         void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant);
-        void    _next_turn();
+        void    _end_turn();
+        void    _update_fen_history();
 
         vector<Move>    _find_moves_pawns(int x, int y);
         vector<Move>    _find_moves_knights(int x, int y);
@@ -56,5 +63,4 @@ class Board {
         vector<Move>    _find_moves_rooks(int x, int y);
         vector<Move>    _find_moves_queens(int x, int y);
         vector<Move>    _find_moves_king(int x, int y);
-
 };

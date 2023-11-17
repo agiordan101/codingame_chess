@@ -38,10 +38,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
             - King+bishop vs king+bishop if both bishops are on the same square color.
 
 * Unit test castles deletion if pieces move
-* Update Board:apply_move()
 * Change empty cells from 0 to '.' ? & show_board()
 * Implement Board::find_moves() methods
-* Board::next_turn() unit tests
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests
 
 ## Project explanations
@@ -87,7 +85,7 @@ Despite the rules, the final position after castling is always the same:
             available=false
             x: 5
             y: 3
-    - next_turn():
+    - end_turn():
         available=false ? ->
             available=true
 
@@ -99,7 +97,7 @@ Despite the rules, the final position after castling is always the same:
         Pawn advances in diagonale
         available=true ? ->
             Pawn takes
-    - next_turn():
+    - end_turn():
         available=true ? ->
             available=false
             x: -1

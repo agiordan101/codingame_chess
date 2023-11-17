@@ -36,6 +36,7 @@ class Board {
         vector<Move>    find_moves();
         void    apply_move(Move move);
         int     is_end_game();
+        string  create_fen();
         
         bool    operator ==(Board *test_board);
 

@@ -303,12 +303,77 @@ int find_moves_testLauncher()
 
 #pragma endregion find_moves
 
+#pragma region create_fen
+
+int create_fen_unittest(int testIndex, Board *board, string requested_fen)
+{
+    string fen = board->create_fen();
+
+    if (fen != requested_fen)
+    {
+        cerr << "\n---------- Board - create_fen_unittest() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "- Final board : " << endl;
+        board->log();
+        cerr << "\n- Created fen   : " << fen << endl;
+        cerr << "- Requested fen : " << requested_fen << endl;
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int create_fen_testLauncher()
+{
+    int success_count = 0;
+
+    // Pieces test
+    success_count += create_fen_unittest(
+        1,
+        new Board("r1bqkbnr/8/8/8/8/8/8/RNBQKB1R w - - 0 1"),
+        "r1bqkbnr/8/8/8/8/8/8/RNBQKB1R w - - 0 1"
+    );
+
+    // Pieces test 2. Edge test
+    success_count += create_fen_unittest(
+        1,
+        new Board("1nb2bn1/8/8/3pP3/8/8/8/1NB2BN1 w - - 0 1"),
+        "1nb2bn1/8/8/3pP3/8/8/8/1NB2BN1 w - - 0 1"
+    );
+
+    // Empty board test + castling test
+    success_count += create_fen_unittest(
+        2,
+        new Board("8/8/8/8/8/8/8/8 b AHah - 1 2"),
+        "8/8/8/8/8/8/8/8 b AHah - 1 2"
+    );
+
+    // Not full castling rights test
+    success_count += create_fen_unittest(
+        3,
+        new Board("8/8/8/8/8/8/8/8 w Ac - 0 1"),
+        "8/8/8/8/8/8/8/8 w Ac - 0 1"
+    );
+
+    // En passant test
+    success_count += create_fen_unittest(
+        4,
+        new Board("8/8/8/8/8/8/8/8 w - h7 0 1"),
+        "8/8/8/8/8/8/8/8 w - h7 0 1"
+    );
+
+    return success_count;
+}
+
+#pragma endregion create_fen
+
 int mainTestBoard()
 {
     int successCount = 0;
 
     successCount += apply_move_testLauncher();
     // successCount += find_moves_testLauncher();
+    successCount += create_fen_testLauncher();
 
     return successCount;
 }

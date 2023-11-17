@@ -125,6 +125,84 @@ int Board::is_end_game()
     return 0;
 }
 
+string Board::create_fen()
+{
+    char fen[85];
+    int fen_i = 0;
+    int empty_cells_count = 0;
+
+    // Write pieces
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (board[y][x] == 0)
+            {
+                empty_cells_count++;
+                continue ;
+            }
+
+            if (empty_cells_count > 0)
+            {
+                fen[fen_i++] = '0' + empty_cells_count;
+                empty_cells_count = 0;
+            }
+
+            fen[fen_i++] = board[y][x];
+        }
+
+        if (empty_cells_count > 0)
+        {
+            fen[fen_i++] = '0' + empty_cells_count;
+            empty_cells_count = 0;
+        }
+
+        if (y != 7)
+            fen[fen_i++] = '/';
+    }
+    fen[fen_i++] = ' ';
+
+    // Write turn
+    fen[fen_i++] = white_turn ? 'w' : 'b';
+    fen[fen_i++] = ' ';
+
+    // Write castling
+    if (castles[0] != -1 || castles[1] != -1 || castles[2] != -1 || castles[3] != -1)
+    {
+        if (castles[0] != -1)
+            fen[fen_i++] = toupper(column_index_to_name(castles[0]));
+        if (castles[1] != -1)
+            fen[fen_i++] = toupper(column_index_to_name(castles[1]));
+        if (castles[2] != -1)
+            fen[fen_i++] = column_index_to_name(castles[2]);
+        if (castles[3] != -1)
+            fen[fen_i++] = column_index_to_name(castles[3]);
+    }
+    else
+        fen[fen_i++] = '-';
+    fen[fen_i++] = ' ';
+
+    // Write en passant
+    if (en_passant_available)
+    {
+        string en_passant = coord_to_algebraic(en_passant_x, en_passant_y);
+        fen[fen_i++] = en_passant[0];
+        fen[fen_i++] = en_passant[1];
+    }
+    else
+        fen[fen_i++] = '-';
+    fen[fen_i++] = ' ';
+
+    // Write half turn rule
+    fen[fen_i++] = '0' + half_turn_rule;
+    fen[fen_i++] = ' ';
+
+    // Write game turn
+    fen[fen_i++] = '0' + game_turn;
+
+    return string(fen);
+}
+
 // --- PRIVATE METHODS ---
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn)
@@ -168,14 +246,14 @@ void Board::_parse_castling(string castling_fen)
     if (castling_fen == "-")
         return ;
 
-    // Parse castling fen 'ahAH' into 0707 for example
+    // Parse castling fen 'AHah' into 0707 for example
     int white_castles_i = 0;
     int black_castles_i = 0;
     for (int i = 0; i < castling_fen.length(); i++)
     {
-        if (islower(castling_fen[i]))
-            castles[white_castles_i++] = column_name_to_index(castling_fen[i]);
         if (isupper(castling_fen[i]))
+            castles[white_castles_i++] = column_name_to_index(castling_fen[i]);
+        if (islower(castling_fen[i]))
             castles[2 + black_castles_i++] = column_name_to_index(castling_fen[i]);
     }
     // for (int i = 0; i < 4; i++)

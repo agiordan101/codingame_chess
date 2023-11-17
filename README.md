@@ -24,27 +24,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Small Board doc to explain how en_passant and castling work in my implementation
-
-    find_move() : pawn could advances by two 
-    apply_move(): pawn advances by two
-        available=false
-        x: 5
-        y: 3
-    next_turn():
-        available=false ? ->
-            available=true
-
-    find_move() : available=true -> Move.enpassant=true
-    apply_move(): pawn take the en passant
-    next_turn():
-        available=true ? ->
-            available=false
-            x: -1
-            y: -1
-
 * Implement Board::is_end_game() method
-    * Find a way for Threefold Repetition.
+    * Find a way for Threefold Repetition: Compare fen with vector<string> game_states
     * Rules to implement :
         - Stalemate, while a player isn't under check and no legal move exist. (Pretty much the same as checkmate)
         - Threefold Repetition.
@@ -57,13 +38,11 @@ External libraries are used to test & debug my own chess engine (times, valids m
             - King+bishop vs king+bishop if both bishops are on the same square color.
 
 * Unit test castles deletion if pieces move
-* Find a way to unit test en_passant parsing
 * Update Board:apply_move()
 * Change empty cells from 0 to '.' ? & show_board()
 * Implement Board::find_moves() methods
 * Board::next_turn() unit tests
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests
-* Board::to_fen() ?
 
 ## Project explanations
 
@@ -82,6 +61,49 @@ Inside the file :
 - One region per class method, with multiple unit test functions and their associated launcher.
 - Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
 - Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
+
+### Board
+
+#### Castling
+
+In my implementation, castling moves are always represented by a king moving to its own rook, as Chess960 rules.
+As the Board support both Standard chess rules and Chess960 rules, the UCI representation varies :
+- Chess960 rules -> King moves to the rook
+- Standard rules -> King moves by 2
+
+Despite the rules, the final position after castling is always the same:
+                a b c d e f g h
+- Left castle:      K R
+- Right castle:           R K
+
+#### En passant
+
+* Turn n:
+    - find_move()
+        Generate a Move where a pawn advances by two 
+    - apply_move()
+        Pawn advances by two
+        Pawn advances by two ? ->
+            available=false
+            x: 5
+            y: 3
+    - next_turn():
+        available=false ? ->
+            available=true
+
+* Turn n+1:
+    - find_move()
+        available=true ? ->
+            Generate a Move with en_passant=true
+    - apply_move()
+        Pawn advances in diagonale
+        available=true ? ->
+            Pawn takes
+    - next_turn():
+        available=true ? ->
+            available=false
+            x: -1
+            y: -1
 
 ## Externals C++ libraries
 

@@ -342,11 +342,21 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     }
 
     // When a pawn jump two cells: Save coordinates where the opponent pawn could take it
-    if (tolower(board[src_y][src_x]) == 'p' && abs(dst_y - src_y) == 2)
+    if (tolower(board[src_y][src_x]) == 'p')
     {
-        en_passant_x = dst_x;
-        en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
+        // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
+        half_turn_rule = -1;
+
+        if (abs(dst_y - src_y) == 2)
+        {
+            en_passant_x = dst_x;
+            en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
+        }
     }
+
+    // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
+    else if (board[dst_y][dst_x] != 0)
+        half_turn_rule = -1;
 
     board[dst_y][dst_x] = board[src_y][src_x];
     board[src_y][src_x] = 0;

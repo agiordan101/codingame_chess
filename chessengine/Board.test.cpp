@@ -27,34 +27,34 @@ int apply_move_testLauncher()
 {
     int successCount = 0;
 
-    // Regular Black moves
+    // Regular Black moves - (Reset the half turn rule due to a pawn advance)
     successCount += apply_move_validMove_ApplyIt(
         1,
-        new Board("8/p7/8/8/8/8/8/8 b - - 0 1"),
-        new Board("8/8/p7/8/8/8/8/8 w - - 1 2"),
+        new Board("8/p7/8/8/8/8/8/8 b - - 5 1"),
+        new Board("8/8/p7/8/8/8/8/8 w - - 0 2"),
         new Move(0, 1, 0, 2, false, 0, false)
     );
     // 2 advance black pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         2,
         new Board("8/1p6/8/2P5/8/8/8/8 b - - 0 1"),
-        new Board("8/8/8/1pP5/8/8/8/8 w - b6 1 2"),
+        new Board("8/8/8/1pP5/8/8/8/8 w - b6 0 2"),
         new Move(1, 1, 1, 3, false, 0, false)
     );
 
-    // Regular White moves
-    // 2 advance white pawn that create a "en passant"
+    // Regular White moves - (Don't reset the half turn rule)
     successCount += apply_move_validMove_ApplyIt(
         3,
-        new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
-        new Board("8/8/8/8/3pP3/8/8/8 b - e3 1 1"),
-        new Move(4, 6, 4, 4, false, 0, false)
+        new Board("8/8/8/8/8/8/8/3Q4 w - - 5 1"),
+        new Board("8/8/8/8/6Q1/8/8/8 b - - 6 1"),
+        new Move(3, 7, 6, 4, false, 0, false)
     );
+    // 2 advance white pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         4,
-        new Board("8/8/8/8/8/8/8/3Q4 w - - 0 1"),
-        new Board("8/8/8/8/6Q1/8/8/8 b - - 1 1"),
-        new Move(3, 7, 6, 4, false, 0, false)
+        new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
+        new Board("8/8/8/8/3pP3/8/8/8 b - e3 0 1"),
+        new Move(4, 6, 4, 4, false, 0, false)
     );
 
     // Black Castle
@@ -119,14 +119,22 @@ int apply_move_testLauncher()
     successCount += apply_move_validMove_ApplyIt(
         13,
         new Board("8/8/8/4pP2/8/8/8/8 w - b3 0 1"),
-        new Board("8/8/4P3/8/8/8/8/8 b - - 1 1"),
+        new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
         new Move(5, 3, 4, 2, false, 0, true)
     );
     successCount += apply_move_validMove_ApplyIt(
         14,
         new Board("8/8/8/8/2pP4/8/8/8 w - d3 0 1"),
-        new Board("8/8/8/8/8/3p4/8/8 b - - 1 1"),
+        new Board("8/8/8/8/8/3p4/8/8 b - - 0 1"),
         new Move(2, 4, 3, 5, false, 0, true)
+    );
+
+    // Reset the half turn rule when a piece is captured
+    successCount += apply_move_validMove_ApplyIt(
+        15,
+        new Board("8/8/4r3/8/8/8/4B3/8 b - - 5 1"),
+        new Board("8/8/8/8/8/8/4r3/8 w - - 0 2"),
+        new Move(4, 2, 4, 6, false, 0, false)
     );
 
     return successCount;

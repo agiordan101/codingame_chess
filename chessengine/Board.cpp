@@ -34,10 +34,6 @@ void Board::log() {
     cerr << "Board: En passant: Available=" << en_passant_available << " Coordonates= " << en_passant_x << " " << en_passant_y << endl;
     cerr << "Board: half_turn_rule: " << half_turn_rule << endl;
     cerr << "Board: game_turn: " << game_turn << endl;
-    show_board();
-}
-
-void Board::show_board() {
 
     cerr << " ---------------" << endl;
     for (int y = 0; y < 8; y++)
@@ -128,10 +124,15 @@ void Board::apply_move(Move move)
     _update_fen_history();
 }
 
-int Board::game_state()
+float Board::game_state()
 {
-    // Fifty-Move rule.
-    if (half_turn_rule >= 50 || game_turn >= game_turn_max)
+    // Fifty-Move rule + Game turn limit
+    if (
+        half_turn_rule >= 50 ||
+        game_turn >= game_turn_max ||
+        _threefold_repetition_rule() ||
+        _insufficient_material_rule()
+    )
         return 0.5;
 
     if (!moves_computed)
@@ -144,22 +145,16 @@ int Board::game_state()
     if (available_moves.size() == 0)
         return check ? 0 : 0.5;
 
-    if (_threefold_repetition_rule())
-        return 0.5;
-
-    if (_insufficient_material_rule())
-        return 0.5;
-
     return -1;
 }
 
-string Board::create_fen()
+string Board::create_fen(bool with_turns)
 {
     char fen[85];
     int fen_i = 0;
-    int empty_cells_count = 0;
 
     // Write pieces
+    int empty_cells_count = 0;
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
@@ -221,27 +216,35 @@ string Board::create_fen()
         fen[fen_i++] = '-';
     fen[fen_i++] = ' ';
 
+    string fen_string = string(fen, fen_i);
+
+    if (!with_turns)
+        return fen_string;
+
     // Write half turn rule
-    fen[fen_i++] = '0' + half_turn_rule;
-    fen[fen_i++] = ' ';
+    fen_string += to_string(half_turn_rule);
+    fen_string += string(" ");
 
     // Write game turn
-    fen[fen_i++] = '0' + game_turn;
+    fen_string += to_string(game_turn);
 
-    return string(fen);
+    return fen_string;
 }
 
 // --- PRIVATE METHODS ---
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn)
 {
+    // Parse FEN data
     _parse_board(_board);
     white_turn = _color == "w";
     _parse_castling(_castling);
     _parse_en_passant(_en_passant);
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
+
     fen_history_index = 0;
+    _update_fen_history();
 }
 
 void Board::_parse_board(string fen_board) {
@@ -452,10 +455,8 @@ void Board::_update_check()
 
 void Board::_update_fen_history()
 {
-    string fen = create_fen();
-
     // Remove half turn rule and game turn (For future Threefold rule comparisons)
-    fen.erase(fen.length() - 4);
+    string fen = create_fen(false);
 
     if (fen_history_index == FEN_HISTORY_SIZE)
         fen_history_index = 0;
@@ -467,11 +468,16 @@ bool Board::_threefold_repetition_rule()
     int actual_fen_index = fen_history_index - 1;
     string actual_fen = fen_history[actual_fen_index];
 
-    // Check if the actual FEN is already in the history
-    int history_index = 0;
-    while (history_index < FEN_HISTORY_SIZE)
-        if (history_index != actual_fen_index && fen_history[history_index++] == actual_fen)
-            return true;
+    // Check if the actual FEN is already 2 times in the history
+    bool fen_found = false;
+    int history_index = -1;
+    while (++history_index < FEN_HISTORY_SIZE)
+        if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
+        {
+            if (fen_found)
+                return true;
+            fen_found = true;
+        }
 
     return false;
 }
@@ -486,19 +492,17 @@ bool Board::_insufficient_material_rule()
     {
         for (int x = 0; x < 8; x++)
         {
-            char piece = board[y][x];
+            char piece = tolower(board[y][x]);
 
             // Skip empty cells
             if (piece == 0)
                 continue ;
-    
-            char lower_piece = board[y][x];
 
             // Skip pieces
-            if (lower_piece == 'k' || lower_piece == 'q' || lower_piece == 'r' || lower_piece == 'p')
+            if (piece == 'q' || piece == 'r' || piece == 'p')
                 return false;
             
-            if (lower_piece == 'n')
+            if (piece == 'n')
             {
                 // If there is more than one knight, it's not a material insufficient
                 if (knight_found)
@@ -506,7 +510,7 @@ bool Board::_insufficient_material_rule()
 
                 knight_found = true;
             }
-            else if (lower_piece == 'b')
+            else if (piece == 'b')
             {
                 // If there is more than one bishop (Not on the same color), it's not a material insufficient
                 if (bishop_found && bishop_odd != (x + y) % 2)

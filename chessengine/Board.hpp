@@ -46,13 +46,12 @@ class Board {
 
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move);
-        void    log();
-        void    show_board();
-        string  create_fen();
 
+        void            log();
         vector<Move>    find_moves();
         void            apply_move(Move move);
-        int             game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
+        float           game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
+        string          create_fen(bool with_turns = true);
         
         bool    operator ==(Board *test_board);
 

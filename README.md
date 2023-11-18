@@ -26,9 +26,10 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 * Remove Move::Move()
 * Unit test castles deletion if pieces move
-* Change empty cells from 0 to '.' ? & show_board()
+* Change empty cells from 0 to '.' ? & log()
 * Implement Board::find_moves() methods
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests
+* Board::Board() parsing protection from invalid FEN
 
 ## Project explanations
 

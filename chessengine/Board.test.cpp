@@ -370,6 +370,20 @@ int create_fen_testLauncher()
         "8/8/8/8/8/8/8/8 w - h7 0 1"
     );
 
+    // Half turn rule test
+    success_count += create_fen_unittest(
+        5,
+        new Board("8/8/8/8/8/8/8/8 w - - 12 1"),
+        "8/8/8/8/8/8/8/8 w - - 12 1"
+    );
+
+    // Game turn test
+    success_count += create_fen_unittest(
+        6,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 101"),
+        "8/8/8/8/8/8/8/8 w - - 0 101"
+    );
+
     return success_count;
 }
 
@@ -377,12 +391,12 @@ int create_fen_testLauncher()
 
 #pragma region game_state
 
-int game_state_unittest(int testIndex, Board *board, vector<Move> moves, bool check, int requested_game_state)
+int game_state_unittest(int testIndex, Board *board, vector<Move> moves, bool check, float requested_game_state)
 {
     board->available_moves = moves;
     board->moves_computed = true;
     board->check = check;
-    int game_state = board->game_state();
+    float game_state = board->game_state();
 
     if (game_state != requested_game_state)
     {
@@ -410,7 +424,7 @@ int game_state_testLauncher()
     // 1 - Fifty-Move rule
     success_count += game_state_unittest(
         1,
-        new Board("8/8/8/8/8/8/8/8 w - - 51 1"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 50 1"),
         moves_exists,
         false,
         0.5
@@ -419,47 +433,129 @@ int game_state_testLauncher()
     // 2 - Game turn max reached
     success_count += game_state_unittest(
         2,
-        new Board("8/8/8/8/8/8/8/8 w - - 0 150"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 125"),
         moves_exists,
         false,
         0.5
     );
 
-    // 3 - White checkmate
+    // 3 - Current player checkmate
     success_count += game_state_unittest(
         3,
-        new Board("8/8/8/8/8/8/8/8 w - - 0 0"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 0"),
         moves_empty,
         true,
         0
     );
 
-    // 4 - Black checkmate
+    // 4 - Stalemate
     success_count += game_state_unittest(
         4,
-        new Board("8/8/8/8/8/8/8/8 b - - 0 0"),
-        moves_empty,
-        true,
-        0
-    );
-
-    // 5 - Stalemate
-    success_count += game_state_unittest(
-        5,
-        new Board("8/8/8/8/8/8/8/8 w - - 0 0"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 0"),
         moves_empty,
         false,
         0.5
     );
 
-    // Threefold Repetition rule
     // Insufficient material: King vs king
+    success_count += game_state_unittest(
+        5,
+        new Board("8/8/3K4/8/8/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        0.5
+    );
+
     // Insufficient material: King+knight vs king
+    success_count += game_state_unittest(
+        6,
+        new Board("8/8/3K4/8/3n4/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        0.5
+    );
+
     // Insufficient material: King+bishop vs king
+    success_count += game_state_unittest(
+        7,
+        new Board("8/8/3K4/3B4/8/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        0.5
+    );
+
     // Insufficient material: King+bishop vs king+bishop if both bishops are on the same square color.
+    success_count += game_state_unittest(
+        8,
+        new Board("8/8/3K4/3B4/4b3/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        0.5
+    );
+
     // Game continue (2 bishops on different square color)
+    success_count += game_state_unittest(
+        9,
+        new Board("8/8/3K4/3B4/3b4/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        -1
+    );
+
     // Game continue (2 knights)
-    // Game continue
+    success_count += game_state_unittest(
+        9,
+        new Board("8/8/3K4/3N4/3n4/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        -1
+    );
+
+    // Game continue (Queen)
+    success_count += game_state_unittest(
+        9,
+        new Board("8/8/3K4/3Q4/8/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        -1
+    );
+
+    // Game continue (Rook)
+    success_count += game_state_unittest(
+        9,
+        new Board("8/8/3K4/8/3r4/3k4/8/8 w - - 0 0"),
+        moves_exists,
+        false,
+        -1
+    );
+
+    Board *board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
+
+    // Threefold Repetition rule fails (Only 1 repetition)
+    board->apply_move(Move(3, 2, 4, 2, false, 0, false)); // White move right
+    board->apply_move(Move(3, 5, 4, 5, false, 0, false)); // Black move right
+    board->apply_move(Move(4, 2, 3, 2, false, 0, false)); // White move left
+    board->apply_move(Move(4, 5, 3, 5, false, 0, false)); // Black move left
+    success_count += game_state_unittest(
+        9,
+        board,
+        moves_exists,
+        false,
+        -1
+    );
+
+    // Threefold Repetition rule succeed -> 2 repetitions
+    board->apply_move(Move(3, 2, 4, 2, false, 0, false)); // White move right
+    board->apply_move(Move(3, 5, 4, 5, false, 0, false)); // Black move right
+    board->apply_move(Move(4, 2, 3, 2, false, 0, false)); // White move left
+    board->apply_move(Move(4, 5, 3, 5, false, 0, false)); // Black move left
+    success_count += game_state_unittest(
+        9,
+        board,
+        moves_exists,
+        false,
+        0.5
+    );
 
     return success_count;
 }

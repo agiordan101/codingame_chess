@@ -23,14 +23,13 @@ class Board {
     bool        white_turn;
     int         castles[4];                 // Column index where the castle is available - 2 first for White and 2 last for Black
     int         kings_initial_columns[2];   // First for white king and second for black king
-    int         en_passant_x;               // En passant coordinates are created in apply_move() after a pawn move of 2 squares
+    int         en_passant_x;               // En passant coordinates & availability are created after a pawn move of 2 squares
     int         en_passant_y;
-    bool        en_passant_available;       // En passant availability is set to TRUE in end_turn() after a pawn move of 2 squares
+    bool        en_passant_available;
     int         half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
     int         game_turn;                  // Game turn, incremented after each black move
 
-    // Available moves are created in find_moves() or is_end_game() calls. And reseted after apply_move()
-    vector<Move>    available_moves;
+    int         game_turn_max = 125;
 
     // FEN history is used to check the Threefold Repetition rule
     // Each FEN is saved in the history after each move
@@ -39,15 +38,21 @@ class Board {
 
     public:
 
+        // Available moves are created in find_moves() or game_state() calls. And reseted after apply_move()
+        //   public for unittest ...
+        bool            moves_computed;
+        vector<Move>    available_moves;
+        bool            check;
+
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move);
         void    log();
         void    show_board();
+        string  create_fen();
 
         vector<Move>    find_moves();
-        void    apply_move(Move move);
-        int     is_end_game();
-        string  create_fen();
+        void            apply_move(Move move);
+        int             game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
         
         bool    operator ==(Board *test_board);
 
@@ -59,8 +64,13 @@ class Board {
         void    _parse_en_passant(string _en_passant);
 
         void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant);
-        void    _end_turn();
+        void    _update_en_passant();
+        void    _update_castling_rights();
+        void    _update_check();
         void    _update_fen_history();
+
+        bool    _threefold_repetition_rule();
+        bool    _insufficient_material_rule();
 
         vector<Move>    _find_moves_pawns(int x, int y);
         vector<Move>    _find_moves_knights(int x, int y);

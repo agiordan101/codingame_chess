@@ -375,6 +375,97 @@ int create_fen_testLauncher()
 
 #pragma endregion create_fen
 
+#pragma region game_state
+
+int game_state_unittest(int testIndex, Board *board, vector<Move> moves, bool check, int requested_game_state)
+{
+    board->available_moves = moves;
+    board->moves_computed = true;
+    board->check = check;
+    int game_state = board->game_state();
+
+    if (game_state != requested_game_state)
+    {
+        cerr << "\n---------- Board - game_state_unittest() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "- Board : " << endl;
+        board->log();
+
+        cerr << "\n- Actual game_state    : " << game_state << endl;
+        cerr << "- Requested game_state : " << requested_game_state << endl;
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int game_state_testLauncher()
+{
+    int success_count = 0;
+    vector<Move> moves_exists;
+    vector<Move> moves_empty;
+
+    moves_exists.push_back(Move(0, 0, 0, 0, false, '_', false));
+
+    // 1 - Fifty-Move rule
+    success_count += game_state_unittest(
+        1,
+        new Board("8/8/8/8/8/8/8/8 w - - 51 1"),
+        moves_exists,
+        false,
+        0.5
+    );
+
+    // 2 - Game turn max reached
+    success_count += game_state_unittest(
+        2,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 150"),
+        moves_exists,
+        false,
+        0.5
+    );
+
+    // 3 - White checkmate
+    success_count += game_state_unittest(
+        3,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 0"),
+        moves_empty,
+        true,
+        0
+    );
+
+    // 4 - Black checkmate
+    success_count += game_state_unittest(
+        4,
+        new Board("8/8/8/8/8/8/8/8 b - - 0 0"),
+        moves_empty,
+        true,
+        0
+    );
+
+    // 5 - Stalemate
+    success_count += game_state_unittest(
+        5,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 0"),
+        moves_empty,
+        false,
+        0.5
+    );
+
+    // Threefold Repetition rule
+    // Insufficient material: King vs king
+    // Insufficient material: King+knight vs king
+    // Insufficient material: King+bishop vs king
+    // Insufficient material: King+bishop vs king+bishop if both bishops are on the same square color.
+    // Game continue (2 bishops on different square color)
+    // Game continue (2 knights)
+    // Game continue
+
+    return success_count;
+}
+
+#pragma endregion game_state
+
 int mainTestBoard()
 {
     int successCount = 0;
@@ -382,6 +473,7 @@ int mainTestBoard()
     successCount += apply_move_testLauncher();
     // successCount += find_moves_testLauncher();
     successCount += create_fen_testLauncher();
+    successCount += game_state_testLauncher();
 
     return successCount;
 }

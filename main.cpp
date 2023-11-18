@@ -23,7 +23,7 @@ int main()
 
         board->log();
 
-        if (board->is_end_game())
+        if (board->game_state() != -1)
             break;
     }
 }

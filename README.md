@@ -24,19 +24,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Implement Board::is_end_game() method
-    * Find a way for Threefold Repetition: Compare fen with vector<string> game_states
-    * Rules to implement :
-        - Stalemate, while a player isn't under check and no legal move exist. (Pretty much the same as checkmate)
-        - Threefold Repetition.
-        - Fifty-Move rule.
-        - Draw by agreement
-        - Insufficient material, This includes:
-            - King vs king
-            - King+knight vs king
-            - King+bishop vs king
-            - King+bishop vs king+bishop if both bishops are on the same square color.
-
+* Remove Move::Move()
 * Unit test castles deletion if pieces move
 * Change empty cells from 0 to '.' ? & show_board()
 * Implement Board::find_moves() methods

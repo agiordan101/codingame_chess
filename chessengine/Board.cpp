@@ -111,19 +111,46 @@ vector<Move> Board::find_moves() {
 void Board::apply_move(Move move)
 {
     _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
-    _end_turn();
+    
+    // Increment game turn after black turn
+    if (!white_turn)
+        game_turn += 1;
+
+    white_turn = !white_turn;
+    half_turn_rule += 1;
+
+    // Reset specific turn values
+    moves_computed = false;
+
+    _update_en_passant();
+    _update_castling_rights();
+    _update_check(); // Info could be passed in Move ?
     _update_fen_history();
 }
 
-int Board::is_end_game()
+int Board::game_state()
 {
+    // Fifty-Move rule.
+    if (half_turn_rule >= 50 || game_turn >= game_turn_max)
+        return 0.5;
+
+    if (!moves_computed)
+    {
+        available_moves = find_moves();
+        moves_computed = true;
+    }
+
+    // If no moves are available, it's either a Checkmate or a Stalemate
     if (available_moves.size() == 0)
-        return 1;
+        return check ? 0 : 0.5;
 
-    //Implement all weird rules
-    // 50 half turns etc...
+    if (_threefold_repetition_rule())
+        return 0.5;
 
-    return 0;
+    if (_insufficient_material_rule())
+        return 0.5;
+
+    return -1;
 }
 
 string Board::create_fen()
@@ -362,14 +389,7 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     board[src_y][src_x] = 0;
 }
 
-void Board::_end_turn() {
-
-    // game turn increment after black turn
-    if (!white_turn)
-        game_turn += 1;
-
-    white_turn = !white_turn;
-    half_turn_rule += 1;
+void Board::_update_en_passant() {
 
     if (en_passant_x != -1)
     {
@@ -386,6 +406,9 @@ void Board::_end_turn() {
             en_passant_available = true;
         }
     }
+}
+
+void Board::_update_castling_rights() {
 
     // Disable white castles if they are still available
     if (castles[0] != -1 || castles[1] != -1)
@@ -422,12 +445,80 @@ void Board::_end_turn() {
     }
 }
 
+void Board::_update_check()
+{
+    check = false;
+}
+
 void Board::_update_fen_history()
 {
-    fen_history[fen_history_index++] = create_fen();
+    string fen = create_fen();
+
+    // Remove half turn rule and game turn (For future Threefold rule comparisons)
+    fen.erase(fen.length() - 4);
 
     if (fen_history_index == FEN_HISTORY_SIZE)
         fen_history_index = 0;
+    fen_history[fen_history_index++] = fen;
+}
+
+bool Board::_threefold_repetition_rule()
+{
+    int actual_fen_index = fen_history_index - 1;
+    string actual_fen = fen_history[actual_fen_index];
+
+    // Check if the actual FEN is already in the history
+    int history_index = 0;
+    while (history_index < FEN_HISTORY_SIZE)
+        if (history_index != actual_fen_index && fen_history[history_index++] == actual_fen)
+            return true;
+
+    return false;
+}
+
+bool Board::_insufficient_material_rule()
+{
+    bool knight_found = false;
+    bool bishop_found = false;
+    int bishop_odd = false;
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            char piece = board[y][x];
+
+            // Skip empty cells
+            if (piece == 0)
+                continue ;
+    
+            char lower_piece = board[y][x];
+
+            // Skip pieces
+            if (lower_piece == 'k' || lower_piece == 'q' || lower_piece == 'r' || lower_piece == 'p')
+                return false;
+            
+            if (lower_piece == 'n')
+            {
+                // If there is more than one knight, it's not a material insufficient
+                if (knight_found)
+                    return false;
+
+                knight_found = true;
+            }
+            else if (lower_piece == 'b')
+            {
+                // If there is more than one bishop (Not on the same color), it's not a material insufficient
+                if (bishop_found && bishop_odd != (x + y) % 2)
+                    return false;
+
+                bishop_found = true;
+                bishop_odd = (x + y) % 2; // Save the color of the first bishop. Even=0, Odd=1
+            }
+        }
+    }
+
+    return true;
 }
 
 vector<Move>    Board::_find_moves_pawns(int x, int y) {

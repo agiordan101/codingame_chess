@@ -27,7 +27,6 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
-    // cerr << "\n\tBoard description " << board << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
     cerr << "Board: Castling: w " << castles[0] << " | w " << castles[1] << " | b " << castles[2] << " | b " << castles[3] << endl;
     cerr << "Board: Kings initial columns: w " << kings_initial_columns[0] << " - b " << kings_initial_columns[1] << endl;
@@ -35,14 +34,18 @@ void Board::log() {
     cerr << "Board: half_turn_rule: " << half_turn_rule << endl;
     cerr << "Board: game_turn: " << game_turn << endl;
 
-    cerr << " ---------------" << endl;
+    cerr << "----+----------------" << endl;
+    cerr << " i  | 0 1 2 3 4 5 6 7" << endl;
+    cerr << "  n | A B C D E F G H" << endl;
+    cerr << "----+----------------" << endl;
     for (int y = 0; y < 8; y++)
     {
+        cerr << y << " " << line_index_to_number(y) << " |";
         for (int x = 0; x < 8; x++)
-            cerr << " " << (board[y][x] == 0 ? '0' : (char)(board[y][x]));
+            cerr << " " << board[y][x];
         cerr << endl;
     }
-    cerr << " ---------------" << endl;
+    cerr << "----+----------------" << endl;
 }
 
 vector<Move> Board::find_moves() {
@@ -58,7 +61,7 @@ vector<Move> Board::find_moves() {
             piece_letter = board[y][x];
 
             // Skip empty cells
-            if (piece_letter == 0)
+            if (piece_letter == EMPTY_CELL)
                 continue ;
 
             // Only consider our own pieces
@@ -159,7 +162,7 @@ string Board::create_fen(bool with_turns)
     {
         for (int x = 0; x < 8; x++)
         {
-            if (board[y][x] == 0)
+            if (board[y][x] == EMPTY_CELL)
             {
                 empty_cells_count++;
                 continue ;
@@ -251,11 +254,10 @@ void Board::_parse_board(string fen_board) {
 
     int cell_i = 0;
 
-    // memset(board, 0, sizeof(int) * 64);
-    bzero(board, 64);
+    memset(board, EMPTY_CELL, sizeof(char) * 64);
     for (int i = 0; i < fen_board.length(); i++) {
 
-        int piece = fen_board[i];
+        char piece = fen_board[i];
         
         if (isdigit(piece))
             cell_i += atoi(&fen_board[i]);
@@ -337,8 +339,8 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
 
         // In this engine, castles are represented by moving the king to its own rook (As Chess960 rules)
         // First, we remove both pieces
-        board[src_y][src_x] = 0;
-        board[dst_y][dst_x] = 0;
+        board[src_y][src_x] = EMPTY_CELL;
+        board[dst_y][dst_x] = EMPTY_CELL;
 
         // Then, we force THE ONLY valid castle final position
         if (dst_x < src_x)
@@ -360,7 +362,7 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     if (promotion)
     {
         // Promote the pawn : A valid piece must have been created in find_move
-        board[src_y][src_x] = 0;
+        board[src_y][src_x] = EMPTY_CELL;
         board[dst_y][dst_x] = promotion;
         return ;
     }
@@ -368,7 +370,7 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     if (en_passant)
     {
         // Eat the pawn
-        board[src_y][dst_x] = 0;
+        board[src_y][dst_x] = EMPTY_CELL;
     }
 
     // When a pawn jump two cells: Save coordinates where the opponent pawn could take it
@@ -385,11 +387,11 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
     }
 
     // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
-    else if (board[dst_y][dst_x] != 0)
+    else if (board[dst_y][dst_x] != EMPTY_CELL)
         half_turn_rule = -1;
 
     board[dst_y][dst_x] = board[src_y][src_x];
-    board[src_y][src_x] = 0;
+    board[src_y][src_x] = EMPTY_CELL;
 }
 
 void Board::_update_en_passant() {
@@ -495,7 +497,7 @@ bool Board::_insufficient_material_rule()
             char piece = tolower(board[y][x]);
 
             // Skip empty cells
-            if (piece == 0)
+            if (piece == EMPTY_CELL)
                 continue ;
 
             // Skip pieces

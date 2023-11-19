@@ -19,7 +19,7 @@ class Board {
     */
 
     // FEN data:
-    int         board[8][8];
+    char        board[8][8];
     bool        white_turn;
     int         castles[4];                 // Column index where the castle is available - 2 first for White and 2 last for Black
     int         kings_initial_columns[2];   // First for white king and second for black king

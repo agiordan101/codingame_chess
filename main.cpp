@@ -12,7 +12,7 @@ int main()
         vector<Move> moves = board->find_moves();
         cout << "\nTurn " << i << " - Move available count: " << moves.size() << endl;
 
-        if (moves.size() == 0)
+        if (moves.size() == EMPTY_CELL)
             break;
 
         Move move = moves[rand() % moves.size()];

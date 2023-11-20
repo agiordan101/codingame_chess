@@ -31,34 +31,34 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         1,
         "a8b7", 'B', 0, true
-        , new Move(0, 0, 1, 1, false, false, false)
+        , new Move(0, 0, 1, 1, false, false)
     );
     success_count += Move_unittest(
         2,
         "c5d6", 'B', 0, true
-        , new Move(2, 3, 3, 2, false, false, false)
+        , new Move(2, 3, 3, 2, false, false)
     );
     success_count += Move_unittest(
         3,
         "e4f3", 'b', 0, true
-        , new Move(4, 4, 5, 5, false, false, false)
+        , new Move(4, 4, 5, 5, false, false)
     );
     success_count += Move_unittest(
         4,
         "g1h2", 'b', 0, true
-        , new Move(6, 7, 7, 6, false, false, false)
+        , new Move(6, 7, 7, 6, false, false)
     );
 
     // Promotions
     success_count += Move_unittest(
         5,
         "a7a8R", 'P', 0, true
-        , new Move(0, 1, 0, 0, false, 'R', false)
+        , new Move(0, 1, 0, 0, false, 'R')
     );
     success_count += Move_unittest(
         6,
         "h7h8b", 'p', 0, true
-        , new Move(7, 1, 7, 0, false, 'b', false)
+        , new Move(7, 1, 7, 0, false, 'b')
     );
 
     // Same move with 2 different rules :
@@ -68,13 +68,13 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         7,
         castle_uci, 'k', 'r', false
-        , new Move(4, 7, 0, 7, true, false, false)
+        , new Move(4, 7, 0, 7, true, false)
     );
     //  - Chess960 castle rule 
     success_count += Move_unittest(
         8,
         castle_uci, 'K', 'R', true
-        , new Move(4, 7, 2, 7, true, false, false)
+        , new Move(4, 7, 2, 7, true, false)
     );
 
     // Same classic king moves with both rules
@@ -84,13 +84,13 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         9,
         king_uci, 'k', 0, false
-        , new Move(4, 7, 3, 7, false, false, false)
+        , new Move(4, 7, 3, 7, false, false)
     );
     //  - Chess960 castle rule 
     success_count += Move_unittest(
         10,
         king_uci, 'K', 0, true
-        , new Move(4, 7, 3, 7, false, false, false)
+        , new Move(4, 7, 3, 7, false, false)
     );
 
     return success_count;
@@ -123,25 +123,25 @@ int to_uci_unittestLauncher()
     // All columns and lines
     success_count += to_uci_unittest(
         1,
-        new Move(0, 6, 0, 1, false, false, false),
+        new Move(0, 6, 0, 1, false, false),
         true,
         "a2a7"
     );
     success_count += to_uci_unittest(
         2,
-        new Move(1, 2, 6, 5, false, false, false),
+        new Move(1, 2, 6, 5, false, false),
         true,
         "b6g3"
     );
     success_count += to_uci_unittest(
         3,
-        new Move(3, 0, 4, 7, false, false, false),
+        new Move(3, 0, 4, 7, false, false),
         true,
         "d8e1"
     );
     success_count += to_uci_unittest(
         4,
-        new Move(2, 4, 5, 3, false, false, false),
+        new Move(2, 4, 5, 3, false, false),
         true,
         "c4f5"
     );
@@ -149,19 +149,19 @@ int to_uci_unittestLauncher()
     // Promotions
     success_count += to_uci_unittest(
         5,
-        new Move(6, 1, 6, 0, false, 'q', false),
+        new Move(6, 1, 6, 0, false, 'q'),
         true,
         "g7g8q"
     );
     success_count += to_uci_unittest(
         6,
-        new Move(6, 1, 6, 0, false, 'N', false),
+        new Move(6, 1, 6, 0, false, 'N'),
         true,
         "g7g8n"
     );
 
     // Same castling with 2 different rules :
-    Move *castling_move = new Move(4, 7, 7, 7, true, false, false);
+    Move *castling_move = new Move(4, 7, 7, 7, true, false);
 
     //  - Regular chess castle rule
     success_count += to_uci_unittest(
@@ -179,7 +179,7 @@ int to_uci_unittestLauncher()
     );
 
     // Same classic king move with 2 different rules :
-    Move *king_move = new Move(4, 7, 5, 7, false, false, false);
+    Move *king_move = new Move(4, 7, 5, 7, false, false);
 
     //  - Regular chess castle rule
     success_count += to_uci_unittest(

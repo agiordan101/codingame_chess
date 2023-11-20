@@ -62,7 +62,7 @@ class Board {
         void    _parse_castling(string castling_fen);
         void    _parse_en_passant(string _en_passant);
 
-        void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant);
+        void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion);
         void    _update_en_passant();
         void    _update_castling_rights();
         void    _update_check();

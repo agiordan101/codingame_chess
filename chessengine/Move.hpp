@@ -11,12 +11,10 @@ class Move {
         int dst_y;
         bool castle;
         char promotion;
-        bool en_passant;
 
-        Move();
         Move(string uci, char src_piece, char dst_piece, bool chess960_rule = true);
-        Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion, bool _en_passant);
-        
+        Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion);
+
         void log();
         string to_uci(bool chess960_rule = true);
 

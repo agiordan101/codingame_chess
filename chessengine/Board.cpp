@@ -109,8 +109,8 @@ vector<Move> Board::find_moves() {
 
 void Board::apply_move(Move move)
 {
-    _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion, move.en_passant);
-    
+    _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion);
+
     // Increment game turn after black turn
     if (!white_turn)
         game_turn += 1;
@@ -320,7 +320,7 @@ void Board::_parse_en_passant(string _en_passant)
     }
 }
 
-void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion, bool en_passant) {
+void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion) {
 
     if (castle)
     {
@@ -367,18 +367,17 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
         return ;
     }
     
-    if (en_passant)
-    {
-        // Eat the pawn
-        board[src_y][dst_x] = EMPTY_CELL;
-    }
-
-    // When a pawn jump two cells: Save coordinates where the opponent pawn could take it
+    // Pawn move
     if (tolower(board[src_y][src_x]) == 'p')
     {
         // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
         half_turn_rule = -1;
 
+        // When a pawn change go to an empty destination on another column, an opposant pawn has done an en passant
+        if (abs(dst_x - src_x) == 1 && board[dst_y][dst_x] == EMPTY_CELL)
+            board[src_y][dst_x] = EMPTY_CELL;
+
+        // When a pawn jump two cells: Save coordinates where the opponent pawn could take it
         if (abs(dst_y - src_y) == 2)
         {
             en_passant_x = dst_x;

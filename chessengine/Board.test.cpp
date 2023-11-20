@@ -85,6 +85,26 @@ int apply_move_testLauncher()
         new Move(4, 7, 7, 7, true, 0, false)
     );
 
+    // Castles rights deletion
+    successCount += apply_move_validMove_ApplyIt(
+        81,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
+        new Move(4, 7, 4, 6, false, 0, false)
+    );
+    successCount += apply_move_validMove_ApplyIt(
+        82,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
+        new Move(0, 7, 0, 6, false, 0, false)
+    );
+    successCount += apply_move_validMove_ApplyIt(
+        83,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/7R/R3K21 b A - 1 1"),
+        new Move(7, 7, 7, 6, false, 0, false)
+    );
+
     // Queen promotion White
     successCount += apply_move_validMove_ApplyIt(
         9,

@@ -586,9 +586,20 @@ bool    Board::operator ==(Board *test_board) {
             return false;
     
     // Catling rights equality
-    for (int i = 0; i < 4; i++)
-        if (this->castles[i] != test_board->castles[i])
+    for (int i = 0; i < 4; i += 2)
+    {
+        // Could be at the same place
+        // or the other one
+        if (this->castles[i] >= 0 &&
+            this->castles[i] != test_board->castles[i] &&
+            this->castles[i] != test_board->castles[i + 1])
             return false;
+        
+        if (this->castles[i + 1] >= 0 &&
+            this->castles[i + 1] != test_board->castles[i] &&
+            this->castles[i + 1] != test_board->castles[i + 1])
+            return false;
+    }
 
     // En passant equality
     if (this->en_passant_available != test_board->en_passant_available ||

@@ -93,15 +93,14 @@ vector<Move> Board::find_moves() {
                 case 'q':
                     piece_moves = _find_moves_queens(x, y);
                     break;
+                default:
+                    piece_moves = vector<Move>();
+                    break;
             }
 
             moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
     }
-
-    //Don't forget to create a move if en_passant=True
-
-    // moves.push_back(Move());
 
     this->available_moves = moves;
     return moves;
@@ -559,6 +558,69 @@ bool Board::_insufficient_material_rule()
 vector<Move>    Board::_find_moves_pawns(int x, int y) {
     
     vector<Move> moves;
+
+    if (white_turn)
+    {
+        // Promotions
+        if (y == 1 && board[y + 1][x] == EMPTY_CELL)
+        {
+            moves.push_back(Move(x, y, x, y - 1, 'N'));
+            moves.push_back(Move(x, y, x, y - 1, 'B'));
+            moves.push_back(Move(x, y, x, y - 1, 'R'));
+            moves.push_back(Move(x, y, x, y - 1, 'Q'));
+        }
+
+        // Move 1 cell
+        if (y > 1 && board[y - 1][x] == EMPTY_CELL)
+        {
+            moves.push_back(Move(x, y, x, y - 1, 0));
+        }
+
+        // Move 2 cells
+        if (y == 6 && board[y - 1][x] == EMPTY_CELL && board[y - 2][x] == EMPTY_CELL)
+            moves.push_back(Move(x, y, x, y - 2, 0));
+
+        // Capture left
+        if ((x > 0 && islower(board[y - 1][x - 1])) ||
+            (en_passant_available && y - 1 == en_passant_y && x - 1 == en_passant_x))
+            moves.push_back(Move(x, y, x - 1, y - 1, 0));
+
+        // Capture right
+        if ((x < 7 && islower(board[y - 1][x + 1])) ||
+            (en_passant_available && y - 1 == en_passant_y && x + 1 == en_passant_x))
+            moves.push_back(Move(x, y, x + 1, y - 1, 0));
+    }
+    else
+    {
+        // Promotions
+        if (y == 6 && board[y + 1][x] == EMPTY_CELL)
+        {
+            moves.push_back(Move(x, y, x, y + 1, 'n'));
+            moves.push_back(Move(x, y, x, y + 1, 'b'));
+            moves.push_back(Move(x, y, x, y + 1, 'r'));
+            moves.push_back(Move(x, y, x, y + 1, 'q'));
+        }
+
+        // Move 1 cell
+        if (y < 6 && board[y + 1][x] == EMPTY_CELL)
+        {
+            moves.push_back(Move(x, y, x, y + 1, 0));
+        }
+
+        // Move 2 cells
+        if (y == 1 && board[y + 1][x] == EMPTY_CELL && board[y + 2][x] == EMPTY_CELL)
+            moves.push_back(Move(x, y, x, y + 2, 0));
+
+        // Capture left
+        if ((x > 0 && isupper(board[y + 1][x - 1])) ||
+            (en_passant_available && y + 1 == en_passant_y && x - 1 == en_passant_x))
+            moves.push_back(Move(x, y, x - 1, y + 1, 0));
+
+        // Capture right
+        if ((x < 7 && isupper(board[y + 1][x + 1])) ||
+            (en_passant_available && y + 1 == en_passant_y && x + 1 == en_passant_x))
+            moves.push_back(Move(x, y, x + 1, y + 1, 0));
+    }
 
     return moves;
 }

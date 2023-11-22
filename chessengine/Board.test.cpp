@@ -254,13 +254,36 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
         }
     }
 
+    // Assert no duplicates
+    if (moves_found.size() != requested_moves_count)
+    {
+        if (success)
+        {
+            cerr << "\n---------- Board - find_moves_RegularCases_FindAllMoves() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+            board->log();
+        }
+
+        cerr << "- Moves found by the engine : " << endl;
+        for (int i = 0; i < moves_found.size(); i++)
+            moves_found[i].log();
+
+        cerr << "- Requested moves : " << endl;
+        for (int i = 0; i < requested_moves_count; i++)
+            requested_moves[i]->log();
+
+        success = false;
+    }
+
     return success ? 1 : 0;
 }
 
-int find_moves_testLauncher()
+int find_pawn_moves_testLauncher()
 {
     int success_count = 0;
     Move *requested_moves[10];
+
+    // Use '#' to block moves
+    // Use 't' and 'T' to simulate opponent pieces
 
     // 666 - No piece -> No moves
     success_count += find_moves_RegularCases_FindAllMoves(
@@ -270,78 +293,106 @@ int find_moves_testLauncher()
         0
     );
 
-    // 0 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
-    requested_moves[0] = new Move(0, 2, 1, 1, 0); // White left pawn captures
-    requested_moves[1] = new Move(1, 3, 1, 2, 0); // White left pawn advance 1
-    requested_moves[2] = new Move(6, 6, 6, 5, 0); // White right pawn advance 1 but not 2
-    requested_moves[3] = new Move(6, 6, 5, 5, 0); // White right pawn captures
-    requested_moves[4] = new Move(7, 6, 7, 5, 0); // White right pawn advance 1
-    requested_moves[5] = new Move(7, 6, 7, 4, 0); // White right pawn advance 2
+    // Advances 0 and 1 and 2 - White
+    requested_moves[0] = new Move(6, 6, 6, 5, 0); // Advance 1 but not 2
+    requested_moves[1] = new Move(7, 6, 7, 5, 0); // Advance 1
+    requested_moves[2] = new Move(7, 6, 7, 4, 0); // Advance 2
     success_count += find_moves_RegularCases_FindAllMoves(
         0,
-        new Board("8/ppp5/P7/1P6/6p1/5p2/5PPP/8 w - - 0 1"),
+        new Board("8/8/8/8/6#1/5#2/5PPP/8 w - - 0 1"),
         requested_moves,
-        6
+        3
     );
-
-    // 1 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
-    requested_moves[0] = new Move(1, 1, 1, 2, 0); // Black left pawn advance 1 but not 2
-    requested_moves[1] = new Move(1, 1, 0, 2, 0); // Black left pawn captures
-    requested_moves[2] = new Move(2, 1, 2, 2, 0); // Black left pawn advance 1
-    requested_moves[3] = new Move(2, 1, 2, 3, 0); // Black left pawn advance 2
-    requested_moves[4] = new Move(5, 5, 6, 6, 0); // Black right pawn captures
-    requested_moves[5] = new Move(6, 4, 6, 5, 0); // Black right pawn advance 1
+    // Advances 0 and 1 and 2 - Black
+    requested_moves[0] = new Move(1, 1, 1, 2, 0); // Advance 1 but not 2
+    requested_moves[1] = new Move(2, 1, 2, 2, 0); // Advance 1
+    requested_moves[2] = new Move(2, 1, 2, 3, 0); // Advance 2
     success_count += find_moves_RegularCases_FindAllMoves(
         1,
-        new Board("8/ppp5/P7/1P6/6p1/5p2/5PPP/8 b - - 0 1"),
+        new Board("8/ppp5/#7/1#6/8/8/8/8 b - - 0 1"),
         requested_moves,
-        6
+        3
     );
 
-    // 2 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
-    requested_moves[0] = new Move(0, 2, 1, 1, 0); // White right capture
-    requested_moves[1] = new Move(2, 2, 1, 1, 0); // White left capture
+    // Captures (Not behind) (Not allies) - White
+    requested_moves[0] = new Move(0, 6, 1, 5, 0); // Right capture
+    requested_moves[1] = new Move(7, 6, 6, 5, 0); // Left captures
     success_count += find_moves_RegularCases_FindAllMoves(
         2,
-        new Board("8/1p6/P1P5/1p6/8/8/8/8 w - - 0 1"),
+        new Board("8/8/2T#T3/3P4/8/#t4t#/P6P/1t4t1 w - - 0 1"),
+        requested_moves,
+        2
+    );
+    // Captures (Not behind) (Not allies) - Black
+    requested_moves[0] = new Move(0, 1, 1, 2, 0);  // Left capture
+    requested_moves[1] = new Move(7, 1, 6, 2, 0);  // Right capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        3,
+        new Board("1T4T1/p6p/#T4T#/8/3p4/2t#t3/8/8 b - - 0 1"),
         requested_moves,
         2
     );
 
-    // 3 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
-    requested_moves[0] = new Move(1, 1, 0, 2, 0); // Black left capture
-    requested_moves[1] = new Move(1, 1, 2, 2, 0); // Black right capture
+    // "en passant" - White - Left
+    requested_moves[0] = new Move(0, 3, 1, 2, 0);
     success_count += find_moves_RegularCases_FindAllMoves(
-        2,
-        new Board("8/1p6/P1P5/1p6/8/8/8/8 b - - 0 1"),
+        4,
+        new Board("8/8/#7/Pp6/1#6/8/8/8 w - b6 0 1"),
         requested_moves,
-        2
+        1
     );
-
-    // 4 - Pawn tests - Return "en passant" black capture left -> b6
-    requested_moves[0] = new Move(2, 3, 1, 2, 0); // Black en passant
+    // "en passant" - White - Right
+    requested_moves[0] = new Move(2, 3, 1, 2, 0);
     success_count += find_moves_RegularCases_FindAllMoves(
-        2,
-        new Board("8/8/8/1pP5/8/8/8/8 b - b6 0 1"),
+        5,
+        new Board("8/8/2#5/1pP5/1#6/8/8/8 w - b6 0 1"),
         requested_moves,
         1
     );
 
-    // 4 - Pawn tests - Return "en passant" black capture right -> d6
-    requested_moves[0] = new Move(2, 3, 3, 2, 0); // White en passant
+    // "en passant" - Black - Left
+    requested_moves[0] = new Move(1, 4, 0, 5, 0);
     success_count += find_moves_RegularCases_FindAllMoves(
-        2,
-        new Board("8/8/8/2Pp4/8/8/8/8 w - d6 0 1"),
+        6,
+        new Board("8/8/8/#7/Pp6/1#6/8/8 b - a3 0 1"),
+        requested_moves,
+        1
+    );
+    // "en passant" - Black - Right
+    requested_moves[0] = new Move(1, 4, 2, 5, 0);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        7,
+        new Board("8/8/8/2#5/1pP5/1#6/8/8 b - c3 0 1"),
         requested_moves,
         1
     );
 
-    //SPLIT TESTS BY PIECES
+    // Promotions - White
+    requested_moves[0] = new Move(0, 1, 0, 0, 'N');
+    requested_moves[1] = new Move(0, 1, 0, 0, 'B');
+    requested_moves[2] = new Move(0, 1, 0, 0, 'R');
+    requested_moves[3] = new Move(0, 1, 0, 0, 'Q');
+    success_count += find_moves_RegularCases_FindAllMoves(
+        8,
+        new Board("8/P7/8/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        4
+    );
 
-    // For both sides - Pawn tests - Return "en passant" white capture left
-    // For both sides - Pawn tests - Return "en passant" white capture right
-    // For both sides - Pawn tests - Return all possible  
-    // For both sides - Pawn tests - Return all promotions (32)
+    // Promotions - Black
+    requested_moves[0] = new Move(0, 6, 0, 7, 'n');
+    requested_moves[1] = new Move(0, 6, 0, 7, 'b');
+    requested_moves[2] = new Move(0, 6, 0, 7, 'r');
+    requested_moves[3] = new Move(0, 6, 0, 7, 'q');
+    success_count += find_moves_RegularCases_FindAllMoves(
+        9,
+        new Board("8/8/8/8/8/8/p7/8 b - - 0 1"),
+        requested_moves,
+        4
+    );
+
+    return success_count;
+}
 
     // For both sides - Knight tests - 1 in the center Return all Regular move (8) (With obstacles)
     // For both sides - Knight tests - 4 on edges      Return all Regular move (6/8) (2 blocked due to 2 opponent pieces)
@@ -355,9 +406,6 @@ int find_moves_testLauncher()
     // For both sides - Check tests - King cannot move on a threated cell (By all other pieces)
     // For both sides - Check tests - Pieces cannot moves if the king get checked
     // For both sides - Other tests - No move found (Stale mate)
-
-    return success_count;
-}
 
 #pragma endregion find_moves
 
@@ -617,7 +665,7 @@ int mainTestBoard()
     int successCount = 0;
 
     successCount += apply_move_testLauncher();
-    // successCount += find_moves_testLauncher();
+    successCount += find_pawn_moves_testLauncher();
     successCount += create_fen_testLauncher();
     successCount += game_state_testLauncher();
 

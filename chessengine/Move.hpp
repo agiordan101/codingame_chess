@@ -9,14 +9,13 @@ class Move {
         int src_y;
         int dst_x;
         int dst_y;
-        bool castle;
         char promotion;
 
-        Move(string uci, char src_piece, char dst_piece, bool chess960_rule = true);
-        Move(int _src_x, int _src_y, int _dst_x, int _dst_y, bool _castle, char _promotion);
+        Move(string uci);
+        Move(int _src_x, int _src_y, int _dst_x, int _dst_y, char _promotion);
 
         void log();
-        string to_uci(bool chess960_rule = true);
+        string to_uci(bool regular_rules_castling = false);
 
         bool operator ==(const Move *other);
 };

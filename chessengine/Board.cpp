@@ -2,7 +2,7 @@
 
 // --- PUBLIC METHODS ---
 
-Board::Board(string _fen) {
+Board::Board(string _fen, bool _chess960_rule) {
     
     stringstream ss(_fen);
     string board;
@@ -19,11 +19,11 @@ Board::Board(string _fen) {
     getline(ss, half_turn_rule, ' ');
     getline(ss, game_turn, ' ');
 
-    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn));
+    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule);
 }
 
-Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn) {
-    _main_parsing(_board, _color, _castling, _en_passant, half_turn_rule, game_turn);
+Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule) {
+    _main_parsing(_board, _color, _castling, _en_passant, half_turn_rule, game_turn, _chess960_rule);
 }
 
 void Board::log() {
@@ -109,7 +109,7 @@ vector<Move> Board::find_moves() {
 
 void Board::apply_move(Move move)
 {
-    _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.castle, move.promotion);
+    _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.promotion);
 
     // Increment game turn after black turn
     if (!white_turn)
@@ -123,7 +123,7 @@ void Board::apply_move(Move move)
 
     _update_en_passant();
     _update_castling_rights();
-    _update_check(); // Info could be passed in Move ?
+    _update_check();
     _update_fen_history();
 }
 
@@ -236,7 +236,7 @@ string Board::create_fen(bool with_turns)
 
 // --- PRIVATE METHODS ---
 
-void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn)
+void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
 {
     // Parse FEN data
     _parse_board(_board);
@@ -245,6 +245,10 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     _parse_en_passant(_en_passant);
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
+
+    // Set the right castling function pointer
+    chess960_rule = _chess960_rule;
+    _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
 
     fen_history_index = 0;
     _update_fen_history();
@@ -320,60 +324,33 @@ void Board::_parse_en_passant(string _en_passant)
     }
 }
 
-void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion) {
+void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, char promotion) {
 
-    if (castle)
+    // Castling
+    if ((this->*_handle_castle)(src_x, src_y, dst_x, dst_y))
     {
-        char king;
-        char rook;
-        if (white_turn)
-        {
-            king = 'K';
-            rook = 'R';
-        }
-        else
-        {
-            king = 'k';
-            rook = 'r';
-        }
-
-        // In this engine, castles are represented by moving the king to its own rook (As Chess960 rules)
-        // First, we remove both pieces
-        board[src_y][src_x] = EMPTY_CELL;
-        board[dst_y][dst_x] = EMPTY_CELL;
-
-        // Then, we force THE ONLY valid castle final position
-        if (dst_x < src_x)
-        {
-            // Left castle
-            board[src_y][2] = king;
-            board[src_y][3] = rook;
-        }
-        else
-        {
-            // Right castle
-            board[src_y][6] = king;
-            board[src_y][5] = rook;
-        }
-
+        _apply_castle(src_x, src_y, dst_x, dst_y);
         return ;
     }
     
     if (promotion)
     {
+        // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
+        half_turn_rule = -1;
+
         // Promote the pawn : A valid piece must have been created in find_move
         board[src_y][src_x] = EMPTY_CELL;
         board[dst_y][dst_x] = promotion;
         return ;
     }
     
-    // Pawn move
+    // Pawn moves
     if (tolower(board[src_y][src_x]) == 'p')
     {
         // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
         half_turn_rule = -1;
 
-        // When a pawn change go to an empty destination on another column, an opposant pawn has done an en passant
+        // When a pawn go to an empty destination on another column, an opposant pawn has done an en passant
         if (abs(dst_x - src_x) == 1 && board[dst_y][dst_x] == EMPTY_CELL)
             board[src_y][dst_x] = EMPTY_CELL;
 
@@ -383,14 +360,67 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle,
             en_passant_x = dst_x;
             en_passant_y = dst_y > src_y ? dst_y - 1 : dst_y + 1;
         }
+
+        // Move the pawn
+        board[dst_y][dst_x] = board[src_y][src_x];
+        board[src_y][src_x] = EMPTY_CELL;
+        return;
     }
 
     // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
-    else if (board[dst_y][dst_x] != EMPTY_CELL)
+    if (board[dst_y][dst_x] != EMPTY_CELL)
         half_turn_rule = -1;
 
+    // Regular move
     board[dst_y][dst_x] = board[src_y][src_x];
     board[src_y][src_x] = EMPTY_CELL;
+}
+
+bool Board::_handle_standard_castle(int src_x, int src_y, int dst_x, int dst_y)
+{
+    // In my implementation, castling moves are always represented by a king moving to its own rook, as Chess960 rules.
+    // To detect a castle with standard rules, we just need to check if the king is moving by 2 cells on the x axis
+    return (tolower(board[src_y][src_x]) == 'k' && abs(dst_x - src_x) >= 2);
+}
+
+bool Board::_handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y)
+{
+    // A castle with Chess960 rule is represented by moving the king to its own rook
+    return (tolower(board[src_y][src_x]) == 'k' && tolower(board[dst_y][dst_x]) == 'r');
+}
+
+void Board::_apply_castle(int src_x, int src_y, int dst_x, int dst_y)
+{
+    char king;
+    char rook;
+    if (white_turn)
+    {
+        king = 'K';
+        rook = 'R';
+    }
+    else
+    {
+        king = 'k';
+        rook = 'r';
+    }
+
+    // First, we remove both pieces
+    board[src_y][src_x] = EMPTY_CELL;
+    board[dst_y][dst_x] = EMPTY_CELL;
+
+    // Then, we force THE ONLY valid castle final position
+    if (dst_x < src_x)
+    {
+        // Left castle
+        board[dst_y][2] = king;
+        board[dst_y][3] = rook;
+    }
+    else
+    {
+        // Right castle
+        board[dst_y][5] = rook;
+        board[dst_y][6] = king;
+    }
 }
 
 void Board::_update_en_passant() {
@@ -612,6 +642,10 @@ bool    Board::operator ==(Board *test_board) {
 
     // Game turn
     if (this->game_turn != test_board->game_turn)
+            return false;
+
+    // Game rules
+    if (this->chess960_rule != test_board->chess960_rule)
             return false;
 
     return true;            

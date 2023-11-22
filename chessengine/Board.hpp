@@ -44,8 +44,8 @@ class Board {
         vector<Move>    available_moves;
         bool            check;
 
-        Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
-        Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move);
+        Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
+        Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
 
         void            log();
         vector<Move>    find_moves();
@@ -57,12 +57,19 @@ class Board {
 
     private:
 
-        void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn);
+        // Function pointer to apply castle depending on the chess960 rule
+        bool    chess960_rule;
+        bool    (Board::*_handle_castle)(int, int, int, int);
+
+        void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule);
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
         void    _parse_en_passant(string _en_passant);
 
-        void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, bool castle, char promotion);
+        void    _apply_move(int src_x, int src_y, int dst_x, int dst_y, char promotion);
+        bool    _handle_standard_castle(int src_x, int src_y, int dst_x, int _);
+        bool    _handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y);
+        void    _apply_castle(int src_x, int src_y, int dst_x, int dst_y);
         void    _update_en_passant();
         void    _update_castling_rights();
         void    _update_check();

@@ -25,10 +25,12 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ## Roadmap
 
 * Rework Move():
-    - Remove castle and en_passant boolean
-    - castle needed to create uci for the real chess !
-    - Move::Move()
+    - Remove castle boolean: But castle needed to create uci for the real chess !
     - Move::Move(uci) - Remove src and dst pieces
+    - REad all unittests !!!
+        - Move
+        - to_uci
+        - apply_move
 
 * Implement Board::find_moves() methods
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests

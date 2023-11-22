@@ -32,14 +32,14 @@ int apply_move_testLauncher()
         1,
         new Board("8/p7/8/8/8/8/8/8 b - - 5 1"),
         new Board("8/8/p7/8/8/8/8/8 w - - 0 2"),
-        new Move(0, 1, 0, 2, false, 0)
+        new Move(0, 1, 0, 2, 0)
     );
     // 2 advance black pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         2,
         new Board("8/1p6/8/2P5/8/8/8/8 b - - 0 1"),
         new Board("8/8/8/1pP5/8/8/8/8 w - b6 0 2"),
-        new Move(1, 1, 1, 3, false, 0)
+        new Move(1, 1, 1, 3, 0)
     );
 
     // Regular White moves - (Don't reset the half turn rule)
@@ -47,106 +47,134 @@ int apply_move_testLauncher()
         3,
         new Board("8/8/8/8/8/8/8/3Q4 w - - 5 1"),
         new Board("8/8/8/8/6Q1/8/8/8 b - - 6 1"),
-        new Move(3, 7, 6, 4, false, 0)
+        new Move(3, 7, 6, 4, 0)
     );
     // 2 advance white pawn that create a "en passant"
     successCount += apply_move_validMove_ApplyIt(
         4,
         new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
         new Board("8/8/8/8/3pP3/8/8/8 b - e3 0 1"),
-        new Move(4, 6, 4, 4, false, 0)
+        new Move(4, 6, 4, 4, 0)
     );
 
-    // Black Castle
+    // Black Chess960 Castle left
     successCount += apply_move_validMove_ApplyIt(
         5,
         new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1"),
         new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move(4, 0, 0, 0, true, 0)
+        new Move(4, 0, 0, 0, 0)
     );
+    // Black Chess960 Castle right
     successCount += apply_move_validMove_ApplyIt(
         6,
-        new Board("4k2r/8/8/8/8/8/8/8 b h - 0 1"),
+        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1"),
         new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move(4, 0, 7, 0, true, 0)
+        new Move(1, 0, 7, 0, 0)
     );
-
-    // White Castle
+    // White Chess960 Castle left
     successCount += apply_move_validMove_ApplyIt(
         7,
-        new Board("8/8/8/8/8/8/8/R3K3 w A - 0 1"),
+        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1"),
         new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1"),
-        new Move(4, 7, 0, 7, true, 0)
+        new Move(6, 7, 0, 7, 0)
     );
+    // White Chess960 Castle right
     successCount += apply_move_validMove_ApplyIt(
         8,
         new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
         new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
-        new Move(4, 7, 7, 7, true, 0)
+        new Move(4, 7, 7, 7, 0)
+    );
+
+    // Black Standard Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        51,
+        new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1", false),
+        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2", false),
+        new Move(4, 0, 0, 0, 0)
+    );
+    // Black Standard Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        61,
+        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1", false),
+        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2", false),
+        new Move(1, 0, 7, 0, 0)
+    );
+    // White Standard Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        71,
+        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1", false),
+        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1", false),
+        new Move(6, 7, 0, 7, 0)
+    );
+    // White Standard Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        81,
+        new Board("8/8/8/8/8/8/8/4K2R w H - 0 1", false),
+        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1", false),
+        new Move(4, 7, 7, 7, 0)
     );
 
     // Castles rights deletion
     successCount += apply_move_validMove_ApplyIt(
-        81,
-        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
-        new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
-        new Move(4, 7, 4, 6, false, 0)
-    );
-    successCount += apply_move_validMove_ApplyIt(
         82,
         new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
-        new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
-        new Move(0, 7, 0, 6, false, 0)
+        new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
+        new Move(4, 7, 4, 6, 0)
     );
     successCount += apply_move_validMove_ApplyIt(
         83,
         new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
+        new Move(0, 7, 0, 6, 0)
+    );
+    successCount += apply_move_validMove_ApplyIt(
+        84,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
         new Board("8/8/8/8/8/8/7R/R3K21 b A - 1 1"),
-        new Move(7, 7, 7, 6, false, 0)
+        new Move(7, 7, 7, 6, 0)
     );
 
     // Queen promotion White
     successCount += apply_move_validMove_ApplyIt(
         9,
         new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
-        new Board("5Q2/8/8/8/8/8/8/8 b - - 1 1"),
-        new Move(5, 1, 5, 0, false, 'Q')
+        new Board("5Q2/8/8/8/8/8/8/8 b - - 0 1"),
+        new Move(5, 1, 5, 0, 'Q')
     );
     successCount += apply_move_validMove_ApplyIt(
         10,
         new Board("8/3P4/8/8/8/8/8/8 w - - 0 1"),
-        new Board("3N4/8/8/8/8/8/8/8 b - - 1 1"),
-        new Move(3, 1, 3, 0, false, 'N')
+        new Board("3N4/8/8/8/8/8/8/8 b - - 0 1"),
+        new Move(3, 1, 3, 0, 'N')
     );
 
     // Queen promotion Black
-    //cerr << "\n[UNITTEST] Board - apply_move_testLauncher() - Black promotion" << endl;
     successCount += apply_move_validMove_ApplyIt(
         11,
         new Board("8/8/8/8/8/8/5p2/8 b - - 0 1"),
-        new Board("8/8/8/8/8/8/8/5r2 w - - 1 2"),
-        new Move(5, 6, 5, 7, false, 'r')
+        new Board("8/8/8/8/8/8/8/5r2 w - - 0 2"),
+        new Move(5, 6, 5, 7, 'r')
     );
     successCount += apply_move_validMove_ApplyIt(
         12,
         new Board("8/8/8/8/8/8/3p4/8 b - - 0 1"),
-        new Board("8/8/8/8/8/8/8/3b4 w - - 1 2"),
-        new Move(3, 6, 3, 7, false, 'b')
+        new Board("8/8/8/8/8/8/8/3b4 w - - 0 2"),
+        new Move(3, 6, 3, 7, 'b')
     );
 
     // En passant White
-    //cerr << "\n[UNITTEST] Board - apply_move_testLauncher() - White en passant" << endl;
     successCount += apply_move_validMove_ApplyIt(
         13,
         new Board("8/8/8/4pP2/8/8/8/8 w - b3 0 1"),
         new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
-        new Move(5, 3, 4, 2, false, 0)
+        new Move(5, 3, 4, 2, 0)
     );
     successCount += apply_move_validMove_ApplyIt(
         14,
         new Board("8/8/8/8/2pP4/8/8/8 w - d3 0 1"),
         new Board("8/8/8/8/8/3p4/8/8 b - - 0 1"),
-        new Move(2, 4, 3, 5, false, 0)
+        new Move(2, 4, 3, 5, 0)
     );
 
     // Reset the half turn rule when a piece is captured
@@ -154,7 +182,7 @@ int apply_move_testLauncher()
         15,
         new Board("8/8/4r3/8/8/8/4B3/8 b - - 5 1"),
         new Board("8/8/8/8/8/8/4r3/8 w - - 0 2"),
-        new Move(4, 2, 4, 6, false, 0)
+        new Move(4, 2, 4, 6, 0)
     );
 
     return successCount;
@@ -243,12 +271,12 @@ int find_moves_testLauncher()
     );
 
     // 0 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
-    requested_moves[0] = new Move(0, 2, 1, 1, false, 0); // White left pawn captures
-    requested_moves[1] = new Move(1, 3, 1, 2, false, 0); // White left pawn advance 1
-    requested_moves[2] = new Move(6, 6, 6, 5, false, 0); // White right pawn advance 1 but not 2
-    requested_moves[3] = new Move(6, 6, 5, 5, false, 0); // White right pawn captures
-    requested_moves[4] = new Move(7, 6, 7, 5, false, 0); // White right pawn advance 1
-    requested_moves[5] = new Move(7, 6, 7, 4, false, 0); // White right pawn advance 2
+    requested_moves[0] = new Move(0, 2, 1, 1, 0); // White left pawn captures
+    requested_moves[1] = new Move(1, 3, 1, 2, 0); // White left pawn advance 1
+    requested_moves[2] = new Move(6, 6, 6, 5, 0); // White right pawn advance 1 but not 2
+    requested_moves[3] = new Move(6, 6, 5, 5, 0); // White right pawn captures
+    requested_moves[4] = new Move(7, 6, 7, 5, 0); // White right pawn advance 1
+    requested_moves[5] = new Move(7, 6, 7, 4, 0); // White right pawn advance 2
     success_count += find_moves_RegularCases_FindAllMoves(
         0,
         new Board("8/ppp5/P7/1P6/6p1/5p2/5PPP/8 w - - 0 1"),
@@ -257,12 +285,12 @@ int find_moves_testLauncher()
     );
 
     // 1 - Pawn tests - 2 Regular moves + 2 double advances + 2 captures (6) (2 blocked due to 2 opponent pieces also blocked)
-    requested_moves[0] = new Move(1, 1, 1, 2, false, 0); // Black left pawn advance 1 but not 2
-    requested_moves[1] = new Move(1, 1, 0, 2, false, 0); // Black left pawn captures
-    requested_moves[2] = new Move(2, 1, 2, 2, false, 0); // Black left pawn advance 1
-    requested_moves[3] = new Move(2, 1, 2, 3, false, 0); // Black left pawn advance 2
-    requested_moves[4] = new Move(5, 5, 6, 6, false, 0); // Black right pawn captures
-    requested_moves[5] = new Move(6, 4, 6, 5, false, 0); // Black right pawn advance 1
+    requested_moves[0] = new Move(1, 1, 1, 2, 0); // Black left pawn advance 1 but not 2
+    requested_moves[1] = new Move(1, 1, 0, 2, 0); // Black left pawn captures
+    requested_moves[2] = new Move(2, 1, 2, 2, 0); // Black left pawn advance 1
+    requested_moves[3] = new Move(2, 1, 2, 3, 0); // Black left pawn advance 2
+    requested_moves[4] = new Move(5, 5, 6, 6, 0); // Black right pawn captures
+    requested_moves[5] = new Move(6, 4, 6, 5, 0); // Black right pawn advance 1
     success_count += find_moves_RegularCases_FindAllMoves(
         1,
         new Board("8/ppp5/P7/1P6/6p1/5p2/5PPP/8 b - - 0 1"),
@@ -271,8 +299,8 @@ int find_moves_testLauncher()
     );
 
     // 2 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
-    requested_moves[0] = new Move(0, 2, 1, 1, false, 0); // White right capture
-    requested_moves[1] = new Move(2, 2, 1, 1, false, 0); // White left capture
+    requested_moves[0] = new Move(0, 2, 1, 1, 0); // White right capture
+    requested_moves[1] = new Move(2, 2, 1, 1, 0); // White left capture
     success_count += find_moves_RegularCases_FindAllMoves(
         2,
         new Board("8/1p6/P1P5/1p6/8/8/8/8 w - - 0 1"),
@@ -281,8 +309,8 @@ int find_moves_testLauncher()
     );
 
     // 3 - Pawn tests - Return all Captures left and right (And no capture in the wrong way)
-    requested_moves[0] = new Move(1, 1, 0, 2, false, 0); // Black left capture
-    requested_moves[1] = new Move(1, 1, 2, 2, false, 0); // Black right capture
+    requested_moves[0] = new Move(1, 1, 0, 2, 0); // Black left capture
+    requested_moves[1] = new Move(1, 1, 2, 2, 0); // Black right capture
     success_count += find_moves_RegularCases_FindAllMoves(
         2,
         new Board("8/1p6/P1P5/1p6/8/8/8/8 b - - 0 1"),
@@ -291,7 +319,7 @@ int find_moves_testLauncher()
     );
 
     // 4 - Pawn tests - Return "en passant" black capture left -> b6
-    requested_moves[0] = new Move(2, 3, 1, 2, false, 0); // Black en passant
+    requested_moves[0] = new Move(2, 3, 1, 2, 0); // Black en passant
     success_count += find_moves_RegularCases_FindAllMoves(
         2,
         new Board("8/8/8/1pP5/8/8/8/8 b - b6 0 1"),
@@ -300,7 +328,7 @@ int find_moves_testLauncher()
     );
 
     // 4 - Pawn tests - Return "en passant" black capture right -> d6
-    requested_moves[0] = new Move(2, 3, 3, 2, false, 0); // White en passant
+    requested_moves[0] = new Move(2, 3, 3, 2, 0); // White en passant
     success_count += find_moves_RegularCases_FindAllMoves(
         2,
         new Board("8/8/8/2Pp4/8/8/8/8 w - d6 0 1"),
@@ -441,7 +469,7 @@ int game_state_testLauncher()
     vector<Move> moves_exists;
     vector<Move> moves_empty;
 
-    moves_exists.push_back(Move(0, 0, 0, 0, false, '_'));
+    moves_exists.push_back(Move(0, 0, 0, 0, 0));
 
     // 1 - Fifty-Move rule
     success_count += game_state_unittest(
@@ -554,10 +582,10 @@ int game_state_testLauncher()
     Board *board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
 
     // Threefold Repetition rule fails (Only 1 repetition)
-    board->apply_move(Move(3, 2, 4, 2, false, 0)); // White move right
-    board->apply_move(Move(3, 5, 4, 5, false, 0)); // Black move right
-    board->apply_move(Move(4, 2, 3, 2, false, 0)); // White move left
-    board->apply_move(Move(4, 5, 3, 5, false, 0)); // Black move left
+    board->apply_move(Move(3, 2, 4, 2, 0)); // White move right
+    board->apply_move(Move(3, 5, 4, 5, 0)); // Black move right
+    board->apply_move(Move(4, 2, 3, 2, 0)); // White move left
+    board->apply_move(Move(4, 5, 3, 5, 0)); // Black move left
     success_count += game_state_unittest(
         9,
         board,
@@ -567,10 +595,10 @@ int game_state_testLauncher()
     );
 
     // Threefold Repetition rule succeed -> 2 repetitions
-    board->apply_move(Move(3, 2, 4, 2, false, 0)); // White move right
-    board->apply_move(Move(3, 5, 4, 5, false, 0)); // Black move right
-    board->apply_move(Move(4, 2, 3, 2, false, 0)); // White move left
-    board->apply_move(Move(4, 5, 3, 5, false, 0)); // Black move left
+    board->apply_move(Move(3, 2, 4, 2, 0)); // White move right
+    board->apply_move(Move(3, 5, 4, 5, 0)); // Black move right
+    board->apply_move(Move(4, 2, 3, 2, 0)); // White move left
+    board->apply_move(Move(4, 5, 3, 5, 0)); // Black move left
     success_count += game_state_unittest(
         9,
         board,

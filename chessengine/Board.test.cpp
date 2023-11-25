@@ -522,6 +522,60 @@ int find_knight_moves_testLauncher()
     return success_count;
 }
 
+int find_bishop_moves_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[20];
+
+    // Regular move & blocked - White
+    requested_moves[0] = new Move(3, 3, 2, 2, 0); // Left up 1
+    requested_moves[1] = new Move(3, 3, 1, 1, 0); // Left up 2
+    requested_moves[2] = new Move(3, 3, 0, 0, 0); // Left up 3
+    requested_moves[3] = new Move(3, 3, 4, 2, 0); // Right up 1
+    requested_moves[4] = new Move(3, 3, 5, 1, 0); // Right up 2
+    requested_moves[5] = new Move(3, 3, 4, 4, 0); // Right down 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        23,
+        new Board("6T1/8/8/3B4/2T5/5T2/8/8 w - - 0 1"),
+        requested_moves,
+        6
+    );
+
+    // Regular move & blocked - Black
+    requested_moves[0] = new Move(4, 3, 3, 2, 0); // Left up 1
+    requested_moves[1] = new Move(4, 3, 2, 1, 0); // Left up 2
+    requested_moves[2] = new Move(4, 3, 1, 0, 0); // Left up 3
+    requested_moves[3] = new Move(4, 3, 5, 2, 0); // Right up 1
+    requested_moves[4] = new Move(4, 3, 6, 1, 0); // Right up 2
+    requested_moves[5] = new Move(4, 3, 5, 4, 0); // Right down 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        24,
+        new Board("7t/8/8/4b3/3t4/6t1/8/8 b - - 0 1"),
+        requested_moves,
+        6
+    );
+
+    // Captures - White
+    requested_moves[0] = new Move(0, 7, 1, 6, 0); // Right up
+    success_count += find_moves_RegularCases_FindAllMoves(
+        25,
+        new Board("8/8/8/8/8/8/1t6/B7 w - - 0 1"),
+        requested_moves,
+        1
+    );
+
+    // Captures - Black
+    requested_moves[0] = new Move(7, 0, 6, 1, 0); // Left down
+    success_count += find_moves_RegularCases_FindAllMoves(
+        26,
+        new Board("7b/6T1/8/8/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        1
+    );
+
+    return success_count;
+}
+
     // For both sides - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
     // For both sides - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
     // For both sides - Queen tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
@@ -798,7 +852,7 @@ int mainTestBoard()
 
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
-    // successCount += find_bishop_moves_testLauncher();
+    successCount += find_bishop_moves_testLauncher();
     // successCount += find_rook_moves_testLauncher();
     // successCount += find_queen_moves_testLauncher();
     // successCount += find_king_moves_testLauncher();

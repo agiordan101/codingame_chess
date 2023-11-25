@@ -658,6 +658,59 @@ void Board::_find_moves_knights(int x, int y) {
 
 void Board::_find_moves_bishops(int x, int y) {
     
+    int (*opp_case_func)(int) = white_turn ? static_cast<int(*)(int)>(islower) : static_cast<int(*)(int)>(isupper);
+
+    // Search diagonally up left
+    for (int bx = x - 1, by = y - 1; bx >= 0 && by >= 0; bx--, by--)
+    {
+        if (board[by][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][bx]))
+                this->available_moves.push_back(Move(x, y, bx, by, 0));
+            break;
+        }
+    }
+
+    // Search diagonally down right
+    for (int bx = x + 1, by = y + 1; bx < 8 && by < 8; bx++, by++)
+    {
+        if (board[by][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][bx]))
+                this->available_moves.push_back(Move(x, y, bx, by, 0));
+            break;
+        }
+    }
+
+    // Search diagonally down left
+    for (int bx = x - 1, by = y + 1; bx >= 0 && by < 8; bx--, by++)
+    {
+        if (board[by][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][bx]))
+                this->available_moves.push_back(Move(x, y, bx, by, 0));
+            break;
+        }
+    }
+
+    // Search diagonally up right
+    for (int bx = x + 1, by = y - 1; bx < 8 && by >= 0; bx++, by--)
+    {
+        if (board[by][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][bx]))
+                this->available_moves.push_back(Move(x, y, bx, by, 0));
+            break;
+        }
+    }
 }
 
 void Board::_find_moves_rooks(int x, int y) {

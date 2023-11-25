@@ -552,7 +552,7 @@ bool Board::_insufficient_material_rule()
     return true;
 }
 
-void    Board::_find_moves_pawns(int x, int y) {
+void Board::_find_moves_pawns(int x, int y) {
 
     if (white_turn)
     {
@@ -618,23 +618,57 @@ void    Board::_find_moves_pawns(int x, int y) {
     }
 }
 
-void    Board::_find_moves_knights(int x, int y) {
+void Board::_find_moves_knights(int x, int y) {
+
+    bool not_top_edge = y != 0;
+    bool not_left_edge = x != 0;
+    bool not_right_edge = x != 7;
+    bool not_bottom_edge = y != 7;
+
+    int (*opp_case_func)(int) = white_turn ? static_cast<int(*)(int)>(islower) : static_cast<int(*)(int)>(isupper);
+
+    // 2 left 1 up
+    if (not_top_edge && x > 1 && (board[y - 1][x - 2] == EMPTY_CELL || opp_case_func(board[y - 1][x - 2])))
+        this->available_moves.push_back(Move(x, y, x - 2, y - 1, 0));
+    // 2 left 1 down
+    if (not_bottom_edge && x > 1 && (board[y + 1][x - 2] == EMPTY_CELL || opp_case_func(board[y + 1][x - 2])))
+        this->available_moves.push_back(Move(x, y, x - 2, y + 1, 0));
+
+    // 2 right 1 up
+    if (not_top_edge && x < 6 && (board[y - 1][x + 2] == EMPTY_CELL || opp_case_func(board[y - 1][x + 2])))
+        this->available_moves.push_back(Move(x, y, x + 2, y - 1, 0));
+    // 2 right 1 down
+    if (not_bottom_edge && x < 6 && (board[y + 1][x + 2] == EMPTY_CELL || opp_case_func(board[y + 1][x + 2])))
+        this->available_moves.push_back(Move(x, y, x + 2, y + 1, 0));
+    
+    // 2 up 1 left
+    if (not_left_edge && y > 1 && (board[y - 2][x - 1] == EMPTY_CELL || opp_case_func(board[y - 2][x - 1])))
+        this->available_moves.push_back(Move(x, y, x - 1, y - 2, 0));
+    // 2 up 1 right
+    if (not_right_edge && y > 1 && (board[y - 2][x + 1] == EMPTY_CELL || opp_case_func(board[y - 2][x + 1])))
+        this->available_moves.push_back(Move(x, y, x + 1, y - 2, 0));
+    
+    // 2 down 1 left
+    if (not_left_edge && y < 6 && (board[y + 2][x - 1] == EMPTY_CELL || opp_case_func(board[y + 2][x - 1])))
+        this->available_moves.push_back(Move(x, y, x - 1, y + 2, 0));
+    // 2 down 1 right
+    if (not_right_edge && y < 6 && (board[y + 2][x + 1] == EMPTY_CELL || opp_case_func(board[y + 2][x + 1])))
+        this->available_moves.push_back(Move(x, y, x + 1, y + 2, 0));
+}
+
+void Board::_find_moves_bishops(int x, int y) {
     
 }
 
-void    Board::_find_moves_bishops(int x, int y) {
+void Board::_find_moves_rooks(int x, int y) {
     
 }
 
-void    Board::_find_moves_rooks(int x, int y) {
+void Board::_find_moves_queens(int x, int y) {
     
 }
 
-void    Board::_find_moves_queens(int x, int y) {
-    
-}
-
-void    Board::_find_moves_king(int x, int y) {
+void Board::_find_moves_king(int x, int y) {
     
     // Are castles legal ?
     // Add Kings all over its trajectories
@@ -710,7 +744,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int y = king_y; y < 8; y++)
         if (board[y][king_x] != EMPTY_CELL)
         {
-            if (board[y][king_x] == 'Q' || board[y][king_x] == 'R')
+            if (board[y][king_x] == opp_queen || board[y][king_x] == opp_rook)
                 return true;
             break;
         }
@@ -718,7 +752,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int y = king_y; y >= 0; y--)
         if (board[y][king_x] != EMPTY_CELL)
         {
-            if (board[y][king_x] == 'Q' || board[y][king_x] == 'R')
+            if (board[y][king_x] == opp_queen || board[y][king_x] == opp_rook)
                 return true;
             break;
         }
@@ -727,7 +761,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x; x < 8; x++)
         if (board[king_y][x] != EMPTY_CELL)
         {
-            if (board[king_y][x] == 'Q' || board[king_y][x] == 'R')
+            if (board[king_y][x] == opp_queen || board[king_y][x] == opp_rook)
                 return true;
             break;
         }
@@ -735,7 +769,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x; x >= 0; x--)
         if (board[king_y][x] != EMPTY_CELL)
         {
-            if (board[king_y][x] == 'Q' || board[king_y][x] == 'R')
+            if (board[king_y][x] == opp_queen || board[king_y][x] == opp_rook)
                 return true;
             break;
         }
@@ -744,7 +778,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x, y = king_y; x >= 0 && y >= 0; x--, y--)
         if (board[y][x] != EMPTY_CELL)
         {
-            if (board[y][x] == 'Q' || board[y][x] == 'B')
+            if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
                 return true;
             break;
         }
@@ -752,7 +786,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x, y = king_y; x < 8 && y < 8; x++, y++)
         if (board[y][x] != EMPTY_CELL)
         {
-            if (board[y][x] == 'Q' || board[y][x] == 'B')
+            if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
                 return true;
             break;
         }
@@ -761,7 +795,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x, y = king_y; x >= 0 && y < 8; x--, y++)
         if (board[y][x] != EMPTY_CELL)
         {
-            if (board[y][x] == 'Q' || board[y][x] == 'B')
+            if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
                 return true;
             break;
         }
@@ -769,7 +803,7 @@ bool Board::_is_check(int king_x, int king_y)
     for (int x = king_x, y = king_y; x < 8 && y >= 0; x++, y--)
         if (board[y][x] != EMPTY_CELL)
         {
-            if (board[y][x] == 'Q' || board[y][x] == 'B')
+            if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
                 return true;
             break;
         }
@@ -820,7 +854,6 @@ bool Board::_is_check(int king_x, int king_y)
         if (!king_bottom_edge && !king_right_edge && board[king_y + 1][king_x + 1] == opp_pawn)
             return true;
     }
-
 
     if (!king_left_edge)
     {

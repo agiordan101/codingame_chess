@@ -390,8 +390,137 @@ int find_pawn_moves_testLauncher()
     return success_count;
 }
 
-    // For both sides - Knight tests - 1 in the center Return all Regular move (8) (With obstacles)
-    // For both sides - Knight tests - 4 on edges      Return all Regular move (6/8) (2 blocked due to 2 opponent pieces)
+int find_knight_moves_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[10];
+
+    // Regular move - White
+    requested_moves[0] = new Move(2, 2, 0, 1, 0); // 2 left 1 up
+    requested_moves[1] = new Move(2, 2, 0, 3, 0); // 2 left 1 down
+    requested_moves[2] = new Move(2, 2, 4, 1, 0); // 2 right 1 up
+    requested_moves[3] = new Move(2, 2, 4, 3, 0); // 2 right 1 down
+    requested_moves[4] = new Move(2, 2, 1, 0, 0); // 2 up 1 left
+    requested_moves[5] = new Move(2, 2, 3, 0, 0); // 2 up 1 right
+    requested_moves[6] = new Move(2, 2, 1, 4, 0); // 2 down 1 left
+    requested_moves[7] = new Move(2, 2, 3, 4, 0); // 2 down 1 right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        11,
+        new Board("8/8/2N5/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // Regular move - Black
+    requested_moves[0] = new Move(5, 5, 3, 4, 0); // 2 left 1 up
+    requested_moves[1] = new Move(5, 5, 3, 6, 0); // 2 left 1 down
+    requested_moves[2] = new Move(5, 5, 7, 4, 0); // 2 right 1 up
+    requested_moves[3] = new Move(5, 5, 7, 6, 0); // 2 right 1 down
+    requested_moves[4] = new Move(5, 5, 4, 3, 0); // 2 up 1 left
+    requested_moves[5] = new Move(5, 5, 6, 3, 0); // 2 up 1 right
+    requested_moves[6] = new Move(5, 5, 4, 7, 0); // 2 down 1 left
+    requested_moves[7] = new Move(5, 5, 6, 7, 0); // 2 down 1 right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        12,
+        new Board("8/8/8/8/8/5n2/8/8 b - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // Captures - White
+    requested_moves[0] = new Move(2, 2, 0, 1, 0); // 2 left 1 up
+    requested_moves[1] = new Move(2, 2, 0, 3, 0); // 2 left 1 down
+    requested_moves[2] = new Move(2, 2, 4, 1, 0); // 2 right 1 up
+    requested_moves[3] = new Move(2, 2, 4, 3, 0); // 2 right 1 down
+    requested_moves[4] = new Move(2, 2, 1, 0, 0); // 2 up 1 left
+    requested_moves[5] = new Move(2, 2, 3, 0, 0); // 2 up 1 right
+    requested_moves[6] = new Move(2, 2, 1, 4, 0); // 2 down 1 left
+    requested_moves[7] = new Move(2, 2, 3, 4, 0); // 2 down 1 right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        13,
+        new Board("1p1p4/p3p3/2N5/p3p3/1p1p4/8/8/8 w - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // Captures - Black
+    requested_moves[0] = new Move(5, 5, 3, 4, 0); // 2 left 1 up
+    requested_moves[1] = new Move(5, 5, 3, 6, 0); // 2 left 1 down
+    requested_moves[2] = new Move(5, 5, 7, 4, 0); // 2 right 1 up
+    requested_moves[3] = new Move(5, 5, 7, 6, 0); // 2 right 1 down
+    requested_moves[4] = new Move(5, 5, 4, 3, 0); // 2 up 1 left
+    requested_moves[5] = new Move(5, 5, 6, 3, 0); // 2 up 1 right
+    requested_moves[6] = new Move(5, 5, 4, 7, 0); // 2 down 1 left
+    requested_moves[7] = new Move(5, 5, 6, 7, 0); // 2 down 1 right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        14,
+        new Board("8/8/8/1P1P4/P3P3/5n2/P3P3/1P1P4 b - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // No moves - Left up corner - White
+    success_count += find_moves_RegularCases_FindAllMoves(
+        15,
+        new Board("N1#5/1#P5/1P6/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        0
+    );
+    // No moves - Left up corner - Black
+    success_count += find_moves_RegularCases_FindAllMoves(
+        16,
+        new Board("n7/2p5/1p#5/1#6/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        0
+    );
+
+    // No moves - Right up corner - White
+    success_count += find_moves_RegularCases_FindAllMoves(
+        17,
+        new Board("5#1N/5P#1/6P1/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        0
+    );
+    // No moves - Right up corner - Black
+    success_count += find_moves_RegularCases_FindAllMoves(
+        18,
+        new Board("7n/5p2/5#p1/6#1/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        0
+    );
+
+    // No moves - Left down corner - White
+    success_count += find_moves_RegularCases_FindAllMoves(
+        19,
+        new Board("8/8/8/8/1#6/1P#5/2P5/N7 w - - 0 1"),
+        requested_moves,
+        0
+    );
+    // No moves - Left down corner - Black
+    success_count += find_moves_RegularCases_FindAllMoves(
+        20,
+        new Board("8/8/8/8/8/1p6/1#p5/n1#5 b - - 0 1"),
+        requested_moves,
+        0
+    );
+
+    // No moves - Right down corner - White
+    success_count += find_moves_RegularCases_FindAllMoves(
+        21,
+        new Board("8/8/8/8/6#1/5#P1/5P2/7N w - - 0 1"),
+        requested_moves,
+        0
+    );
+    // No moves - Right down corner - Black
+    success_count += find_moves_RegularCases_FindAllMoves(
+        22,
+        new Board("8/8/8/8/8/6p1/5p#1/5#1n b - - 0 1"),
+        requested_moves,
+        0
+    );
+
+    return success_count;
+}
 
     // For both sides - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
     // For both sides - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
@@ -663,10 +792,18 @@ int mainTestBoard()
     // Use '#' to block moves
     // Use 't' and 'T' to simulate opponent pieces
 
-    successCount += apply_move_testLauncher();
-    successCount += find_pawn_moves_testLauncher();
     successCount += create_fen_testLauncher();
+    successCount += apply_move_testLauncher();
     successCount += game_state_testLauncher();
+
+    successCount += find_pawn_moves_testLauncher();
+    successCount += find_knight_moves_testLauncher();
+    // successCount += find_bishop_moves_testLauncher();
+    // successCount += find_rook_moves_testLauncher();
+    // successCount += find_queen_moves_testLauncher();
+    // successCount += find_king_moves_testLauncher();
+    // successCount += find_moves_under_check_testLauncher();
+    // successCount += find_not_illegal_moves_testLauncher();
 
     return successCount;
 }

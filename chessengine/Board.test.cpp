@@ -282,17 +282,6 @@ int find_pawn_moves_testLauncher()
     int success_count = 0;
     Move *requested_moves[10];
 
-    // Use '#' to block moves
-    // Use 't' and 'T' to simulate opponent pieces
-
-    // 666 - No piece -> No moves
-    success_count += find_moves_RegularCases_FindAllMoves(
-        666,
-        new Board("8/8/8/8/8/8/8/8 w - - 0 1"),
-        requested_moves,
-        0
-    );
-
     // Advances 0 and 1 and 2 - White
     requested_moves[0] = new Move(6, 6, 6, 5, 0); // Advance 1 but not 2
     requested_moves[1] = new Move(7, 6, 7, 5, 0); // Advance 1
@@ -374,11 +363,10 @@ int find_pawn_moves_testLauncher()
     requested_moves[3] = new Move(0, 1, 0, 0, 'Q');
     success_count += find_moves_RegularCases_FindAllMoves(
         8,
-        new Board("8/P7/8/8/8/8/8/8 w - - 0 1"),
+        new Board("7#/P6P/8/8/8/8/8/8 w - - 0 1"),
         requested_moves,
         4
     );
-
     // Promotions - Black
     requested_moves[0] = new Move(0, 6, 0, 7, 'n');
     requested_moves[1] = new Move(0, 6, 0, 7, 'b');
@@ -386,9 +374,17 @@ int find_pawn_moves_testLauncher()
     requested_moves[3] = new Move(0, 6, 0, 7, 'q');
     success_count += find_moves_RegularCases_FindAllMoves(
         9,
-        new Board("8/8/8/8/8/8/p7/8 b - - 0 1"),
+        new Board("8/8/8/8/8/8/p6p/7# b - - 0 1"),
         requested_moves,
         4
+    );
+
+    // No piece -> No moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        10,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        0
     );
 
     return success_count;
@@ -492,7 +488,7 @@ int create_fen_testLauncher()
 int game_state_unittest(int testIndex, Board *board, vector<Move> moves, bool check, float requested_game_state)
 {
     board->available_moves = moves;
-    board->moves_computed = true;
+    board->moves_found = true;
     board->check = check;
     float game_state = board->game_state();
 
@@ -663,6 +659,9 @@ int game_state_testLauncher()
 int mainTestBoard()
 {
     int successCount = 0;
+
+    // Use '#' to block moves
+    // Use 't' and 'T' to simulate opponent pieces
 
     successCount += apply_move_testLauncher();
     successCount += find_pawn_moves_testLauncher();

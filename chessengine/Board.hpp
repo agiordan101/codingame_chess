@@ -38,10 +38,8 @@ class Board {
 
     public:
 
-        // Available moves are created in find_moves() or game_state() calls. And reseted after apply_move()
-        //   public for unittest ...
-        bool            moves_computed;
         vector<Move>    available_moves;
+        bool            moves_found;
         bool            check;
 
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
@@ -78,10 +76,14 @@ class Board {
         bool    _threefold_repetition_rule();
         bool    _insufficient_material_rule();
 
-        vector<Move>    _find_moves_pawns(int x, int y);
-        vector<Move>    _find_moves_knights(int x, int y);
-        vector<Move>    _find_moves_bishops(int x, int y);
-        vector<Move>    _find_moves_rooks(int x, int y);
-        vector<Move>    _find_moves_queens(int x, int y);
-        vector<Move>    _find_moves_king(int x, int y);
+        void    _find_moves_pawns(int x, int y);
+        void    _find_moves_knights(int x, int y);
+        void    _find_moves_bishops(int x, int y);
+        void    _find_moves_rooks(int x, int y);
+        void    _find_moves_queens(int x, int y);
+        void    _find_moves_king(int x, int y);
+
+        void    _filter_non_legal_moves();
+        bool    _is_check();
+        bool    _is_check(int x, int y);
 };

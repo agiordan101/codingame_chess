@@ -47,6 +47,11 @@
         "numbers": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "regex": "cpp"
     }
 }

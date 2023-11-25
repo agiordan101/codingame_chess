@@ -50,10 +50,12 @@ void Board::log() {
 
 vector<Move> Board::find_moves() {
 
-    vector<Move> moves;
-    vector<Move> piece_moves;
+    if (this->moves_found)
+        return this->available_moves;
+
     char piece_letter;
 
+    this->available_moves = vector<Move>();
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
@@ -76,34 +78,31 @@ vector<Move> Board::find_moves() {
             switch (tolower(piece_letter))
             {
                 case 'p':
-                    piece_moves = _find_moves_pawns(x, y);
+                    _find_moves_pawns(x, y);
                     break;
                 case 'n':
-                    piece_moves = _find_moves_knights(x, y);
+                    _find_moves_knights(x, y);
                     break;
                 case 'b':
-                    piece_moves = _find_moves_bishops(x, y);
+                    _find_moves_bishops(x, y);
                     break;
                 case 'r':
-                    piece_moves = _find_moves_rooks(x, y);
+                    _find_moves_rooks(x, y);
                     break;
                 case 'k':
-                    piece_moves = _find_moves_king(x, y);
+                    _find_moves_king(x, y);
                     break;
                 case 'q':
-                    piece_moves = _find_moves_queens(x, y);
-                    break;
-                default:
-                    piece_moves = vector<Move>();
+                    _find_moves_queens(x, y);
                     break;
             }
-
-            moves.insert(moves.end(), piece_moves.begin(), piece_moves.end());
         }
     }
 
-    this->available_moves = moves;
-    return moves;
+    _filter_non_legal_moves();
+
+    this->moves_found = true;
+    return this->available_moves;
 }
 
 void Board::apply_move(Move move)
@@ -118,7 +117,7 @@ void Board::apply_move(Move move)
     half_turn_rule += 1;
 
     // Reset specific turn values
-    moves_computed = false;
+    moves_found = false;
 
     _update_en_passant();
     _update_castling_rights();
@@ -137,11 +136,7 @@ float Board::game_state()
     )
         return 0.5;
 
-    if (!moves_computed)
-    {
-        available_moves = find_moves();
-        moves_computed = true;
-    }
+    available_moves = find_moves();
 
     // If no moves are available, it's either a Checkmate or a Stalemate
     if (available_moves.size() == 0)
@@ -244,6 +239,8 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     _parse_en_passant(_en_passant);
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
+
+    moves_found = false;
 
     // Set the right castling function pointer
     chess960_rule = _chess960_rule;
@@ -555,109 +552,310 @@ bool Board::_insufficient_material_rule()
     return true;
 }
 
-vector<Move>    Board::_find_moves_pawns(int x, int y) {
-    
-    vector<Move> moves;
+void    Board::_find_moves_pawns(int x, int y) {
 
     if (white_turn)
     {
         // Promotions
-        if (y == 1 && board[y + 1][x] == EMPTY_CELL)
+        if (y == 1 && board[y - 1][x] == EMPTY_CELL)
         {
-            moves.push_back(Move(x, y, x, y - 1, 'N'));
-            moves.push_back(Move(x, y, x, y - 1, 'B'));
-            moves.push_back(Move(x, y, x, y - 1, 'R'));
-            moves.push_back(Move(x, y, x, y - 1, 'Q'));
+            this->available_moves.push_back(Move(x, y, x, y - 1, 'N'));
+            this->available_moves.push_back(Move(x, y, x, y - 1, 'B'));
+            this->available_moves.push_back(Move(x, y, x, y - 1, 'R'));
+            this->available_moves.push_back(Move(x, y, x, y - 1, 'Q'));
         }
 
         // Move 1 cell
         if (y > 1 && board[y - 1][x] == EMPTY_CELL)
         {
-            moves.push_back(Move(x, y, x, y - 1, 0));
+            this->available_moves.push_back(Move(x, y, x, y - 1, 0));
         }
 
         // Move 2 cells
         if (y == 6 && board[y - 1][x] == EMPTY_CELL && board[y - 2][x] == EMPTY_CELL)
-            moves.push_back(Move(x, y, x, y - 2, 0));
+            this->available_moves.push_back(Move(x, y, x, y - 2, 0));
 
         // Capture left
         if ((x > 0 && islower(board[y - 1][x - 1])) ||
             (en_passant_available && y - 1 == en_passant_y && x - 1 == en_passant_x))
-            moves.push_back(Move(x, y, x - 1, y - 1, 0));
+            this->available_moves.push_back(Move(x, y, x - 1, y - 1, 0));
 
         // Capture right
         if ((x < 7 && islower(board[y - 1][x + 1])) ||
             (en_passant_available && y - 1 == en_passant_y && x + 1 == en_passant_x))
-            moves.push_back(Move(x, y, x + 1, y - 1, 0));
+            this->available_moves.push_back(Move(x, y, x + 1, y - 1, 0));
     }
     else
     {
         // Promotions
         if (y == 6 && board[y + 1][x] == EMPTY_CELL)
         {
-            moves.push_back(Move(x, y, x, y + 1, 'n'));
-            moves.push_back(Move(x, y, x, y + 1, 'b'));
-            moves.push_back(Move(x, y, x, y + 1, 'r'));
-            moves.push_back(Move(x, y, x, y + 1, 'q'));
+            this->available_moves.push_back(Move(x, y, x, y + 1, 'n'));
+            this->available_moves.push_back(Move(x, y, x, y + 1, 'b'));
+            this->available_moves.push_back(Move(x, y, x, y + 1, 'r'));
+            this->available_moves.push_back(Move(x, y, x, y + 1, 'q'));
         }
 
         // Move 1 cell
         if (y < 6 && board[y + 1][x] == EMPTY_CELL)
         {
-            moves.push_back(Move(x, y, x, y + 1, 0));
+            this->available_moves.push_back(Move(x, y, x, y + 1, 0));
         }
 
         // Move 2 cells
         if (y == 1 && board[y + 1][x] == EMPTY_CELL && board[y + 2][x] == EMPTY_CELL)
-            moves.push_back(Move(x, y, x, y + 2, 0));
+            this->available_moves.push_back(Move(x, y, x, y + 2, 0));
 
         // Capture left
         if ((x > 0 && isupper(board[y + 1][x - 1])) ||
             (en_passant_available && y + 1 == en_passant_y && x - 1 == en_passant_x))
-            moves.push_back(Move(x, y, x - 1, y + 1, 0));
+            this->available_moves.push_back(Move(x, y, x - 1, y + 1, 0));
 
         // Capture right
         if ((x < 7 && isupper(board[y + 1][x + 1])) ||
             (en_passant_available && y + 1 == en_passant_y && x + 1 == en_passant_x))
-            moves.push_back(Move(x, y, x + 1, y + 1, 0));
+            this->available_moves.push_back(Move(x, y, x + 1, y + 1, 0));
+    }
+}
+
+void    Board::_find_moves_knights(int x, int y) {
+    
+}
+
+void    Board::_find_moves_bishops(int x, int y) {
+    
+}
+
+void    Board::_find_moves_rooks(int x, int y) {
+    
+}
+
+void    Board::_find_moves_queens(int x, int y) {
+    
+}
+
+void    Board::_find_moves_king(int x, int y) {
+    
+    // Are castles legal ?
+    // Add Kings all over its trajectories
+    // Call is_check method with each coordinates
+    // if valid add move with castle flag
+
+}
+
+void Board::_filter_non_legal_moves()
+{
+    int move_x_src;
+    int move_y_src;
+    int move_x_dst;
+    int move_y_dst;
+    char dst_piece;
+
+    vector<Move>::iterator it = this->available_moves.begin();
+    while (it < this->available_moves.end())
+    {
+        move_x_src = it->src_x;
+        move_y_src = it->src_y;
+        move_x_dst = it->dst_x;
+        move_y_dst = it->dst_y;
+
+        // Save the destination piece
+        dst_piece = board[move_y_dst][move_x_dst];
+
+        // Move the piece
+        board[move_y_dst][move_x_dst] = board[move_y_src][move_x_src];
+        board[move_y_src][move_x_src] = EMPTY_CELL;
+
+        // If the king is in check, remove the move from the available moves
+        if (_is_check())
+        {
+            // The iterator will be incremented by the erase method
+            this->available_moves.erase(it);
+        }
+        else
+            it++;
+
+        // Revert the move
+        board[move_y_src][move_x_src] = board[move_y_dst][move_x_dst];
+        board[move_y_dst][move_x_dst] = dst_piece;
+    }
+}
+
+bool Board::_is_check()
+{
+    char king_piece = white_turn ? 'K' : 'k';
+
+    for (int y = 0; y < 8; y++)
+        for (int x = 0; x < 8; x++)
+            if (board[y][x] == king_piece)
+                return _is_check(x, y);
+    return false;
+}
+
+bool Board::_is_check(int king_x, int king_y)
+{
+    char opp_king = white_turn ? 'k' : 'K';
+    char opp_queen = white_turn ? 'q' : 'Q';
+    char opp_rook = white_turn ? 'r' : 'R';
+    char opp_bishop = white_turn ? 'b' : 'B';
+    char opp_knight = white_turn ? 'n' : 'N';
+    char opp_pawn = white_turn ? 'p' : 'P';
+
+    bool king_left_edge = king_x == 0;
+    bool king_right_edge = king_x == 7;
+    bool king_top_edge = king_y == 0;
+    bool king_bottom_edge = king_y == 7;
+
+    // Search vertically down
+    for (int y = king_y; y < 8; y++)
+        if (board[y][king_x] != EMPTY_CELL)
+        {
+            if (board[y][king_x] == 'Q' || board[y][king_x] == 'R')
+                return true;
+            break;
+        }
+    // Search vertically up
+    for (int y = king_y; y >= 0; y--)
+        if (board[y][king_x] != EMPTY_CELL)
+        {
+            if (board[y][king_x] == 'Q' || board[y][king_x] == 'R')
+                return true;
+            break;
+        }
+
+    // Search horizontally right
+    for (int x = king_x; x < 8; x++)
+        if (board[king_y][x] != EMPTY_CELL)
+        {
+            if (board[king_y][x] == 'Q' || board[king_y][x] == 'R')
+                return true;
+            break;
+        }
+    // Search horizontally left
+    for (int x = king_x; x >= 0; x--)
+        if (board[king_y][x] != EMPTY_CELL)
+        {
+            if (board[king_y][x] == 'Q' || board[king_y][x] == 'R')
+                return true;
+            break;
+        }
+
+    // Search diagonally up left
+    for (int x = king_x, y = king_y; x >= 0 && y >= 0; x--, y--)
+        if (board[y][x] != EMPTY_CELL)
+        {
+            if (board[y][x] == 'Q' || board[y][x] == 'B')
+                return true;
+            break;
+        }
+    // Search diagonally down right
+    for (int x = king_x, y = king_y; x < 8 && y < 8; x++, y++)
+        if (board[y][x] != EMPTY_CELL)
+        {
+            if (board[y][x] == 'Q' || board[y][x] == 'B')
+                return true;
+            break;
+        }
+
+    // Search diagonally down left
+    for (int x = king_x, y = king_y; x >= 0 && y < 8; x--, y++)
+        if (board[y][x] != EMPTY_CELL)
+        {
+            if (board[y][x] == 'Q' || board[y][x] == 'B')
+                return true;
+            break;
+        }
+    // Search diagonally up right
+    for (int x = king_x, y = king_y; x < 8 && y >= 0; x++, y--)
+        if (board[y][x] != EMPTY_CELL)
+        {
+            if (board[y][x] == 'Q' || board[y][x] == 'B')
+                return true;
+            break;
+        }
+    
+    // Search knight - 2 left 1 up
+    if (!king_top_edge && king_x > 1 && board[king_y - 1][king_x - 2] == opp_knight)
+        return true;
+    // Search knight - 2 left 1 down
+    if (!king_bottom_edge && king_x > 1 && board[king_y + 1][king_x - 2] == opp_knight)
+        return true;
+
+    // Search knight - 2 right 1 up
+    if (!king_top_edge && king_x < 6 && board[king_y - 1][king_x + 2] == opp_knight)
+        return true;
+    // Search knight - 2 right 1 down
+    if (!king_bottom_edge && king_x < 6 && board[king_y + 1][king_x + 2] == opp_knight)
+        return true;
+    
+    // Search knight - 2 up 1 left
+    if (king_y > 1 && !king_left_edge && board[king_y - 2][king_x - 1] == opp_knight)
+        return true;
+    // Search knight - 2 up 1 right
+    if (king_y > 1 && !king_right_edge && board[king_y - 2][king_x + 1] == opp_knight)
+        return true;
+
+    // Search knight - 2 down 1 left
+    if (king_y < 6 && !king_left_edge && board[king_y + 2][king_x - 1] == opp_knight)
+        return true;
+    // Search knight - 2 down 1 right
+    if (king_y < 6 && !king_right_edge && board[king_y + 2][king_x + 1] == opp_knight)
+        return true;
+
+    if (white_turn)
+    {
+        // Search pawn - 1 up left
+        if (!king_top_edge && !king_left_edge && board[king_y - 1][king_x - 1] == opp_pawn)
+            return true;
+        // Search pawn - 1 up right
+        if (!king_top_edge && !king_right_edge && board[king_y - 1][king_x + 1] == opp_pawn)
+            return true;
+    }
+    else
+    {
+        // Search pawn - 1 down left
+        if (!king_bottom_edge && !king_left_edge && board[king_y + 1][king_x - 1] == opp_pawn)
+            return true;
+        // Search pawn - 1 down right
+        if (!king_bottom_edge && !king_right_edge && board[king_y + 1][king_x + 1] == opp_pawn)
+            return true;
     }
 
-    return moves;
-}
 
-vector<Move>    Board::_find_moves_knights(int x, int y) {
+    if (!king_left_edge)
+    {
+        // Search king - left up
+        if (!king_top_edge && board[king_y - 1][king_x - 1] == opp_king)
+            return true;
+        // Search king - left middle
+        if (board[king_y][king_x - 1] == opp_king)
+            return true;
+        // Search king - left down
+        if (!king_bottom_edge && board[king_y + 1][king_x - 1] == opp_king)
+            return true;
+    }
+
+    // Search king - middle up
+    if (!king_top_edge && board[king_y - 1][king_x] == opp_king)
+        return true;
+    // Search king - middle down
+    if (!king_bottom_edge && board[king_y + 1][king_x] == opp_king)
+        return true;
     
-    vector<Move> moves;
+    if (!king_right_edge)
+    {
+        // Search king - right up
+        if (!king_top_edge && board[king_y - 1][king_x + 1] == opp_king)
+            return true;
+        // Search king - right middle
+        if (board[king_y][king_x + 1] == opp_king)
+            return true;
+        // Search king - right down
+        if (!king_bottom_edge && board[king_y + 1][king_x + 1] == opp_king)
+            return true;
+    }
 
-    return moves;
-}
-
-vector<Move>    Board::_find_moves_bishops(int x, int y) {
-    
-    vector<Move> moves;
-
-    return moves;
-}
-
-vector<Move>    Board::_find_moves_rooks(int x, int y) {
-    
-    vector<Move> moves;
-
-    return moves;
-}
-
-vector<Move>    Board::_find_moves_queens(int x, int y) {
-    
-    vector<Move> moves;
-
-    return moves;
-}
-
-vector<Move>    Board::_find_moves_king(int x, int y) {
-    
-    vector<Move> moves;
-
-    return moves;
+    return false;
 }
 
 // --- OPERATORS ---

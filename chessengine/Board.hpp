@@ -82,6 +82,8 @@ class Board {
         void    _find_moves_rooks(int x, int y);
         void    _find_moves_queens(int x, int y);
         void    _find_moves_king(int x, int y);
+        void    _find_moves_castle(int x, int y, int castle_index);
+        bool    _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
 
         void    _filter_non_legal_moves();
         bool    _is_check();

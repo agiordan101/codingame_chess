@@ -28,6 +28,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 * Create 10 private vars : Opponent pieces | turn_pieces
     - Assing them at each new turn
     - Simplify find_move()
+        * Factorize opp_case_func and EMPTY_cell tests
+        * Factorize edge tests
 * Find a way to simulate a game with a list of UCI moves, as extra unit tests
 * Board::Board() parsing protection from invalid FEN
 

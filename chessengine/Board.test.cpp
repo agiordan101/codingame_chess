@@ -525,7 +525,7 @@ int find_knight_moves_testLauncher()
 int find_bishop_moves_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[20];
+    Move *requested_moves[10];
 
     // Regular move & blocked - White
     requested_moves[0] = new Move(3, 3, 2, 2, 0); // Left up 1
@@ -576,11 +576,27 @@ int find_bishop_moves_testLauncher()
     return success_count;
 }
 
-    // For both sides - Bishop tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
-    // For both sides - Rook tests - Return all Regular moves. 1 line should eat an opponent piece. Some lines are obstrued
-    // For both sides - Queen tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+int find_rook_moves_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[20];
 
-    // For both sides - King tests - Return all Regular moves. Some line should eat an opponent piece. Some lines are obstrued
+    // Regular move & blocked - White
+    requested_moves[0] = new Move(3, 3, 3, 2, 0); // Up 1
+    requested_moves[1] = new Move(3, 3, 3, 1, 0); // Up 2
+    requested_moves[2] = new Move(3, 3, 3, 0, 0); // Up 3
+    requested_moves[3] = new Move(3, 3, 4, 3, 0); // Right 1
+    requested_moves[4] = new Move(3, 3, 5, 3, 0); // Right 2
+    requested_moves[5] = new Move(3, 3, 3, 4, 0); // Down 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        27,
+        new Board("8/8/8/2TR2T1/8/3T4/8/8 w - - 0 1"),
+        requested_moves,
+        6
+    );
+
+    return success_count;    
+}
 
     // For both sides - Check tests - King cannot move on a threated cell (By all other pieces)
     // For both sides - Check tests - Pieces cannot moves if the king get checked
@@ -853,7 +869,7 @@ int mainTestBoard()
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
     successCount += find_bishop_moves_testLauncher();
-    // successCount += find_rook_moves_testLauncher();
+    successCount += find_rook_moves_testLauncher();
     // successCount += find_queen_moves_testLauncher();
     // successCount += find_king_moves_testLauncher();
     // successCount += find_moves_under_check_testLauncher();

@@ -715,19 +715,145 @@ void Board::_find_moves_bishops(int x, int y) {
 
 void Board::_find_moves_rooks(int x, int y) {
     
+    int (*opp_case_func)(int) = white_turn ? static_cast<int(*)(int)>(islower) : static_cast<int(*)(int)>(isupper);
+
+    // Search vertically up
+    for (int by = y - 1; by >= 0; by--)
+    {
+        if (board[by][x] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, x, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][x]))
+                this->available_moves.push_back(Move(x, y, x, by, 0));
+            break;
+        }
+    }
+
+    // Search vertically down
+    for (int by = y + 1; by < 8; by++)
+    {
+        if (board[by][x] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, x, by, 0));
+        else
+        {
+            if (opp_case_func(board[by][x]))
+                this->available_moves.push_back(Move(x, y, x, by, 0));
+            break;
+        }
+    }
+
+    // Search horizontally left
+    for (int bx = x - 1; bx >= 0; bx--)
+    {
+        if (board[y][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, y, 0));
+        else
+        {
+            if (opp_case_func(board[y][bx]))
+                this->available_moves.push_back(Move(x, y, bx, y, 0));
+            break;
+        }
+    }
+
+    // Search horizontally right
+    for (int bx = x + 1; bx < 8; bx++)
+    {
+        if (board[y][bx] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, bx, y, 0));
+        else
+        {
+            if (opp_case_func(board[y][bx]))
+                this->available_moves.push_back(Move(x, y, bx, y, 0));
+            break;
+        }
+    }
 }
 
 void Board::_find_moves_queens(int x, int y) {
-    
+    _find_moves_rooks(x, y);
+    _find_moves_bishops(x, y);
 }
 
 void Board::_find_moves_king(int x, int y) {
     
-    // Are castles legal ?
-    // Add Kings all over its trajectories
-    // Call is_check method with each coordinates
-    // if valid add move with castle flag
+    int (*opp_case_func)(int) = white_turn ? static_cast<int(*)(int)>(islower) : static_cast<int(*)(int)>(isupper);
 
+    bool king_left_edge = x == 0;
+    bool king_right_edge = x == 7;
+    bool king_top_edge = y == 0;
+    bool king_bottom_edge = y == 7;
+    
+    // Search diagonally up left
+    if (!king_top_edge && !king_left_edge && (board[y - 1][x - 1] == EMPTY_CELL || opp_case_func(board[y - 1][x - 1])))
+        this->available_moves.push_back(Move(x, y, x - 1, y - 1, 0));
+    // Search vertically up
+    if (!king_top_edge && (board[y - 1][x] == EMPTY_CELL || opp_case_func(board[y - 1][x])))
+        this->available_moves.push_back(Move(x, y, x, y - 1, 0));    
+    // Search diagonally up right
+    if (!king_top_edge && !king_right_edge && (board[y - 1][x + 1] == EMPTY_CELL || opp_case_func(board[y - 1][x + 1])))
+        this->available_moves.push_back(Move(x, y, x + 1, y - 1, 0));
+    
+    // Search horizontally left
+    if (!king_left_edge && (board[y][x - 1] == EMPTY_CELL || opp_case_func(board[y][x - 1])))
+        this->available_moves.push_back(Move(x, y, x - 1, y, 0));
+    // Search horizontally right
+    if (!king_right_edge && (board[y][x + 1] == EMPTY_CELL || opp_case_func(board[y][x + 1])))
+        this->available_moves.push_back(Move(x, y, x + 1, y, 0));
+    
+    // Search diagonally down left
+    if (!king_bottom_edge && !king_left_edge && (board[y + 1][x - 1] == EMPTY_CELL || opp_case_func(board[y + 1][x - 1])))
+        this->available_moves.push_back(Move(x, y, x - 1, y + 1, 0));
+    // Search vertically down
+    if (!king_bottom_edge && (board[y + 1][x] == EMPTY_CELL || opp_case_func(board[y + 1][x])))
+        this->available_moves.push_back(Move(x, y, x, y + 1, 0));
+    // Search diagonally down right
+    if (!king_bottom_edge && !king_right_edge && (board[y + 1][x + 1] == EMPTY_CELL || opp_case_func(board[y + 1][x + 1])))
+        this->available_moves.push_back(Move(x, y, x + 1, y + 1, 0));
+
+    // Castling
+    for (int i = 0; i < 2; i++)
+    {
+        int castle_index = white_turn ? castles[i] : castles[2 + i];
+        if (castle_index != -1)
+            _find_moves_castle(x, y, castle_index);
+    }
+}
+
+void Board::_find_moves_castle(int x, int y, int castle_index)
+{
+    int trajectory_dx = castle_index > x ? 1 : -1;
+
+    // Go to first piece on the trajectory
+    int trajectory_index = x + trajectory_dx;
+    while (board[y][trajectory_index] == EMPTY_CELL)
+        trajectory_index += trajectory_dx;
+
+    // If the trajectory end up on a rook, check if the castle is legal
+    if (
+        board[y][trajectory_index] == (white_turn ? 'R' : 'r') &&
+        _is_castle_legal(x, y, trajectory_index, trajectory_dx)
+    )
+        this->available_moves.push_back(Move(x, y, trajectory_index, y, 0, true));
+        // if valid add move with castle flag
+}
+
+bool Board::_is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx)
+{
+    char king_piece = white_turn ? 'K' : 'k';
+    
+    // Put kings all over the trajectory to check if they are in check
+    for (int x = src_x + trajectory_dx; x != dst_x; x += trajectory_dx)
+    {
+        board[src_y][x] = king_piece;
+        bool is_check = _is_check(x, src_y);
+        board[src_y][x] = EMPTY_CELL;
+
+        if (is_check)
+            return false;
+    }
+
+    return true;
 }
 
 void Board::_filter_non_legal_moves()
@@ -741,6 +867,13 @@ void Board::_filter_non_legal_moves()
     vector<Move>::iterator it = this->available_moves.begin();
     while (it < this->available_moves.end())
     {
+        // Castling moves are already legal
+        if (it->is_castle)
+        {
+            it++;
+            continue ;
+        }
+
         move_x_src = it->src_x;
         move_y_src = it->src_y;
         move_x_dst = it->dst_x;

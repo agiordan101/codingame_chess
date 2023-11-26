@@ -18,13 +18,14 @@ Move::Move(string uci)
     this->promotion = uci_char[4] ? uci_char[4] : 0;
 }
 
-Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, char _promotion)
+Move::Move(int _src_x, int _src_y, int _dst_x, int _dst_y, char _promotion, bool _is_castle)
 {
     this->src_x = _src_x;
     this->src_y = _src_y;
     this->dst_x = _dst_x;
     this->dst_y = _dst_y;
     this->promotion = _promotion;
+    this->is_castle = _is_castle;
 }
 
 void Move::log() {

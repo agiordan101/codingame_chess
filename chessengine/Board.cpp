@@ -116,12 +116,11 @@ void Board::apply_move(Move move)
     white_turn = !white_turn;
     half_turn_rule += 1;
 
-    // Reset specific turn values
+    // Update the engine
+    check = _is_check();
     moves_found = false;
-
     _update_en_passant();
     _update_castling_rights();
-    _update_check();
     _update_fen_history();
 }
 
@@ -143,6 +142,11 @@ float Board::game_state()
         return check ? 0 : 0.5;
 
     return -1;
+}
+
+bool Board::is_check()
+{
+    return check;
 }
 
 string Board::create_fen(bool with_turns)
@@ -240,12 +244,13 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
-    moves_found = false;
-
     // Set the right castling function pointer
     chess960_rule = _chess960_rule;
     _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
 
+    // Initialize private variables
+    check = _is_check();
+    moves_found = false;
     fen_history_index = 0;
     _update_fen_history();
 }
@@ -419,8 +424,8 @@ void Board::_apply_castle(int src_x, int src_y, int dst_x, int dst_y)
     }
 }
 
-void Board::_update_en_passant() {
-
+void Board::_update_en_passant()
+{
     if (en_passant_x != -1)
     {
         if (en_passant_available)
@@ -475,18 +480,15 @@ void Board::_update_castling_rights() {
     }
 }
 
-void Board::_update_check()
-{
-    check = false;
-}
-
 void Board::_update_fen_history()
 {
     // Remove half turn rule and game turn (For future Threefold rule comparisons)
     string fen = create_fen(false);
 
+    // Loop the history
     if (fen_history_index == FEN_HISTORY_SIZE)
         fen_history_index = 0;
+
     fen_history[fen_history_index++] = fen;
 }
 

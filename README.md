@@ -24,7 +24,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ## Roadmap
 
-* Implement Board::find_moves() methods
 * Create 10 private vars : Opponent pieces | turn_pieces
     - Assing them at each new turn
     - Simplify find_move()

@@ -49,6 +49,7 @@ class Board {
         vector<Move>    find_moves();
         void            apply_move(Move move);
         float           game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
+        bool            is_check();
         string          create_fen(bool with_turns = true);
         
         bool    operator ==(Board *test_board);
@@ -68,9 +69,9 @@ class Board {
         bool    _handle_standard_castle(int src_x, int src_y, int dst_x, int _);
         bool    _handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y);
         void    _apply_castle(int src_x, int src_y, int dst_x, int dst_y);
+
         void    _update_en_passant();
         void    _update_castling_rights();
-        void    _update_check();
         void    _update_fen_history();
 
         bool    _threefold_repetition_rule();

@@ -579,28 +579,118 @@ int find_bishop_moves_testLauncher()
 int find_rook_moves_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[20];
+    Move *requested_moves[15];
 
-    // Regular move & blocked - White
+    // Regular moves
     requested_moves[0] = new Move(3, 3, 3, 2, 0); // Up 1
     requested_moves[1] = new Move(3, 3, 3, 1, 0); // Up 2
     requested_moves[2] = new Move(3, 3, 3, 0, 0); // Up 3
-    requested_moves[3] = new Move(3, 3, 4, 3, 0); // Right 1
-    requested_moves[4] = new Move(3, 3, 5, 3, 0); // Right 2
-    requested_moves[5] = new Move(3, 3, 3, 4, 0); // Down 1
+    requested_moves[3] = new Move(3, 3, 2, 3, 0); // Left 1
+    requested_moves[4] = new Move(3, 3, 1, 3, 0); // Left 2
+    requested_moves[5] = new Move(3, 3, 0, 3, 0); // Left 3
+    requested_moves[6] = new Move(3, 3, 4, 3, 0); // Right 1
+    requested_moves[7] = new Move(3, 3, 5, 3, 0); // Right 2
+    requested_moves[8] = new Move(3, 3, 6, 3, 0); // Right 3
+    requested_moves[9] = new Move(3, 3, 7, 3, 0); // Right 4
+    requested_moves[10] = new Move(3, 3, 3, 4, 0); // Down 1
+    requested_moves[11] = new Move(3, 3, 3, 5, 0); // Down 2
+    requested_moves[12] = new Move(3, 3, 3, 6, 0); // Down 3
+    requested_moves[13] = new Move(3, 3, 3, 7, 0); // Down 4
     success_count += find_moves_RegularCases_FindAllMoves(
         27,
-        new Board("8/8/8/2TR2T1/8/3T4/8/8 w - - 0 1"),
+        new Board("8/8/8/3R4/8/8/8/8 w - - 0 1"),
         requested_moves,
-        6
+        14
+    );
+    success_count += find_moves_RegularCases_FindAllMoves(
+        28,
+        new Board("8/8/8/3r4/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        14
+    );
+
+    // Captures
+    requested_moves[0] = new Move(3, 3, 3, 2, 0); // Up 1
+    requested_moves[1] = new Move(3, 3, 2, 3, 0); // Left 1
+    requested_moves[2] = new Move(3, 3, 4, 3, 0); // Right 1
+    requested_moves[3] = new Move(3, 3, 3, 4, 0); // Down 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        29,
+        new Board("8/8/3t4/2tRt3/3t4/8/8/8 w - - 0 1"),
+        requested_moves,
+        4
+    );
+    success_count += find_moves_RegularCases_FindAllMoves(
+        30,
+        new Board("8/8/3T4/2TrT3/3T4/8/8/8 b - - 0 1"),
+        requested_moves,
+        4
+    );
+
+    // Blocked
+    success_count += find_moves_RegularCases_FindAllMoves(
+        31,
+        new Board("8/8/3T4/2TRT3/3T4/8/8/8 w - - 0 1"),
+        requested_moves,
+        0
+    );
+    success_count += find_moves_RegularCases_FindAllMoves(
+        32,
+        new Board("8/8/3t4/2trt3/3t4/8/8/8 b - - 0 1"),
+        requested_moves,
+        0
     );
 
     return success_count;    
 }
 
-    // For both sides - Check tests - King cannot move on a threated cell (By all other pieces)
-    // For both sides - Check tests - Pieces cannot moves if the king get checked
-    // For both sides - Other tests - No move found (Stale mate)
+int find_king_moves_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[10];
+
+    // Regular moves
+    requested_moves[0] = new Move(3, 3, 2, 2, 0); // Up left
+    requested_moves[1] = new Move(3, 3, 3, 2, 0); // Up
+    requested_moves[2] = new Move(3, 3, 4, 2, 0); // Up right
+    requested_moves[3] = new Move(3, 3, 2, 3, 0); // Left
+    requested_moves[4] = new Move(3, 3, 4, 3, 0); // Right
+    requested_moves[5] = new Move(3, 3, 2, 4, 0); // Down left
+    requested_moves[6] = new Move(3, 3, 3, 4, 0); // Down
+    requested_moves[7] = new Move(3, 3, 4, 4, 0); // Down right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        33,
+        new Board("8/8/8/3K4/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        8
+    );
+    success_count += find_moves_RegularCases_FindAllMoves(
+        34,
+        new Board("8/8/8/3k4/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    return success_count;
+}
+
+int find_moves_under_check_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[10];
+
+    // Prevent moves that don't remove the check
+    success_count += find_moves_RegularCases_FindAllMoves(
+        35,
+        new Board("8/1R6/2B5/7r/K6r/4P3/6Q1/8 w - - 0 1"),
+        requested_moves,
+        0
+    );
+
+    return success_count;
+}
+
+    // Prevent moves that put the king in check
 
 #pragma endregion find_moves
 
@@ -870,9 +960,8 @@ int mainTestBoard()
     successCount += find_knight_moves_testLauncher();
     successCount += find_bishop_moves_testLauncher();
     successCount += find_rook_moves_testLauncher();
-    // successCount += find_queen_moves_testLauncher();
-    // successCount += find_king_moves_testLauncher();
-    // successCount += find_moves_under_check_testLauncher();
+    successCount += find_king_moves_testLauncher();
+    successCount += find_moves_under_check_testLauncher();
     // successCount += find_not_illegal_moves_testLauncher();
 
     return successCount;

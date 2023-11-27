@@ -928,8 +928,9 @@ bool Board::_is_check(int king_x, int king_y)
     bool king_top_edge = king_y == 0;
     bool king_bottom_edge = king_y == 7;
 
+
     // Search vertically down
-    for (int y = king_y; y < 8; y++)
+    for (int y = king_y + 1; y < 8; y++)
         if (board[y][king_x] != EMPTY_CELL)
         {
             if (board[y][king_x] == opp_queen || board[y][king_x] == opp_rook)
@@ -937,7 +938,7 @@ bool Board::_is_check(int king_x, int king_y)
             break;
         }
     // Search vertically up
-    for (int y = king_y; y >= 0; y--)
+    for (int y = king_y - 1; y >= 0; y--)
         if (board[y][king_x] != EMPTY_CELL)
         {
             if (board[y][king_x] == opp_queen || board[y][king_x] == opp_rook)
@@ -946,7 +947,7 @@ bool Board::_is_check(int king_x, int king_y)
         }
 
     // Search horizontally right
-    for (int x = king_x; x < 8; x++)
+    for (int x = king_x + 1; x < 8; x++)
         if (board[king_y][x] != EMPTY_CELL)
         {
             if (board[king_y][x] == opp_queen || board[king_y][x] == opp_rook)
@@ -954,7 +955,7 @@ bool Board::_is_check(int king_x, int king_y)
             break;
         }
     // Search horizontally left
-    for (int x = king_x; x >= 0; x--)
+    for (int x = king_x - 1; x >= 0; x--)
         if (board[king_y][x] != EMPTY_CELL)
         {
             if (board[king_y][x] == opp_queen || board[king_y][x] == opp_rook)
@@ -963,7 +964,7 @@ bool Board::_is_check(int king_x, int king_y)
         }
 
     // Search diagonally up left
-    for (int x = king_x, y = king_y; x >= 0 && y >= 0; x--, y--)
+    for (int x = king_x - 1, y = king_y - 1; x >= 0 && y >= 0; x--, y--)
         if (board[y][x] != EMPTY_CELL)
         {
             if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
@@ -971,7 +972,7 @@ bool Board::_is_check(int king_x, int king_y)
             break;
         }
     // Search diagonally down right
-    for (int x = king_x, y = king_y; x < 8 && y < 8; x++, y++)
+    for (int x = king_x + 1, y = king_y + 1; x < 8 && y < 8; x++, y++)
         if (board[y][x] != EMPTY_CELL)
         {
             if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
@@ -980,7 +981,7 @@ bool Board::_is_check(int king_x, int king_y)
         }
 
     // Search diagonally down left
-    for (int x = king_x, y = king_y; x >= 0 && y < 8; x--, y++)
+    for (int x = king_x - 1, y = king_y + 1; x >= 0 && y < 8; x--, y++)
         if (board[y][x] != EMPTY_CELL)
         {
             if (board[y][x] == opp_queen || board[y][x] == opp_bishop)
@@ -988,7 +989,7 @@ bool Board::_is_check(int king_x, int king_y)
             break;
         }
     // Search diagonally up right
-    for (int x = king_x, y = king_y; x < 8 && y >= 0; x++, y--)
+    for (int x = king_x + 1, y = king_y - 1; x < 8 && y >= 0; x++, y--)
         if (board[y][x] != EMPTY_CELL)
         {
             if (board[y][x] == opp_queen || board[y][x] == opp_bishop)

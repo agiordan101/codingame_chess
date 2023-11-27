@@ -679,12 +679,31 @@ int find_moves_under_check_testLauncher()
     int success_count = 0;
     Move *requested_moves[10];
 
-    // Prevent moves that don't remove the check
+    // Prevent moves that don't remove the check - Obstruct the trajectory
+    requested_moves[0] = new Move(0, 4, 0, 5, 0); // King escape - Down
+    requested_moves[1] = new Move(0, 4, 1, 5, 0); // King escape - Down right
+    requested_moves[2] = new Move(1, 1, 1, 4, 0); // Rook saves
+    requested_moves[3] = new Move(2, 2, 4, 4, 0); // Bishop saves
+    requested_moves[4] = new Move(4, 5, 4, 4, 0); // Pawn saves
+    requested_moves[5] = new Move(6, 6, 6, 4, 0); // Queen saves - Vertically
+    requested_moves[6] = new Move(6, 6, 4, 4, 0); // Queen saves - Diagonally
     success_count += find_moves_RegularCases_FindAllMoves(
         35,
         new Board("8/1R6/2B5/7r/K6r/4P3/6Q1/8 w - - 0 1"),
         requested_moves,
-        0
+        7
+    );
+
+    // Eat the piece that puts the king in check
+    requested_moves[0] = new Move(3, 0, 3, 2, 0); // Queen eats
+    requested_moves[1] = new Move(7, 2, 3, 2, 0); // Rook eats
+    requested_moves[2] = new Move(2, 1, 3, 2, 0); // Pawn eats
+    requested_moves[3] = new Move(6, 5, 3, 2, 0); // Bishop eats
+    success_count += find_moves_RegularCases_FindAllMoves(
+        36,
+        new Board("3q4/2p5/3R3r/8/2#1#3/2#k#1b1/2###3/8 b - - 0 1"),
+        requested_moves,
+        4
     );
 
     return success_count;
@@ -945,6 +964,108 @@ int game_state_testLauncher()
 
 #pragma endregion game_state
 
+#pragma region is_check
+
+int is_check_unittest(int testIndex, Board *board, bool requested_is_check)
+{
+    bool is_check = board->is_check();
+
+    if (is_check != requested_is_check)
+    {
+        cerr << "\n---------- Board - is_check_unittest() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "- Board : " << endl;
+        board->log();
+
+        cerr << "\n- Actual is_check    : " << is_check << endl;
+        cerr << "- Requested is_check : " << requested_is_check << endl;
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int is_check_testLauncher()
+{
+    int success_count = 0;
+
+    // Check by rook
+    success_count += is_check_unittest(
+        1,
+        new Board("4r3/8/8/8/8/8/8/4K3 w - - 0 1"),
+        true
+    );
+    success_count += is_check_unittest(
+        2,
+        new Board("4k3/8/8/8/8/8/8/4R3 b - - 0 1"),
+        true
+    );
+
+    // Check by bishop
+    success_count += is_check_unittest(
+        3,
+        new Board("8/8/1b6/8/8/4K3/8/8 w - - 0 1"),
+        true
+    );
+    success_count += is_check_unittest(
+        4,
+        new Board("8/8/1k6/8/8/4B3/8/8 b - - 0 1"),
+        true
+    );
+
+    // Check by knight
+    success_count += is_check_unittest(
+        5,
+        new Board("8/8/8/8/8/3K4/1n6/8 w - - 0 1"),
+        true
+    );
+    success_count += is_check_unittest(
+        6,
+        new Board("8/8/8/8/2N5/8/1k6/8 b - - 0 1"),
+        true
+    );
+
+    // Check by pawn
+    success_count += is_check_unittest(
+        7,
+        new Board("8/8/1p6/2K5/8/8/8/8 w - - 0 1"),
+        true
+    );
+    success_count += is_check_unittest(
+        8,
+        new Board("8/8/8/8/8/2k5/1P6/8 b - - 0 1"),
+        true
+    );
+
+    // Check obstrued by piece - Rook
+    success_count += is_check_unittest(
+        9,
+        new Board("4r3/8/8/4t3/8/8/8/4K3 w - - 0 1"),
+        false
+    );
+    success_count += is_check_unittest(
+        10,
+        new Board("4k3/8/8/4T3/8/8/8/4R3 b - - 0 1"),
+        false
+    );
+
+    // Check obstrued by piece - Bishop
+    success_count += is_check_unittest(
+        11,
+        new Board("8/8/1b6/8/3T4/4K3/8/8 w - - 0 1"),
+        false
+    );
+    success_count += is_check_unittest(
+        12,
+        new Board("8/8/1k6/8/3t4/4B3/8/8 b - - 0 1"),
+        false
+    );
+
+    return success_count;
+}
+
+#pragma endregion is_check
+
 int mainTestBoard()
 {
     int successCount = 0;
@@ -955,6 +1076,7 @@ int mainTestBoard()
     successCount += create_fen_testLauncher();
     successCount += apply_move_testLauncher();
     successCount += game_state_testLauncher();
+    successCount += is_check_testLauncher();
 
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
@@ -963,6 +1085,7 @@ int mainTestBoard()
     successCount += find_king_moves_testLauncher();
     successCount += find_moves_under_check_testLauncher();
     // successCount += find_not_illegal_moves_testLauncher();
+
 
     return successCount;
 }

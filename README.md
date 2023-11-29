@@ -29,7 +29,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
     - Simplify find_move()
         * Factorize opp_case_func and EMPTY_cell tests
         * Factorize edge tests
-* Find a way to simulate a game with a list of UCI moves, as extra unit tests
+* Run games indefinitly with the codingame engine
 * Board::Board() parsing protection from invalid FEN
 
 ## Project explanations

@@ -671,15 +671,45 @@ int find_king_moves_testLauncher()
         8
     );
 
+    // White castles
+    requested_moves[0] = new Move(1, 7, 0, 7, 0); // Castle left
+    requested_moves[1] = new Move(1, 7, 7, 7, 0); // Castle right
+    requested_moves[2] = new Move(7, 7, 6, 7, 0); // Rook moves 1
+    requested_moves[3] = new Move(7, 7, 5, 7, 0); // Rook moves 2
+    requested_moves[4] = new Move(7, 7, 4, 7, 0); // Rook moves 3
+    requested_moves[5] = new Move(7, 7, 3, 7, 0); // Rook moves 4
+    requested_moves[6] = new Move(7, 7, 2, 7, 0); // Rook moves 5
+    requested_moves[7] = new Move(1, 7, 2, 7, 0); // King moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        35,
+        new Board("8/8/8/8/8/8/###4#/RK5R w AH - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // Black castles
+    requested_moves[0] = new Move(4, 0, 2, 0, 0); // Castle left
+    requested_moves[1] = new Move(4, 0, 6, 0, 0); // Castle right
+    requested_moves[2] = new Move(4, 0, 3, 0, 0); // King moves left
+    requested_moves[3] = new Move(4, 0, 5, 0, 0); // King moves right
+    requested_moves[4] = new Move(2, 0, 3, 0, 0); // Rook moves right
+    requested_moves[5] = new Move(6, 0, 5, 0, 0); // Rook moves left
+    success_count += find_moves_RegularCases_FindAllMoves(
+        36,
+        new Board("1#r1k1r#/########/8/8/8/8/8/8 b cg - 0 1"),
+        requested_moves,
+        6
+    );
+
     return success_count;
 }
 
-int find_moves_under_check_testLauncher()
+int find_moves_not_illegal_ones_testLauncher()
 {
     int success_count = 0;
     Move *requested_moves[10];
 
-    // Prevent moves that don't remove the check - Obstruct the trajectory
+    // Check - Prevent moves that don't remove the check - Obstruct the trajectory
     requested_moves[0] = new Move(0, 4, 0, 5, 0); // King escape - Down
     requested_moves[1] = new Move(0, 4, 1, 5, 0); // King escape - Down right
     requested_moves[2] = new Move(1, 1, 1, 4, 0); // Rook saves
@@ -688,28 +718,36 @@ int find_moves_under_check_testLauncher()
     requested_moves[5] = new Move(6, 6, 6, 4, 0); // Queen saves - Vertically
     requested_moves[6] = new Move(6, 6, 4, 4, 0); // Queen saves - Diagonally
     success_count += find_moves_RegularCases_FindAllMoves(
-        35,
+        37,
         new Board("8/1R6/2B5/7r/K6r/4P3/6Q1/8 w - - 0 1"),
         requested_moves,
         7
     );
 
-    // Eat the piece that puts the king in check
+    // Check - Eat the piece that puts the king in check
     requested_moves[0] = new Move(3, 0, 3, 2, 0); // Queen eats
     requested_moves[1] = new Move(7, 2, 3, 2, 0); // Rook eats
     requested_moves[2] = new Move(2, 1, 3, 2, 0); // Pawn eats
     requested_moves[3] = new Move(6, 5, 3, 2, 0); // Bishop eats
     success_count += find_moves_RegularCases_FindAllMoves(
-        36,
+        38,
         new Board("3q4/2p5/3R3r/8/2#1#3/2#k#1b1/2###3/8 b - - 0 1"),
         requested_moves,
         4
     );
 
+    // Pieces cannot move if it puts the king in check
+    requested_moves[0] = new Move(4, 3, 4, 2, 0); // Queen takes
+    requested_moves[1] = new Move(3, 4, 2, 4, 0); // Rook takes
+    success_count += find_moves_RegularCases_FindAllMoves(
+        39,
+        new Board("8/8/4q3/4Q3/2qRKPq1/4BN2/4q1b1/8 w - - 0 1"),
+        requested_moves,
+        2
+    );
+
     return success_count;
 }
-
-    // Prevent moves that put the king in check
 
 #pragma endregion find_moves
 
@@ -1077,15 +1115,12 @@ int mainTestBoard()
     successCount += apply_move_testLauncher();
     successCount += game_state_testLauncher();
     successCount += is_check_testLauncher();
-
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
     successCount += find_bishop_moves_testLauncher();
     successCount += find_rook_moves_testLauncher();
     successCount += find_king_moves_testLauncher();
-    successCount += find_moves_under_check_testLauncher();
-    // successCount += find_not_illegal_moves_testLauncher();
-
+    successCount += find_moves_not_illegal_ones_testLauncher();
 
     return successCount;
 }

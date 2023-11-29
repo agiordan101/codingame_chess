@@ -51,12 +51,12 @@ Board   *parse_following_turns() {
     // cin >> DRAW;
     // cin.ignore();
 
-    cerr << "\tChessBot: board = " << board << endl;
-    cerr << "\tChessBot: color = " << color << endl;
-    cerr << "\tChessBot: castling = " << castling << endl;
-    cerr << "\tChessBot: en_passant = " << en_passant << endl;
-    cerr << "\tChessBot: half_move_clock = " << half_move_clock << endl;
-    cerr << "\tChessBot: full_move = " << full_move << endl;
+    // cerr << "\tChessBot: board = " << board << endl;
+    // cerr << "\tChessBot: color = " << color << endl;
+    // cerr << "\tChessBot: castling = " << castling << endl;
+    // cerr << "\tChessBot: en_passant = " << en_passant << endl;
+    // cerr << "\tChessBot: half_move_clock = " << half_move_clock << endl;
+    // cerr << "\tChessBot: full_move = " << full_move << endl;
     // cerr << "\tChessBot: lastMove = " << lastMove << endl;
     // cerr << "\tChessBot: draw = " << draw << endl;
     Board *b = new Board(board, color, castling, en_passant, half_move_clock, full_move);
@@ -76,7 +76,10 @@ int main()
         Board *board = parse_following_turns();
         board->log();
 
-        cout << "random" << endl;
+        vector<Move> moves = board->find_moves();
+        Move move = moves[rand() % moves.size()];
+
+        cout << move.to_uci() << endl;
         // exit(0);
     }
 }

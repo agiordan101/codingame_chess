@@ -671,7 +671,7 @@ int find_king_moves_testLauncher()
         8
     );
 
-    // White castles
+    // Castles - White
     requested_moves[0] = new Move(1, 7, 0, 7, 0); // Castle left
     requested_moves[1] = new Move(1, 7, 7, 7, 0); // Castle right
     requested_moves[2] = new Move(7, 7, 6, 7, 0); // Rook moves 1
@@ -687,7 +687,7 @@ int find_king_moves_testLauncher()
         8
     );
 
-    // Black castles
+    // Castles - Black
     requested_moves[0] = new Move(4, 0, 2, 0, 0); // Castle left
     requested_moves[1] = new Move(4, 0, 6, 0, 0); // Castle right
     requested_moves[2] = new Move(4, 0, 3, 0, 0); // King moves left
@@ -700,6 +700,18 @@ int find_king_moves_testLauncher()
         requested_moves,
         6
     );
+
+    // Castles - Blocked on the way
+    success_count += find_moves_RegularCases_FindAllMoves(
+        37,
+        new Board("8/8/8/8/8/8/8/8 w CG - 0 1"),
+        requested_moves,
+        6
+    );
+    // Castles - King under check
+    // Castles - No problem if the rook is under check
+    // Castles - Pieces are on the destination
+    // Castles - The destination is under check
 
     return success_count;
 }

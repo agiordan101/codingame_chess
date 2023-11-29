@@ -5,7 +5,7 @@ int main()
     Board *board = new Board();
     board->log();
 
-    int nbMove = 1;
+    int nbMove = 1000;
     cout << "\nStart " << nbMove << " random move from available ones ..." << endl;
     for (int i = 0; i < nbMove; i++)
     {
@@ -23,7 +23,13 @@ int main()
 
         board->log();
 
-        if (board->game_state() != -1)
+        int game_state = board->game_state();
+        if (game_state != -1)
+        {
+            cout << "\n\n---- Game over: " << game_state << endl;
             break;
+        }
+
+        sleep(1);
     }
 }

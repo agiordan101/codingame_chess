@@ -2,7 +2,8 @@
 
 int main()
 {
-    Board *board = new Board("8/2Q5/k3P3/1R3p2/P4P2/8/8/2N4K b - - 6 83");
+    // Board *board = new Board("8/2Q5/k3P3/1R3p2/P4P2/8/8/2N4K b - - 6 83");
+    Board *board = new Board("bbqrkrnn/pppppppp/8/8/P7/8/1PPPPPPP/BBQRKRNN b DFdf a3 0 1");
     board->log();
 
     int nbMove = 1000;
@@ -39,6 +40,6 @@ int main()
             break;
         }
 
-        sleep(1);
+        // sleep(1);
     }
 }

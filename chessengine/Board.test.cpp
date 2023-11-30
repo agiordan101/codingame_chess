@@ -800,6 +800,30 @@ int find_king_moves_testLauncher()
         2
     );
 
+    // No castles - Blocked
+    success_count += find_moves_RegularCases_FindAllMoves(
+        46,
+        new Board("bbqrkrnn/pppppppp/########/8/P7/8/1PPPPPPP/BBQRKRNN b DFdf a3 0 1"),
+        requested_moves,
+        0
+    );
+
+    // No castles - Extremety 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        47,
+        new Board("8/8/8/8/8/8/###5/RK#T4 w A - 1 6"),
+        requested_moves,
+        0
+    );
+
+    // No castles - Extremety 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        48,
+        new Board("8/8/8/8/8/8/5###/5TKR w H - 1 6"),
+        requested_moves,
+        0
+    );
+
     return success_count;
 }
 

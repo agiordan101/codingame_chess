@@ -39,6 +39,10 @@ External libraries are used to test & debug my own chess engine (times, valids m
             * Factorize edge tests
     * Board::Board() parsing protection from invalid FEN
 
+- Optimizations :
+
+    * Detect end games (checkmate) at the start of the turn. (Not having to resolve all moves)
+
 ## Project explanations
 
 ### Branches

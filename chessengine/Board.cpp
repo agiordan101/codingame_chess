@@ -824,19 +824,21 @@ void Board::_find_moves_king(int x, int y) {
 
 void Board::_find_moves_castle(int king_x, int king_y, int rook_x)
 {
-    int trajectory_dx = king_x < rook_x ? 1 : -1;
-
-    // Find trajectories boundaries
+    int trajectory_dx;
     int trajectory_min_x;
     int trajectory_max_x;
-    if (trajectory_dx < 0)
+
+    // Find trajectories boundaries
+    if (rook_x < king_x)
     {
+        trajectory_dx = -1;
         trajectory_min_x = min(rook_x, 2);
-        trajectory_max_x = max(king_x, 2);
+        trajectory_max_x = max(king_x, 3);
     }
     else
     {
-        trajectory_min_x = king_x;
+        trajectory_dx = 1;
+        trajectory_min_x = min(king_x, 5);
         trajectory_max_x = max(rook_x, 6);
     }
 

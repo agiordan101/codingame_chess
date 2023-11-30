@@ -26,6 +26,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
+    * Resolve the "8/2Q5/k3P3/1R3p2/P4P2/8/8/2N4K b - - 6 83" situation
     * Fix castling
     * Run games indefinitly with the codingame engine
 

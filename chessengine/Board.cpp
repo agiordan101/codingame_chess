@@ -822,22 +822,50 @@ void Board::_find_moves_king(int x, int y) {
     }
 }
 
-void Board::_find_moves_castle(int x, int y, int castle_index)
+void Board::_find_moves_castle(int king_x, int king_y, int rook_x)
 {
-    int trajectory_dx = castle_index > x ? 1 : -1;
+    int trajectory_dx = king_x < rook_x ? 1 : -1;
 
-    // Go to first piece on the trajectory
-    int trajectory_index = x + trajectory_dx;
-    while (board[y][trajectory_index] == EMPTY_CELL)
-        trajectory_index += trajectory_dx;
+    // Find trajectories boundaries
+    int trajectory_min_x;
+    int trajectory_max_x;
+    if (trajectory_dx < 0)
+    {
+        trajectory_min_x = min(rook_x, 2);
+        trajectory_max_x = max(king_x, 2);
+    }
+    else
+    {
+        trajectory_min_x = king_x;
+        trajectory_max_x = max(rook_x, 6);
+    }
 
-    // If the trajectory end up on a rook, check if the castle is legal
-    if (
-        board[y][trajectory_index] == (white_turn ? 'R' : 'r') &&
-        _is_castle_legal(x, y, trajectory_index, trajectory_dx)
-    )
-        this->available_moves.push_back(Move(x, y, trajectory_index, y, 0, true));
-        // if valid add move with castle flag
+    // cerr << "Trajectory min x: " << trajectory_min_x << endl;
+    // cerr << "Trajectory max x: " << trajectory_max_x << endl;
+
+    // Assert that only castling pieces are on the trajectories
+    int trajectory_x = trajectory_min_x;
+    while (trajectory_x <= trajectory_max_x)
+    {
+        if (board[king_y][trajectory_x] != EMPTY_CELL &&
+            board[king_y][trajectory_x] != (white_turn ? 'K' : 'k') &&
+            trajectory_x != rook_x)
+        {
+            // cerr << "Piece on trajectory: " << board[king_y][trajectory_x] << endl;
+            // cerr << "Trajectory x: " << trajectory_x << endl;
+            return ;
+        }
+        trajectory_x++;
+    }
+
+    // The king trajectory must not being in check
+    if (_is_castle_legal(king_x, king_y, trajectory_dx < 0 ? 2 : 6, trajectory_dx))
+    {
+        // cerr << "Castle legal" << endl;
+        this->available_moves.push_back(Move(king_x, king_y, rook_x, king_y, 0, true));
+    }
+    // else
+    //     cerr << "Castle ILLEGAL" << endl;
 }
 
 bool Board::_is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx)
@@ -845,14 +873,21 @@ bool Board::_is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx)
     char king_piece = white_turn ? 'K' : 'k';
     
     // Put kings all over the trajectory to check if they are in check
-    for (int x = src_x + trajectory_dx; x != dst_x; x += trajectory_dx)
+    int x = src_x;
+    while (x != dst_x + trajectory_dx)
     {
+        // Save the current piece
+        char piece = board[src_y][x];
+
+        // Put a king to detect a check
         board[src_y][x] = king_piece;
         bool is_check = _is_check(x, src_y);
-        board[src_y][x] = EMPTY_CELL;
+
+        board[src_y][x] = piece;
 
         if (is_check)
             return false;
+        x += trajectory_dx;
     }
 
     return true;

@@ -701,17 +701,104 @@ int find_king_moves_testLauncher()
         6
     );
 
-    // Castles - Blocked on the way
+    // No castles - Blocked on the way 1
+    requested_moves[0] = new Move(2, 7, 3, 7, 0); // King moves right
+    requested_moves[1] = new Move(6, 7, 5, 7, 0); // Rook moves left 1
+    requested_moves[2] = new Move(6, 7, 4, 7, 0); // Rook moves left 2
+    requested_moves[3] = new Move(6, 7, 3, 7, 0); // Rook moves left 3
     success_count += find_moves_RegularCases_FindAllMoves(
         37,
-        new Board("8/8/8/8/8/8/8/8 w CG - 0 1"),
+        new Board("8/8/8/8/4r3/8/####1###/##K3R# w G - 0 1"),
         requested_moves,
-        6
+        4
     );
-    // Castles - King under check
-    // Castles - No problem if the rook is under check
-    // Castles - Pieces are on the destination
-    // Castles - The destination is under check
+    // No castles - Blocked on the way 2
+    requested_moves[0] = new Move(2, 7, 3, 7, 0); // Rook moves left 1
+    requested_moves[1] = new Move(2, 7, 4, 7, 0); // Rook moves left 2
+    requested_moves[2] = new Move(2, 7, 5, 7, 0); // Rook moves left 3
+    requested_moves[3] = new Move(2, 7, 6, 7, 0); // Rook moves left 4
+    success_count += find_moves_RegularCases_FindAllMoves(
+        38,
+        new Board("8/8/8/8/4r3/8/###5/#KR4# w C - 0 1"),
+        requested_moves,
+        4
+    );
+    // No castles - Blocked on the way 3
+    requested_moves[0] = new Move(5, 0, 2, 0, 0); // Rook moves left 3
+    requested_moves[1] = new Move(5, 0, 3, 0, 0); // Rook moves left 2
+    requested_moves[2] = new Move(5, 0, 4, 0, 0); // Rook moves left 1
+    success_count += find_moves_RegularCases_FindAllMoves(
+        39,
+        new Board("##3rk#/5###/8/8/8/3R4/8/8 b f - 0 1"),
+        requested_moves,
+        3
+    );
+
+    // No castles - King under check
+    requested_moves[0] = new Move(3, 7, 4, 7, 0); // King moves right
+    success_count += find_moves_RegularCases_FindAllMoves(
+        40,
+        new Board("8/8/8/8/8/3r4/2#1####/2#K2R# w G - 0 1"),
+        requested_moves,
+        1
+    );
+
+    // No castles - No problem if the rook is under check
+    requested_moves[0] = new Move(4, 7, 5, 7, 0); // King moves right
+    requested_moves[1] = new Move(7, 7, 6, 7, 0); // Rook moves left 1
+    requested_moves[2] = new Move(7, 7, 5, 7, 0); // Rook moves left 2
+    requested_moves[3] = new Move(7, 7, 7, 6, 0); // Rook takes
+    requested_moves[4] = new Move(4, 7, 7, 7, 0); // Castle
+    success_count += find_moves_RegularCases_FindAllMoves(
+        41,
+        new Board("8/8/8/8/8/8/2#####r/3#K2R w H - 0 1"),
+        requested_moves,
+        5
+    );
+
+    // No castles - Pieces are on the destination - 1
+    requested_moves[0] = new Move(6, 7, 7, 7, 0); // King moves right
+    requested_moves[1] = new Move(5, 7, 4, 7, 0); // Rook moves left 1
+    requested_moves[2] = new Move(5, 7, 3, 7, 0); // Rook moves left 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        42,
+        new Board("8/8/8/8/8/8/5###/2#2RK1 w F - 0 1"),
+        requested_moves,
+        3
+    );
+    // No castles - Pieces are on the destination - 2
+    requested_moves[0] = new Move(1, 7, 0, 7, 0); // King moves left
+    requested_moves[1] = new Move(2, 7, 3, 7, 0); // Rook moves right 1
+    requested_moves[2] = new Move(2, 7, 4, 7, 0); // Rook moves right 2
+    requested_moves[3] = new Move(2, 7, 5, 7, 0); // Rook moves right 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        43,
+        new Board("8/8/8/8/8/8/###5/1KR3#1 w F - 0 1"),
+        requested_moves,
+        4
+    );
+
+    // No castles - The destination is under check
+    requested_moves[0] = new Move(2, 7, 3, 7, 0); // Rook moves left 1
+    requested_moves[1] = new Move(2, 7, 4, 7, 0); // Rook moves left 2
+    requested_moves[2] = new Move(2, 7, 5, 7, 0); // Rook moves left 3
+    requested_moves[3] = new Move(2, 7, 6, 7, 0); // Rook moves left 4
+    success_count += find_moves_RegularCases_FindAllMoves(
+        44,
+        new Board("8/8/8/8/6r1/8/###5/#KR4# w C - 0 1"),
+        requested_moves,
+        4
+    );
+
+    // No castles - The other rook block the trajectory
+    requested_moves[0] = new Move(2, 7, 3, 7, 0); // Rook moves
+    requested_moves[1] = new Move(2, 7, 4, 7, 0); // Rook moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        45,
+        new Board("8/8/8/8/8/8/###5/RKR2#2 w A - 0 1"),
+        requested_moves,
+        2
+    );
 
     return success_count;
 }

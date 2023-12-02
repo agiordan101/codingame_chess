@@ -4,14 +4,14 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 
 ## Get started
 
-### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`g++ main_codingame.cpp chessengine/* -o mychessbot.out && cp mychessbot.out ../codingame-chess/.`
+### Compile & Run project main
+`make run`
 
 ### Compile & Run unittests
-`g++ main.test.cpp chessengine/* -o unittests.out && ./unittests.out`
+`make test`
 
-### Compile & Run project main
-`g++ main.cpp chessengine/* -o chessproject.out && ./chessproject.out`
+### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
+`make cgrun`
 
 ## Description
 
@@ -23,8 +23,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create RandomAgent
-    * Create Bot
+    * Create BotPlayer
+    * Create GameEngine
     * Create HeuristicAgent
     * Implement Board::Board(): Randomize the board generation
     * Run games indefinitly with the codingame engine

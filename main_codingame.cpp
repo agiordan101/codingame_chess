@@ -1,5 +1,5 @@
-#include "srcs/agents/RandomAgent.hpp"
 #include "srcs/chessengine/Board.hpp"
+#include "srcs/players/BotPlayer.hpp"
 
 using namespace std;
 
@@ -71,14 +71,14 @@ int main()
     cout << "fen" << endl;
     // cout << "fen lastmove draw" << endl;
 
-    RandomAgent *agent = new RandomAgent();
+    BotPlayer *player = new BotPlayer("random");
     while (1)
     {
         Board *board = parse_following_turns();
         board->log();
 
         vector<Move> moves = board->find_moves();
-        Move move = agent->choose_from(moves);
+        Move move = player->choose_from(moves);
 
         cout << move.to_uci() << endl;
         // exit(0);

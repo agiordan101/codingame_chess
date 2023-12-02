@@ -78,6 +78,7 @@ class Board {
         bool    _insufficient_material_rule();
 
         void    _find_moves_pawns(int x, int y);
+        void    _add_regular_move_or_promotion(int x, int y, int dx, int dy, int (*case_func)(int));
         void    _find_moves_knights(int x, int y);
         void    _find_moves_bishops(int x, int y);
         void    _find_moves_rooks(int x, int y);

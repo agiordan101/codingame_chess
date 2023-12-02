@@ -556,68 +556,58 @@ bool Board::_insufficient_material_rule()
 
 void Board::_find_moves_pawns(int x, int y) {
 
+    int dy;
+    int dy2;
+    int (*case_func)(int);
+    int (*opp_case_test)(int);
     if (white_turn)
     {
-        // Promotions
-        if (y == 1 && board[y - 1][x] == EMPTY_CELL)
-        {
-            this->available_moves.push_back(Move(x, y, x, y - 1, 'N'));
-            this->available_moves.push_back(Move(x, y, x, y - 1, 'B'));
-            this->available_moves.push_back(Move(x, y, x, y - 1, 'R'));
-            this->available_moves.push_back(Move(x, y, x, y - 1, 'Q'));
-        }
-
-        // Move 1 cell
-        if (y > 1 && board[y - 1][x] == EMPTY_CELL)
-        {
-            this->available_moves.push_back(Move(x, y, x, y - 1, 0));
-        }
-
-        // Move 2 cells
-        if (y == 6 && board[y - 1][x] == EMPTY_CELL && board[y - 2][x] == EMPTY_CELL)
-            this->available_moves.push_back(Move(x, y, x, y - 2, 0));
-
-        // Capture left
-        if ((x > 0 && islower(board[y - 1][x - 1])) ||
-            (en_passant_available && y - 1 == en_passant_y && x - 1 == en_passant_x))
-            this->available_moves.push_back(Move(x, y, x - 1, y - 1, 0));
-
-        // Capture right
-        if ((x < 7 && islower(board[y - 1][x + 1])) ||
-            (en_passant_available && y - 1 == en_passant_y && x + 1 == en_passant_x))
-            this->available_moves.push_back(Move(x, y, x + 1, y - 1, 0));
+        dy = y - 1;
+        dy2 = y - 2;
+        case_func = static_cast<int(*)(int)>(toupper);
+        opp_case_test = static_cast<int(*)(int)>(islower);
     }
     else
     {
-        // Promotions
-        if (y == 6 && board[y + 1][x] == EMPTY_CELL)
-        {
-            this->available_moves.push_back(Move(x, y, x, y + 1, 'n'));
-            this->available_moves.push_back(Move(x, y, x, y + 1, 'b'));
-            this->available_moves.push_back(Move(x, y, x, y + 1, 'r'));
-            this->available_moves.push_back(Move(x, y, x, y + 1, 'q'));
-        }
+        dy = y + 1;
+        dy2 = y + 2;
+        case_func = static_cast<int(*)(int)>(tolower);
+        opp_case_test = static_cast<int(*)(int)>(isupper);
+    }
 
-        // Move 1 cell
-        if (y < 6 && board[y + 1][x] == EMPTY_CELL)
-        {
-            this->available_moves.push_back(Move(x, y, x, y + 1, 0));
-        }
+    // Move 1 cell
+    if (board[dy][x] == EMPTY_CELL)
+    {
+        _add_regular_move_or_promotion(x, y, x, dy, case_func);
 
         // Move 2 cells
-        if (y == 1 && board[y + 1][x] == EMPTY_CELL && board[y + 2][x] == EMPTY_CELL)
-            this->available_moves.push_back(Move(x, y, x, y + 2, 0));
-
-        // Capture left
-        if ((x > 0 && isupper(board[y + 1][x - 1])) ||
-            (en_passant_available && y + 1 == en_passant_y && x - 1 == en_passant_x))
-            this->available_moves.push_back(Move(x, y, x - 1, y + 1, 0));
-
-        // Capture right
-        if ((x < 7 && isupper(board[y + 1][x + 1])) ||
-            (en_passant_available && y + 1 == en_passant_y && x + 1 == en_passant_x))
-            this->available_moves.push_back(Move(x, y, x + 1, y + 1, 0));
+        if ((y == 1 || y == 6) && board[dy2][x] == EMPTY_CELL)
+            this->available_moves.push_back(Move(x, y, x, dy2, 0));
     }
+
+    // Capture left
+    if (x > 0 && opp_case_test(board[dy][x - 1]) ||
+            (en_passant_available && dy == en_passant_y && x - 1 == en_passant_x))
+        _add_regular_move_or_promotion(x, y, x - 1, dy, case_func);
+    
+    // Capture right
+    if (x < 7 && opp_case_test(board[dy][x + 1]) ||
+            (en_passant_available && dy == en_passant_y && x + 1 == en_passant_x))
+        _add_regular_move_or_promotion(x, y, x + 1, dy, case_func);
+}
+
+void Board::_add_regular_move_or_promotion(int x, int y, int dx, int dy, int (*case_func)(int))
+{
+    if (dy == 0 || dy == 7)
+    {
+        // Promotions
+        this->available_moves.push_back(Move(x, y, dx, dy, case_func('N')));
+        this->available_moves.push_back(Move(x, y, dx, dy, case_func('B')));
+        this->available_moves.push_back(Move(x, y, dx, dy, case_func('R')));
+        this->available_moves.push_back(Move(x, y, dx, dy, case_func('Q')));
+    }
+    else
+        this->available_moves.push_back(Move(x, y, dx, dy, 0));
 }
 
 void Board::_find_moves_knights(int x, int y) {

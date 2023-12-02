@@ -2,12 +2,12 @@
 
 int main()
 {
-    // Board *board = new Board("8/2Q5/k3P3/1R3p2/P4P2/8/8/2N4K b - - 6 83");
-    Board *board = new Board("bbqrkrnn/pppppppp/8/8/P7/8/1PPPPPPP/BBQRKRNN b DFdf a3 0 1");
+    Board *board = new Board("3Nr3/p4P1k/P7/3P2p1/3b1R1p/8/2K4P/N5R1 w - - 6 65");
+    // Board *board = new Board("bbqrkrnn/pppppppp/8/8/P7/8/1PPPPPPP/BBQRKRNN b DFdf a3 0 1");
     board->log();
 
-    int nbMove = 1000;
-    int game_state = board->game_state();
+    int nbMove = 1;
+    float game_state = board->game_state();
     cout << "\nStart " << nbMove << " random move from available ones ..." << endl;
     for (int i = 0; i < nbMove; i++)
     {
@@ -24,6 +24,17 @@ int main()
             cout << "\n\n---- NO MOVES BUT GAME STILL RUNNING ---- " << endl;
             break;
         }
+
+        // Display all moves 
+        for (int j = 0; j < moves.size(); j++)
+        {
+            if (moves[j].promotion)
+            {
+                cout << "Available move " << j << ": " << moves[j].to_uci() << endl;
+                moves[j].log();
+            }
+        }
+
 
         Move move = moves[rand() % moves.size()];
         cout << "Turn " << i << " - Move chose: " << endl;

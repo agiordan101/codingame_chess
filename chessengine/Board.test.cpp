@@ -280,7 +280,7 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
 int find_pawn_moves_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[10];
+    Move *requested_moves[15];
 
     // Advances 0 and 1 and 2 - White
     requested_moves[0] = new Move(6, 6, 6, 5, 0); // Advance 1 but not 2
@@ -379,9 +379,49 @@ int find_pawn_moves_testLauncher()
         4
     );
 
-    // No piece -> No moves
+    // Promotions - While taking a piece - White
+    requested_moves[0] = new Move(1, 1, 0, 0, 'N');
+    requested_moves[1] = new Move(1, 1, 0, 0, 'B');
+    requested_moves[2] = new Move(1, 1, 0, 0, 'R');
+    requested_moves[3] = new Move(1, 1, 0, 0, 'Q');
+    requested_moves[4] = new Move(1, 1, 1, 0, 'N');
+    requested_moves[5] = new Move(1, 1, 1, 0, 'B');
+    requested_moves[6] = new Move(1, 1, 1, 0, 'R');
+    requested_moves[7] = new Move(1, 1, 1, 0, 'Q');
+    requested_moves[8] = new Move(1, 1, 2, 0, 'N');
+    requested_moves[9] = new Move(1, 1, 2, 0, 'B');
+    requested_moves[10] = new Move(1, 1, 2, 0, 'R');
+    requested_moves[11] = new Move(1, 1, 2, 0, 'Q');
     success_count += find_moves_RegularCases_FindAllMoves(
         10,
+        new Board("t1t5/1P6/8/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        12
+    );
+
+    // Promotions - While taking a piece - Black
+    requested_moves[0] = new Move(3, 6, 2, 7, 'n');
+    requested_moves[1] = new Move(3, 6, 2, 7, 'b');
+    requested_moves[2] = new Move(3, 6, 2, 7, 'r');
+    requested_moves[3] = new Move(3, 6, 2, 7, 'q');
+    requested_moves[4] = new Move(3, 6, 3, 7, 'n');
+    requested_moves[5] = new Move(3, 6, 3, 7, 'b');
+    requested_moves[6] = new Move(3, 6, 3, 7, 'r');
+    requested_moves[7] = new Move(3, 6, 3, 7, 'q');
+    requested_moves[8] = new Move(3, 6, 4, 7, 'n');
+    requested_moves[9] = new Move(3, 6, 4, 7, 'b');
+    requested_moves[10] = new Move(3, 6, 4, 7, 'r');
+    requested_moves[11] = new Move(3, 6, 4, 7, 'q');
+    success_count += find_moves_RegularCases_FindAllMoves(
+        11,
+        new Board("8/8/8/8/8/8/3p4/2T1T3 b - - 0 1"),
+        requested_moves,
+        12
+    );
+
+    // No piece -> No moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        12,
         new Board("8/8/8/8/8/8/8/8 w - - 0 1"),
         requested_moves,
         0

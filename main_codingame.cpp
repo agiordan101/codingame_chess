@@ -1,6 +1,6 @@
-// #include "ChessEngine/ChessEngine.hpp"
-#include "ChessEngine/Board.hpp"
-// #include "ChessEngine/Move.hpp"
+#include "agents/RandomAgent.hpp"
+#include "chessengine/ChessEngine.hpp"
+#include "chessengine/Board.hpp"
 
 using namespace std;
 
@@ -72,12 +72,14 @@ int main()
     cout << "fen" << endl;
     // cout << "fen lastmove draw" << endl;
 
-    while (1) {
+    RandomAgent *agent = new RandomAgent();
+    while (1)
+    {
         Board *board = parse_following_turns();
         board->log();
 
         vector<Move> moves = board->find_moves();
-        Move move = moves[rand() % moves.size()];
+        Move move = agent->choose_from(moves);
 
         cout << move.to_uci() << endl;
         // exit(0);

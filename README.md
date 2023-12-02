@@ -50,7 +50,27 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ### Branches
 
 - main  ->  Stable best version used in CodinGame
-- dev   ->  Stable version in devlopment (base for new branches, base for comparison, etc...)
+- dev   ->  Stable version in devlopment
+
+### Entity heritage
+
+- AbstractAgent
+    * RandomAgent
+    * HeuristicAgent
+    * MinMaxAgent
+    * MCTSAgent
+    * TimedAlgorithm
+
+- AbtractBoard
+    * Board
+    * BitBoard
+    * TimedBoard
+
+- AbtractPlayer
+    * BotPlayer
+    * HumanPlayer
+
+- GameEngine (One big engine doing benchmarks too ?)
 
 ### Unit testing
 

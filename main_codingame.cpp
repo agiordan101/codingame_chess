@@ -1,6 +1,5 @@
-#include "agents/RandomAgent.hpp"
-#include "chessengine/ChessEngine.hpp"
-#include "chessengine/Board.hpp"
+#include "srcs/agents/RandomAgent.hpp"
+#include "srcs/chessengine/Board.hpp"
 
 using namespace std;
 

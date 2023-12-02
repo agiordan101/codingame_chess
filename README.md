@@ -13,9 +13,6 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 ### Compile & Run project main
 `g++ main.cpp chessengine/* -o chessproject.out && ./chessproject.out`
 
-### Run python test script for main.cpp parsing
-`python3 test/parsing_unit_tests.py`
-
 ## Description
 
 Project created in local, thanks to CodinGame SDK environment and CodinGame chess-engine to simulate exact same executions.

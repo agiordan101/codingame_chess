@@ -1267,6 +1267,54 @@ int is_check_testLauncher()
 
 #pragma endregion is_check
 
+#pragma region clone
+
+int clone_unittest(int testIndex, Board *board)
+{
+    Board *clone = board->clone();
+
+    if (!(*board == clone))
+    {
+        cerr << "\n---------- Board - clone_unittest() - Test " << testIndex << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "- Board : " << endl;
+        board->log();
+
+        cerr << "\n- Actual clone : " << endl;
+        clone->log();
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int clone_testLauncher()
+{
+    int success_count = 0;
+
+    // Empty board
+    success_count += clone_unittest(
+        1,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 1", true)
+    );
+
+    // Chess960 rules
+    success_count += clone_unittest(
+        2,
+        new Board("8/8/8/8/8/8/8/8 w - - 0 1", false)
+    );
+
+    // With pieces
+    success_count += clone_unittest(
+        3,
+        new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b AHah b2 10 100")
+    );
+
+    return success_count;
+}
+
+#pragma endregion clone
+
 int mainTestBoard()
 {
     int successCount = 0;
@@ -1278,12 +1326,15 @@ int mainTestBoard()
     successCount += apply_move_testLauncher();
     successCount += game_state_testLauncher();
     successCount += is_check_testLauncher();
+
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
     successCount += find_bishop_moves_testLauncher();
     successCount += find_rook_moves_testLauncher();
     successCount += find_king_moves_testLauncher();
     successCount += find_moves_not_illegal_ones_testLauncher();
+
+    successCount += clone_testLauncher();
 
     return successCount;
 }

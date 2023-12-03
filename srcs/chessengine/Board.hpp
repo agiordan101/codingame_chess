@@ -55,6 +55,7 @@ class Board {
         float           game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
         bool            is_check();
         string          create_fen(bool with_turns = true);
+        Board           *clone();
         
         bool    operator ==(Board *test_board);
 

@@ -232,6 +232,11 @@ string Board::create_fen(bool with_turns)
     return fen_string;
 }
 
+Board *Board::clone()
+{
+    return new Board(create_fen(), chess960_rule);
+}
+
 // --- PRIVATE METHODS ---
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)

@@ -2,11 +2,9 @@
 #include "../agents/AbstractAgent.hpp"
 #include "../agents/RandomAgent.hpp"
 
-BotPlayer::BotPlayer(string agent_name) {
+BotPlayer::BotPlayer(AbstractAgent *agent) {
 
-    if (agent_name == "random")
-        this->_agent = (AbstractAgent *)new RandomAgent();
-    
+    this->_agent = agent;
 }
 
 Move BotPlayer::choose_from(vector<Move> moves) {

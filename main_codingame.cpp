@@ -1,5 +1,6 @@
 #include "srcs/chessengine/Board.hpp"
 #include "srcs/players/BotPlayer.hpp"
+#include "srcs/agents/RandomAgent.hpp"
 
 using namespace std;
 
@@ -71,7 +72,8 @@ int main()
     cout << "fen" << endl;
     // cout << "fen lastmove draw" << endl;
 
-    BotPlayer *player = new BotPlayer("random");
+    AbstractAgent *agent = (AbstractAgent *)new RandomAgent();
+    AbstractPlayer *player = (AbstractPlayer *)new BotPlayer(agent);
     while (1)
     {
         Board *board = parse_following_turns();

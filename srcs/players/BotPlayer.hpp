@@ -6,7 +6,7 @@
 class BotPlayer: public AbstractPlayer {
 
     public:
-        BotPlayer(string agent_name);
+        BotPlayer(AbstractAgent *agent);
         Move choose_from(vector<Move> moves) override;
 };
 

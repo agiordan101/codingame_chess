@@ -35,7 +35,6 @@ int main()
             }
         }
 
-
         Move move = moves[rand() % moves.size()];
         cout << "Turn " << i << " - Move chose: " << endl;
         move.log();

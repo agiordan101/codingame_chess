@@ -23,7 +23,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create BotPlayer
     * Create GameEngine
     * Create HeuristicAgent
     * Implement Board::Board(): Randomize the board generation
@@ -51,6 +50,18 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ### Entity heritage
 
+- GameEngine (One big engine doing benchmarks too ?)
+    * CodinGameGameEngine ?
+
+- AbtractPlayer
+    * BotPlayer
+    * HumanPlayer
+
+- AbtractBoard
+    * Board
+    * BitBoard
+    * TimedBoard
+
 - AbstractAgent
     * RandomAgent
     * HeuristicAgent
@@ -58,16 +69,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
     * MCTSAgent
     * TimedAlgorithm
 
-- AbtractBoard
-    * Board
-    * BitBoard
-    * TimedBoard
-
-- AbtractPlayer
-    * BotPlayer
-    * HumanPlayer
-
-- GameEngine (One big engine doing benchmarks too ?)
+- AbstractHeuristic
+    * PieceValuesHeuristic
 
 ### Unit testing
 

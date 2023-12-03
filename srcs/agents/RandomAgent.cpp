@@ -1,5 +1,4 @@
 #include "RandomAgent.hpp"
-#include <tuple>
 
 RandomAgent::RandomAgent()
 {
@@ -7,7 +6,6 @@ RandomAgent::RandomAgent()
 }
 
 Move RandomAgent::choose_from(vector<Move> moves) {
-    cerr << "RandomAgent::choose_from" << endl;
     last_possible_moves = moves;
     return moves[rand() % moves.size()];
 }

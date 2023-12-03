@@ -1,20 +1,13 @@
 #ifndef BOTPLAYER_HPP
 # define BOTPLAYER_HPP
 
-#include "../chessengine/Move.hpp"
-#include "../agents/AbstractAgent.hpp"
-#include <vector>
+#include "AbstractPlayer.hpp"
 
-class BotPlayer {
+class BotPlayer: public AbstractPlayer {
 
     public:
         BotPlayer(string agent_name);
-        Move choose_from(vector<Move> moves);
-        // Draw ?
-        // Resign ?
-
-    private:
-        AbstractAgent* _agent;
+        Move choose_from(vector<Move> moves) override;
 };
 
 #endif

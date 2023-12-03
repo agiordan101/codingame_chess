@@ -52,7 +52,7 @@ class Board {
         void            log();
         vector<Move>    find_moves();
         void            apply_move(Move move);
-        float           game_state(); // -1 = Game continue | 0 = Current player lose | 0.5 = Draw | 1 = Current player win
+        float           game_state(); // -1 = Game continue | 0 = Black win | 0.5 = Draw | 1 = White win
         bool            is_check();
         string          create_fen(bool with_turns = true);
         Board           *clone();

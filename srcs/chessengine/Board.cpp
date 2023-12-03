@@ -126,7 +126,7 @@ void Board::apply_move(Move move)
 
 float Board::game_state()
 {
-    // Fifty-Move rule + Game turn limit
+    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (
         half_turn_rule >= 50 ||
         game_turn >= game_turn_max ||
@@ -139,8 +139,14 @@ float Board::game_state()
 
     // If no moves are available, it's either a Checkmate or a Stalemate
     if (available_moves.size() == 0)
-        return check ? 0 : 0.5;
+    {
+        // 0 = Black win | 0.5 = Draw | 1 = White win
+        if (check)
+            return white_turn ? 0 : 1;
+        return 0.5;
+    }
 
+    // -1 = Game continue
     return -1;
 }
 

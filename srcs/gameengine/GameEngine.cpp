@@ -5,9 +5,9 @@ GameEngine::GameEngine(Board* board, AbstractPlayer* white_player, AbstractPlaye
     this->_board = board;
     this->_white_player = white_player;
     this->_black_player = black_player;
-    this->players[0] = white_player;
-    this->players[1] = black_player;
-    this->player_turn = 0;
+    this->_players[0] = white_player;
+    this->_players[1] = black_player;
+    this->_player_turn = 0;
 }
 
 float GameEngine::start_games(int n_games)
@@ -34,11 +34,11 @@ float GameEngine::game_loop()
     {
         vector<Move> moves = current_board->find_moves();
 
-        Move move = this->players[this->player_turn]->choose_from(moves);
+        Move move = this->_players[this->_player_turn]->choose_from(moves);
 
         current_board->apply_move(move);
 
-        this->player_turn = (this->player_turn + 1) % 2;
+        this->_player_turn = (this->_player_turn + 1) % 2;
         game_state = current_board->game_state();
     }
 

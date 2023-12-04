@@ -13,11 +13,11 @@ class GameEngine {
     
     private:
 
-        Board* _board;
+        Board*          _board;
         AbstractPlayer* _white_player;
         AbstractPlayer* _black_player;
-        AbstractPlayer* players[2];
-        int             player_turn; // 0 for white, 1 for black
+        AbstractPlayer* _players[2];
+        int             _player_turn; // 0 for white, 1 for black
 
         float game_loop();
 

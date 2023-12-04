@@ -23,10 +23,17 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create GameEngine
+    * Create Board::revert_last_move()
+    * Create AbstractHeurisic
+    * Create BasicHeuristic ...
     * Create HeuristicAgent
     * Implement Board::Board(): Randomize the board generation
-    * Run games indefinitly with the codingame engine
+
+    * Create a CGGameEngine (Do not inherit nor create an Abstract interface)
+    * main_codingame:
+        - Add "lastmove moves" in the first cout
+        - create a board and 1 player
+        - Apply the cg last move and mine to the local board, and compare available moves with the given ones
 
 - Refactor & Improvments :
 
@@ -70,7 +77,12 @@ External libraries are used to test & debug my own chess engine (times, valids m
     * TimedAlgorithm
 
 - AbstractHeuristic
-    * PieceValuesHeuristic
+    * PiecesHeuristic
+    * PositionalPiecesHeuristic
+    * BasicHeuristic
+
+    ...
+    * NNHeuristic
 
 ### Unit testing
 

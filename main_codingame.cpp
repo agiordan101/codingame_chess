@@ -70,7 +70,7 @@ int main()
 
     // Set requested inputs for following turns 
     cout << "fen" << endl;
-    // cout << "fen lastmove draw" << endl;
+    // cout << "fen lastmove moves draw" << endl;
 
     AbstractAgent *agent = (AbstractAgent *)new RandomAgent();
     AbstractPlayer *player = (AbstractPlayer *)new BotPlayer(agent);

@@ -6,9 +6,7 @@
 class RandomAgent : public AbstractAgent {
 
     public:
-        RandomAgent();
-        Move choose_from(vector<Move> moves) override;
-        vector<tuple<Move, float>> get_qualities();
+        virtual vector<tuple<Move, float>> *get_qualities(Board *board, vector<Move> moves) override;
 };
 
 #endif

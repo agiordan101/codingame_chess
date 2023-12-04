@@ -7,7 +7,10 @@ class BotPlayer: public AbstractPlayer {
 
     public:
         BotPlayer(AbstractAgent *agent);
-        Move choose_from(vector<Move> moves) override;
+        virtual Move choose_from(Board *board, vector<Move> moves) override;
+    
+    private:
+        AbstractAgent* _agent;
 };
 
 #endif

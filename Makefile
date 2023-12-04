@@ -1,8 +1,8 @@
 
 ### Compile & Run main.cpp
 run:
-	g++ main.cpp srcs/*/* -o chessproject.out
-	./chessproject.out
+	time g++ main.cpp srcs/*/* -o chessproject.out
+	time ./chessproject.out
 
 ### Compile & Run unit tests
 test:

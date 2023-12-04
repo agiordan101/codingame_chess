@@ -117,7 +117,7 @@ void CGGameEngine::infinite_game_loop()
             }
         }
 
-        Move move = this->_player->choose_from(moves);
+        Move move = this->_player->choose_from(this->_board, moves);
 
         this->_board->apply_move(move);
 

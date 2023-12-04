@@ -2,6 +2,8 @@
 # define RANDOMAGENT_HPP
 
 #include "AbstractAgent.hpp"
+#include <random>
+#include <algorithm>
 
 class RandomAgent : public AbstractAgent {
 

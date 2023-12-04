@@ -6,5 +6,6 @@ vector<tuple<Move, float>> *RandomAgent::get_qualities(Board *board, vector<Move
     for (int i = 0; i < moves.size(); i++)
         qualities->push_back(make_tuple(moves[i], (float)1 / moves.size()));
 
+    shuffle(qualities->begin(), qualities->end(), default_random_engine(random_device()()));
     return qualities;
 }

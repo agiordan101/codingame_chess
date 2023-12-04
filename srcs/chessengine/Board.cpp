@@ -75,9 +75,8 @@ void Board::apply_move(Move move)
     half_turn_rule += 1;
 
     // Update the engine
-    check = get_check_state();
+    check_computed = false;
     moves_computed = false;
-
     _update_castling_rights();
     _update_fen_history();
 }

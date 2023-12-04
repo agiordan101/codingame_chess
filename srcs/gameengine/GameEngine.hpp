@@ -8,7 +8,7 @@ class GameEngine {
 
     public:
         GameEngine(Board* board, AbstractPlayer* white_player, AbstractPlayer* black_player);
-        float start_games(int n_games);
+        float start_games(int n_games, int progress_bar_size = 40);
     
     private:
 

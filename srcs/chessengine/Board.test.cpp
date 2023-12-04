@@ -1188,6 +1188,15 @@ int game_state_testLauncher()
         0
     );
 
+    // Test game_state with previous moves
+    board = new Board("b4r2/r3np2/2p1k2b/p1P1p1Q1/K1P1P2p/3R1B2/1q3P2/1N1R4 b - - 0 48");
+    board->apply_move(Move("b2b4"));
+    success_count += game_state_unittest(
+        11,
+        board,
+        0
+    );
+
     return success_count;
 }
 

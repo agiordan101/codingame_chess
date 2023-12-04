@@ -52,6 +52,8 @@ class Board {
         
         bool            get_check_state();
         vector<Move>    get_available_moves();
+        inline char     get_cell(int x, int y) { return this->board[y][x]; }
+        bool            is_white_turn() { return this->white_turn; }
 
         string          create_fen(bool with_turns = true);
         Board           *clone();

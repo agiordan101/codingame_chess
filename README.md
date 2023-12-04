@@ -23,11 +23,18 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create AbstractHeurisic
-    * Create BasicHeuristic ...
-    * Create HeuristicAgent
+    * Clean branch and merge PiecesHeuristic class
+    * Create a REAL Makefile
+    * Use valgrind to prevent leaks
+    * Create destructors
+    * Why GameRunner get killed ? And each game is lower than the previous one ?
+    * Finalize PiecesHeuristic
+    * Moves shuffle isn't working ! First move is always taken
+
+    * Python script that merge all specified files into 1 (For codingame bot programming)
+
     * Refactor CGGameEngine
-    * CG game engine returns illegal castling move ?
+    * CG game engine returns illegal castling move ? Report the bug ?
     * Implement Board::Board(): Randomize the board generation
 
 - Refactor & Improvments :
@@ -77,24 +84,15 @@ External libraries are used to test & debug my own chess engine (times, valids m
     * PiecesHeuristic
     * PositionalPiecesHeuristic
     * BasicHeuristic
-
     ...
     * NNHeuristic
 
-### Unit testing
 
-All unit tests file must have the class name their are testing, with ".test.cpp" as suffix.
+### Entity explanations
 
-Inside the file :
+#### Board
 
-- A main function (Named as "mainTest{className}"): that call all unit test launchers.
-- One region per class method, with multiple unit test functions and their associated launcher.
-- Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
-- Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
-
-### Board
-
-#### Castling
+##### Castling
 
 In my implementation, castling moves are always represented by a king moving to its own rook, as Chess960 rules.
 As the Board support both Standard chess rules and Chess960 rules, the UCI representation varies :
@@ -106,7 +104,7 @@ Despite the rules, the final position after castling is always the same:
 - Left castle:      K R
 - Right castle:           R K
 
-#### En passant
+##### En passant
 
 * Turn n:
     - find_move()
@@ -134,6 +132,25 @@ Despite the rules, the final position after castling is always the same:
             available=false
             x: -1
             y: -1
+
+#### Heuristics
+
+    Heuristic values should be between -1 and 1.
+        -1 : Black is winning
+        0 : Balanced game
+        1 : White is winning
+
+
+### Unit testing
+
+All unit tests file must have the class name their are testing, with ".test.cpp" as suffix.
+
+Inside the file :
+
+- A main function (Named as "mainTest{className}"): that call all unit test launchers.
+- One region per class method, with multiple unit test functions and their associated launcher.
+- Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
+- Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
 
 ## Externals C++ libraries
 

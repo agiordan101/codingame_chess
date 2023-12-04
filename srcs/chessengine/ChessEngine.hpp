@@ -8,7 +8,7 @@ using namespace std;
 
 # define EMPTY_CELL '.'
 
-/* STATIC FUNCTIONS */
+/* NOTATION FUNCTIONS */
 
 inline int  column_name_to_index(char column_name)
 {
@@ -47,6 +47,29 @@ inline string coord_to_algebraic(int x, int y)
     // 7, 7 -> h1
     char algebraic[2] = {column_index_to_name(x), line_index_to_number(y)};
     return string(algebraic);
+}
+
+/* PIECES FUNCTIONS */
+
+inline float get_piece_value(char piece)
+{
+    switch (tolower(piece))
+    {
+        case 'p':
+            return 1;
+        case 'n':
+            return 3;
+        case 'b':
+            return 3.2;
+        case 'r':
+            return 5;
+        case 'q':
+            return 9;
+        // case 'k':
+        //     return 100;
+        default:
+            return 0;
+    }
 }
 
 #endif

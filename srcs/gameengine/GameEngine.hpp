@@ -2,8 +2,7 @@
 # define GAMEENGINE_HPP
 
 #include "../chessengine/Board.hpp"
-#include "../chessengine/Move.hpp"
-#include "../players/BotPlayer.hpp"
+#include "../players/AbstractPlayer.hpp"
 
 class GameEngine {
 

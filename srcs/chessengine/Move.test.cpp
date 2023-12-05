@@ -49,7 +49,7 @@ int Move_unittestLauncher()
     // Promotions
     success_count += Move_unittest(
         5,
-        "a7a8R",
+        "a7a8r",
         new Move(0, 1, 0, 0, 'R')
     );
     success_count += Move_unittest(
@@ -173,12 +173,135 @@ int to_uci_unittestLauncher()
 
 #pragma endregion to_uci
 
+#pragma region equaloperator
+
+int equaloperator_unittest(int test_index, Move *move1, Move *move2, bool expected_result)
+{
+    bool final_result = *move1 == move2;
+
+    if (final_result == expected_result)
+        return 1;
+
+    cerr << "\n---------- Move - equaloperator_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
+    cerr << "- Move 1 : " << move1->to_uci() << endl;
+    move1->log();
+    cerr << "- Move 2 : " << move2->to_uci() << endl;
+    move2->log();
+
+    cerr << "\n- Final result :    " << final_result << endl;
+    cerr << "- Expected result : " << expected_result << endl;
+    return 0;
+}
+
+int equaloperator_unittestLauncher()
+{
+    int success_count = 0;
+
+    success_count += equaloperator_unittest(
+        1,
+        new Move(0, 0, 1, 1, 0),
+        new Move(0, 0, 1, 1, 0),
+        true
+    );
+
+    success_count += equaloperator_unittest(
+        1,
+        new Move("a1b7"),
+        new Move("a1b7"),
+        true
+    );
+
+    // Promotions
+    success_count += equaloperator_unittest(
+        5,
+        new Move(0, 1, 0, 0, 'R'),
+        new Move(0, 1, 0, 0, 'R'),
+        true
+    );
+    success_count += equaloperator_unittest(
+        6,
+        new Move(6, 1, 6, 0, 'b'),
+        new Move(6, 1, 6, 0, 'b'),
+        true
+    );
+
+    return success_count;
+}
+
+#pragma endregion equaloperator
+
+#pragma region compare_move_vector
+
+int compare_move_vector_unittest(int test_index, vector<Move> movelst1, vector<Move> movelst2, bool expected_result)
+{
+    bool final_result = Move::compare_move_vector(movelst1, movelst2);
+
+    if (final_result == expected_result)
+        return 1;
+
+    cerr << "\n---------- Move - compare_move_vector_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
+    cerr << "- Move vector 1 : " << endl;
+    for (Move move : movelst1)
+        cerr << move.to_uci() << endl;
+    cerr << "- Move vector 2 : " << endl;
+    for (Move move : movelst2)
+        cerr << move.to_uci() << endl;
+
+    cerr << "\n- Final result :    " << final_result << endl;
+    cerr << "- Expected result : " << expected_result << endl;
+    return 0;
+}
+
+int compare_move_vector_unittestLauncher()
+{
+    int success_count = 0;
+
+    // No moves
+    success_count += compare_move_vector_unittest(
+        1,
+        vector<Move>{},
+        vector<Move>{},
+        true
+    );
+
+
+    // With UCI promotions
+    success_count += compare_move_vector_unittest(
+        2,
+        vector<Move>{
+            Move("f7f8n"),
+        },
+        vector<Move>{
+            Move("f7f8n"),
+        },
+        true
+    );
+
+    // With promotions
+    success_count += compare_move_vector_unittest(
+        3,
+        vector<Move>{
+            Move(6, 1, 6, 0, 'b'),
+        },
+        vector<Move>{
+            Move(6, 1, 6, 0, 'B'),
+        },
+        true
+    );
+
+    return success_count;
+}
+
+#pragma endregion compare_move_vector
+
 int unittests_Move()
 {
     int success_count = 0;
 
     success_count += to_uci_unittestLauncher();
     success_count += Move_unittestLauncher();
+    success_count += equaloperator_unittestLauncher();
+    success_count += compare_move_vector_unittestLauncher();
 
     return success_count;
 }

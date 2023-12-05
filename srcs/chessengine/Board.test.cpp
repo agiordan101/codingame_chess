@@ -41,6 +41,13 @@ int apply_move_testLauncher()
         new Board("8/8/8/1pP5/8/8/8/8 w - b6 0 2"),
         new Move(1, 1, 1, 3, 0)
     );
+    // 2 "en passant" in a row
+    successCount += apply_move_validMove_ApplyIt(
+        22,
+        new Board("8/1p6/8/2P5/4P3/8/8/8 b - e4 0 1"),
+        new Board("8/8/8/1pP5/4P3/8/8/8 w - b6 0 2"),
+        new Move(1, 1, 1, 3, 0)
+    );
 
     // Regular White moves - (Don't reset the half turn rule)
     successCount += apply_move_validMove_ApplyIt(
@@ -84,6 +91,13 @@ int apply_move_testLauncher()
         new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
         new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
         new Move(4, 7, 7, 7, 0)
+    );
+    // White king takes black rook, not castling
+    successCount += apply_move_validMove_ApplyIt(
+        88,
+        new Board("8/8/1r6/K7/8/8/8/8 w - - 2 78"),
+        new Board("8/8/1K6/8/8/8/8/8 b - - 0 78"),
+        new Move(0, 3, 1, 2, 0)
     );
 
     // Black Standard Castle left
@@ -135,7 +149,7 @@ int apply_move_testLauncher()
         new Move(7, 7, 7, 6, 0)
     );
 
-    // Queen promotion White
+    // Promotion White
     successCount += apply_move_validMove_ApplyIt(
         9,
         new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
@@ -146,10 +160,10 @@ int apply_move_testLauncher()
         10,
         new Board("8/3P4/8/8/8/8/8/8 w - - 0 1"),
         new Board("3N4/8/8/8/8/8/8/8 b - - 0 1"),
-        new Move(3, 1, 3, 0, 'N')
+        new Move("d7d8n")
     );
 
-    // Queen promotion Black
+    // Promotion Black
     successCount += apply_move_validMove_ApplyIt(
         11,
         new Board("8/8/8/8/8/8/5p2/8 b - - 0 1"),
@@ -160,7 +174,7 @@ int apply_move_testLauncher()
         12,
         new Board("8/8/8/8/8/8/3p4/8 b - - 0 1"),
         new Board("8/8/8/8/8/8/8/3b4 w - - 0 2"),
-        new Move(3, 6, 3, 7, 'b')
+        new Move("d2d1b")
     );
 
     // En passant White
@@ -217,7 +231,7 @@ bool is_move_in_movelst(Move move, Move *movelst[10], int move_count)
 int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requested_moves[10], int requested_moves_count)
 {
     // Act
-    vector<Move> moves_found = board->find_moves();
+    vector<Move> moves_found = board->get_available_moves();
 
     // Assert all requested moves were found by the engine
     bool success = true;
@@ -425,6 +439,15 @@ int find_pawn_moves_testLauncher()
         new Board("8/8/8/8/8/8/8/8 w - - 0 1"),
         requested_moves,
         0
+    );
+
+    // Find "en_passant" move to remove check
+    requested_moves[0] = new Move(2, 3, 3, 2, 0);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        13,
+        new Board("8/8/2#5/1#Pp4/2K5/1#6/3q4/8 w - d6 0 30"),
+        requested_moves,
+        1
     );
 
     return success_count;
@@ -864,6 +887,14 @@ int find_king_moves_testLauncher()
         0
     );
 
+    // No castles - Extremety 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        48,
+        new Board("8/8/8/8/8/8/########/4BRKR w FH - 3 11"),
+        requested_moves,
+        0
+    );
+
     return success_count;
 }
 
@@ -994,11 +1025,8 @@ int create_fen_testLauncher()
 
 #pragma region game_state
 
-int game_state_unittest(int testIndex, Board *board, vector<Move> moves, bool check, float requested_game_state)
+int game_state_unittest(int testIndex, Board *board, float requested_game_state)
 {
-    board->available_moves = moves;
-    board->moves_found = true;
-    board->check = check;
     float game_state = board->game_state();
 
     if (game_state != requested_game_state)
@@ -1024,39 +1052,52 @@ int game_state_testLauncher()
 
     moves_exists.push_back(Move(0, 0, 0, 0, 0));
 
+    // 0 - Fifty-Move rule
+    success_count += game_state_unittest(
+        0,
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 99 1"),
+        -1
+    );
+
     // 1 - Fifty-Move rule
     success_count += game_state_unittest(
         1,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 50 1"),
-        moves_exists,
-        false,
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 100 1"),
         0.5
     );
 
-    // 2 - Game turn max reached
+    // 2 - Game turn max reached - 126 move proc the end game
     success_count += game_state_unittest(
         2,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 125"),
-        moves_exists,
-        false,
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 126"),
         0.5
     );
 
-    // 3 - Current player checkmate
+    // 3 - White wins
     success_count += game_state_unittest(
         3,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 0"),
-        moves_empty,
-        true,
+        new Board("k6R/7R/8/8/8/8/8/8 b - - 0 0"),
+        1
+    );
+
+    // 33 - Black wins
+    success_count += game_state_unittest(
+        33,
+        new Board("8/8/8/8/8/8/7r/K6r w - - 0 0"),
         0
     );
 
-    // 4 - Stalemate
+    // 4 - Stalemate - White turn
     success_count += game_state_unittest(
         4,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 0 0"),
-        moves_empty,
-        false,
+        new Board("6r1/8/8/8/8/8/r7/7K w - - 0 0"),
+        0.5
+    );
+
+    // 44 - Stalemate - Black turn
+    success_count += game_state_unittest(
+        44,
+        new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 0"),
         0.5
     );
 
@@ -1064,8 +1105,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         5,
         new Board("8/8/3K4/8/8/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         0.5
     );
 
@@ -1073,8 +1112,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         6,
         new Board("8/8/3K4/8/3n4/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         0.5
     );
 
@@ -1082,8 +1119,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         7,
         new Board("8/8/3K4/3B4/8/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         0.5
     );
 
@@ -1091,8 +1126,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         8,
         new Board("8/8/3K4/3B4/4b3/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         0.5
     );
 
@@ -1100,8 +1133,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         new Board("8/8/3K4/3B4/3b4/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         -1
     );
 
@@ -1109,8 +1140,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         new Board("8/8/3K4/3N4/3n4/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         -1
     );
 
@@ -1118,8 +1147,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         new Board("8/8/3K4/3Q4/8/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         -1
     );
 
@@ -1127,8 +1154,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         new Board("8/8/3K4/8/3r4/3k4/8/8 w - - 0 0"),
-        moves_exists,
-        false,
         -1
     );
 
@@ -1142,8 +1167,6 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         board,
-        moves_exists,
-        false,
         -1
     );
 
@@ -1155,9 +1178,14 @@ int game_state_testLauncher()
     success_count += game_state_unittest(
         9,
         board,
-        moves_exists,
-        false,
         0.5
+    );
+
+    // CG int test
+    success_count += game_state_unittest(
+        10,
+        new Board("1rk5/1pnrb2p/2p1b1P1/Q2p1p2/P2P1P2/3n1BP1/1q6/NKR3B1 w b - 6 25"),
+        0
     );
 
     return success_count;
@@ -1169,7 +1197,7 @@ int game_state_testLauncher()
 
 int is_check_unittest(int testIndex, Board *board, bool requested_is_check)
 {
-    bool is_check = board->is_check();
+    bool is_check = board->get_check_state();
 
     if (is_check != requested_is_check)
     {

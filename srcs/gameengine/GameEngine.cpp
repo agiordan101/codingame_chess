@@ -32,7 +32,7 @@ float GameEngine::game_loop()
     float game_state = current_board->game_state();
     while (game_state == -1)
     {
-        vector<Move> moves = current_board->find_moves();
+        vector<Move> moves = current_board->get_available_moves();
 
         Move move = this->_players[this->_player_turn]->choose_from(moves);
 

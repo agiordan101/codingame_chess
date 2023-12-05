@@ -23,7 +23,7 @@ Board::Board(string _fen, bool _chess960_rule) {
 }
 
 Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule) {
-    _main_parsing(_board, _color, _castling, _en_passant, half_turn_rule, game_turn, _chess960_rule);
+    _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule);
 }
 
 void Board::log() {
@@ -31,8 +31,8 @@ void Board::log() {
     cerr << "Board: Castling: w " << castles[0] << " | w " << castles[1] << " | b " << castles[2] << " | b " << castles[3] << endl;
     cerr << "Board: Kings initial columns: w " << kings_initial_columns[0] << " - b " << kings_initial_columns[1] << endl;
     cerr << "Board: En passant: Available=" << en_passant_available << " Coordonates= " << en_passant_x << " " << en_passant_y << endl;
-    cerr << "Board: half_turn_rule: " << half_turn_rule << endl;
-    cerr << "Board: game_turn: " << game_turn << endl;
+    cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
+    cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
     cerr << "----+----------------" << endl;
     cerr << " i  | 0 1 2 3 4 5 6 7" << endl;
@@ -48,68 +48,26 @@ void Board::log() {
     cerr << "----+----------------" << endl;
 }
 
-vector<Move> Board::find_moves() {
+void Board::log_history(int turns)
+{
+    int min_turn = turns == -1 ? 0 : max(0, fen_history_index - turns);
 
-    if (this->moves_found)
-        return this->available_moves;
-
-    char piece_letter;
-
-    this->available_moves = vector<Move>();
-    for (int y = 0; y < 8; y++)
-    {
-        for (int x = 0; x < 8; x++)
-        {
-            piece_letter = board[y][x];
-
-            // Skip empty cells
-            if (piece_letter == EMPTY_CELL)
-                continue ;
-
-            // Only consider our own pieces
-            if (white_turn)
-            {
-                if (islower(piece_letter))
-                    continue;
-            }
-            else if (isupper(piece_letter))
-                continue;
-
-            switch (tolower(piece_letter))
-            {
-                case 'p':
-                    _find_moves_pawns(x, y);
-                    break;
-                case 'n':
-                    _find_moves_knights(x, y);
-                    break;
-                case 'b':
-                    _find_moves_bishops(x, y);
-                    break;
-                case 'r':
-                    _find_moves_rooks(x, y);
-                    break;
-                case 'k':
-                    _find_moves_king(x, y);
-                    break;
-                case 'q':
-                    _find_moves_queens(x, y);
-                    break;
-            }
-        }
-    }
-
-    _filter_non_legal_moves();
-
-    this->moves_found = true;
-    return this->available_moves;
+    cerr << "Board: Current fen: " << this->create_fen() << endl;
+    for (int i = fen_history_index - 1; i >= min_turn; i--)
+        cerr << "Board: log_history: " << i << ": " << fen_history[i] << endl;
 }
 
 void Board::apply_move(Move move)
 {
+    // Disable en passant if it was available on this turn
+    _update_en_passant();
+
     _apply_move(move.src_x, move.src_y, move.dst_x, move.dst_y, move.promotion);
 
-    // Increment game turn after black turn
+    // Enable en passant if it was set in this turn
+    _update_en_passant();
+
+    // Only increment game turn after black turn
     if (!white_turn)
         game_turn += 1;
 
@@ -117,9 +75,9 @@ void Board::apply_move(Move move)
     half_turn_rule += 1;
 
     // Update the engine
-    check = _is_check();
-    moves_found = false;
-    _update_en_passant();
+    check = get_check_state();
+    moves_computed = false;
+
     _update_castling_rights();
     _update_fen_history();
 }
@@ -128,20 +86,20 @@ float Board::game_state()
 {
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (
-        half_turn_rule >= 50 ||
-        game_turn >= game_turn_max ||
+        half_turn_rule >= 100 ||
+        game_turn >= game_turn_max + 1 ||
         _threefold_repetition_rule() ||
         _insufficient_material_rule()
     )
         return 0.5;
 
-    available_moves = find_moves();
+    available_moves = get_available_moves();
 
     // If no moves are available, it's either a Checkmate or a Stalemate
     if (available_moves.size() == 0)
     {
         // 0 = Black win | 0.5 = Draw | 1 = White win
-        if (check)
+        if (get_check_state())
             return white_turn ? 0 : 1;
         return 0.5;
     }
@@ -150,9 +108,26 @@ float Board::game_state()
     return -1;
 }
 
-bool Board::is_check()
+bool Board::get_check_state()
 {
-    return check;
+    if (!this->check_computed)
+    {
+        this->check = _is_check();
+        this->check_computed = true;
+    }
+
+    return this->check;
+}
+
+vector<Move> Board::get_available_moves()
+{
+    if (!this->moves_computed)
+    {
+        _find_moves();
+        this->moves_computed = true;
+    }
+
+    return this->available_moves;
 }
 
 string Board::create_fen(bool with_turns)
@@ -240,7 +215,13 @@ string Board::create_fen(bool with_turns)
 
 Board *Board::clone()
 {
-    return new Board(create_fen(), chess960_rule);
+    Board *cloned_board = new Board(create_fen(), chess960_rule);
+
+    // Copy history
+    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+        cloned_board->fen_history[i] = this->fen_history[i];
+
+    return cloned_board;
 }
 
 // --- PRIVATE METHODS ---
@@ -260,8 +241,8 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
 
     // Initialize private variables
-    check = _is_check();
-    moves_found = false;
+    check_computed = false;
+    moves_computed = false;
     fen_history_index = 0;
     _update_fen_history();
 }
@@ -307,7 +288,7 @@ void Board::_parse_castling(string castling_fen)
             castles[2 + black_castles_i++] = column_name_to_index(castling_fen[i]);
     }
     // for (int i = 0; i < 4; i++)
-    //     cout << "Castle parsing " << castles[i] << endl;
+    //     cerr << "Castle parsing " << castles[i] << endl;
 
     // Find kings initial column indexes
     for (int i = 0; i < 8; i++)
@@ -318,7 +299,7 @@ void Board::_parse_castling(string castling_fen)
             kings_initial_columns[1] = i;
     }
     // for (int i = 0; i < 2; i++)
-    //     cout << "King initial pos " << kings_initial_columns[i] << endl;
+    //     cerr << "King initial pos " << kings_initial_columns[i] << endl;
 }
 
 void Board::_parse_en_passant(string _en_passant)
@@ -352,10 +333,10 @@ void Board::_apply_move(int src_x, int src_y, int dst_x, int dst_y, char promoti
 
         // Promote the pawn : A valid piece must have been created in find_move
         board[src_y][src_x] = EMPTY_CELL;
-        board[dst_y][dst_x] = promotion;
+        board[dst_y][dst_x] = white_turn ? toupper(promotion) : tolower(promotion);
         return ;
     }
-    
+
     // Pawn moves
     if (tolower(board[src_y][src_x]) == 'p')
     {
@@ -398,7 +379,11 @@ bool Board::_handle_standard_castle(int src_x, int src_y, int dst_x, int dst_y)
 bool Board::_handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y)
 {
     // A castle with Chess960 rule is represented by moving the king to its own rook
-    return (tolower(board[src_y][src_x]) == 'k' && tolower(board[dst_y][dst_x]) == 'r');
+    return 
+        tolower(board[src_y][src_x]) == 'k' &&
+        tolower(board[dst_y][dst_x]) == 'r' &&
+        islower(board[src_y][src_x]) == islower(board[dst_y][dst_x])
+    ;
 }
 
 void Board::_apply_castle(int src_x, int src_y, int dst_x, int dst_y)
@@ -409,11 +394,15 @@ void Board::_apply_castle(int src_x, int src_y, int dst_x, int dst_y)
     {
         king = 'K';
         rook = 'R';
+        castles[0] = -1;
+        castles[1] = -1;
     }
     else
     {
         king = 'k';
         rook = 'r';
+        castles[2] = -1;
+        castles[3] = -1;
     }
 
     // First, we remove both pieces
@@ -565,31 +554,81 @@ bool Board::_insufficient_material_rule()
     return true;
 }
 
+vector<Move> Board::_find_moves() {
+
+    char piece_letter;
+
+    this->available_moves = vector<Move>();
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            piece_letter = board[y][x];
+
+            // Skip empty cells
+            if (piece_letter == EMPTY_CELL)
+                continue ;
+
+            // Only consider our own pieces
+            if (white_turn)
+            {
+                if (islower(piece_letter))
+                    continue;
+            }
+            else if (isupper(piece_letter))
+                continue;
+
+            switch (tolower(piece_letter))
+            {
+                case 'p':
+                    _find_moves_pawns(x, y);
+                    break;
+                case 'n':
+                    _find_moves_knights(x, y);
+                    break;
+                case 'b':
+                    _find_moves_bishops(x, y);
+                    break;
+                case 'r':
+                    _find_moves_rooks(x, y);
+                    break;
+                case 'k':
+                    _find_moves_king(x, y);
+                    break;
+                case 'q':
+                    _find_moves_queens(x, y);
+                    break;
+            }
+        }
+    }
+
+    _filter_non_legal_moves();
+
+    return this->available_moves;
+}
+
 void Board::_find_moves_pawns(int x, int y) {
 
     int dy;
     int dy2;
-    int (*case_func)(int);
     int (*opp_case_test)(int);
     if (white_turn)
     {
         dy = y - 1;
         dy2 = y - 2;
-        case_func = static_cast<int(*)(int)>(toupper);
         opp_case_test = static_cast<int(*)(int)>(islower);
     }
     else
     {
         dy = y + 1;
         dy2 = y + 2;
-        case_func = static_cast<int(*)(int)>(tolower);
         opp_case_test = static_cast<int(*)(int)>(isupper);
     }
 
     // Move 1 cell
     if (board[dy][x] == EMPTY_CELL)
     {
-        _add_regular_move_or_promotion(x, y, x, dy, case_func);
+        _add_regular_move_or_promotion(x, y, x, dy);
 
         // Move 2 cells
         if ((y == 1 || y == 6) && board[dy2][x] == EMPTY_CELL)
@@ -599,23 +638,23 @@ void Board::_find_moves_pawns(int x, int y) {
     // Capture left
     if (x > 0 && opp_case_test(board[dy][x - 1]) ||
             (en_passant_available && dy == en_passant_y && x - 1 == en_passant_x))
-        _add_regular_move_or_promotion(x, y, x - 1, dy, case_func);
+        _add_regular_move_or_promotion(x, y, x - 1, dy);
     
     // Capture right
     if (x < 7 && opp_case_test(board[dy][x + 1]) ||
             (en_passant_available && dy == en_passant_y && x + 1 == en_passant_x))
-        _add_regular_move_or_promotion(x, y, x + 1, dy, case_func);
+        _add_regular_move_or_promotion(x, y, x + 1, dy);
 }
 
-void Board::_add_regular_move_or_promotion(int x, int y, int dx, int dy, int (*case_func)(int))
+void Board::_add_regular_move_or_promotion(int x, int y, int dx, int dy)
 {
     if (dy == 0 || dy == 7)
     {
         // Promotions
-        this->available_moves.push_back(Move(x, y, dx, dy, case_func('N')));
-        this->available_moves.push_back(Move(x, y, dx, dy, case_func('B')));
-        this->available_moves.push_back(Move(x, y, dx, dy, case_func('R')));
-        this->available_moves.push_back(Move(x, y, dx, dy, case_func('Q')));
+        this->available_moves.push_back(Move(x, y, dx, dy, 'N'));
+        this->available_moves.push_back(Move(x, y, dx, dy, 'B'));
+        this->available_moves.push_back(Move(x, y, dx, dy, 'R'));
+        this->available_moves.push_back(Move(x, y, dx, dy, 'Q'));
     }
     else
         this->available_moves.push_back(Move(x, y, dx, dy, 0));
@@ -843,9 +882,6 @@ void Board::_find_moves_castle(int king_x, int king_y, int rook_x)
         trajectory_max_x = max(rook_x, 6);
     }
 
-    // cerr << "Trajectory min x: " << trajectory_min_x << endl;
-    // cerr << "Trajectory max x: " << trajectory_max_x << endl;
-
     // Assert that only castling pieces are on the trajectories
     int trajectory_x = trajectory_min_x;
     while (trajectory_x <= trajectory_max_x)
@@ -853,22 +889,13 @@ void Board::_find_moves_castle(int king_x, int king_y, int rook_x)
         if (board[king_y][trajectory_x] != EMPTY_CELL &&
             board[king_y][trajectory_x] != (white_turn ? 'K' : 'k') &&
             trajectory_x != rook_x)
-        {
-            // cerr << "Piece on trajectory: " << board[king_y][trajectory_x] << endl;
-            // cerr << "Trajectory x: " << trajectory_x << endl;
             return ;
-        }
         trajectory_x++;
     }
 
     // The king trajectory must not being in check
     if (_is_castle_legal(king_x, king_y, trajectory_dx < 0 ? 2 : 6, trajectory_dx))
-    {
-        // cerr << "Castle legal" << endl;
-        this->available_moves.push_back(Move(king_x, king_y, rook_x, king_y, 0, true));
-    }
-    // else
-    //     cerr << "Castle ILLEGAL" << endl;
+        this->available_moves.push_back(Move(king_x, king_y, rook_x, king_y, 0));
 }
 
 bool Board::_is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx)
@@ -898,46 +925,22 @@ bool Board::_is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx)
 
 void Board::_filter_non_legal_moves()
 {
-    int move_x_src;
-    int move_y_src;
-    int move_x_dst;
-    int move_y_dst;
-    char dst_piece;
+    Board *test_board;
 
     vector<Move>::iterator it = this->available_moves.begin();
     while (it < this->available_moves.end())
     {
-        // Castling moves are already legal
-        if (it->is_castle)
-        {
-            it++;
-            continue ;
-        }
-
-        move_x_src = it->src_x;
-        move_y_src = it->src_y;
-        move_x_dst = it->dst_x;
-        move_y_dst = it->dst_y;
-
-        // Save the destination piece
-        dst_piece = board[move_y_dst][move_x_dst];
-
-        // Move the piece
-        board[move_y_dst][move_x_dst] = board[move_y_src][move_x_src];
-        board[move_y_src][move_x_src] = EMPTY_CELL;
+        test_board = this->clone();
+        test_board->_apply_move(it->src_x, it->src_y, it->dst_x, it->dst_y, it->promotion);
 
         // If the king is in check, remove the move from the available moves
-        if (_is_check())
+        if (test_board->_is_check())
         {
             // The iterator will be incremented by the erase method
             this->available_moves.erase(it);
         }
         else
             it++;
-
-        // Revert the move
-        board[move_y_src][move_x_src] = board[move_y_dst][move_x_dst];
-        board[move_y_dst][move_x_dst] = dst_piece;
     }
 }
 
@@ -1128,11 +1131,17 @@ bool    Board::operator ==(Board *test_board) {
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)
             if (this->board[y][x] != test_board->board[y][x])
+            {
+                cerr << "Board: operator==: Board pieces (x y = " << x << " " << y << "): " << this->board[y][x] << " != " << test_board->board[y][x] << endl;
                 return false;
+            }
 
     // Turn equality
     if (this->white_turn != test_board->white_turn)
-            return false;
+    {
+        cerr << "Board: operator==: White turn: " << this->white_turn << " != " << test_board->white_turn << endl;
+        return false;
+    }
     
     // Catling rights equality
     for (int i = 0; i < 4; i += 2)
@@ -1142,31 +1151,49 @@ bool    Board::operator ==(Board *test_board) {
         if (this->castles[i] >= 0 &&
             this->castles[i] != test_board->castles[i] &&
             this->castles[i] != test_board->castles[i + 1])
+        {
+            cerr << "Board: operator==: Castling rights: " << this->castles[i] << " != " << test_board->castles[i] << " && " << this->castles[i] << " != " << test_board->castles[i + 1] << endl;
             return false;
+        }
         
         if (this->castles[i + 1] >= 0 &&
             this->castles[i + 1] != test_board->castles[i] &&
             this->castles[i + 1] != test_board->castles[i + 1])
+        {
+            cerr << "Board: operator==: Castling rights: " << this->castles[i + 1] << " != " << test_board->castles[i] << " && " << this->castles[i + 1] << " != " << test_board->castles[i + 1] << endl;
             return false;
+        }
     }
 
     // En passant equality
     if (this->en_passant_available != test_board->en_passant_available ||
         this->en_passant_x != test_board->en_passant_x ||
         this->en_passant_y != test_board->en_passant_y)
-            return false;
+    {
+        cerr << "Board: operator==: En passant: " << this->en_passant_available << " != " << test_board->en_passant_available << " || " << this->en_passant_x << " != " << test_board->en_passant_x << " || " << this->en_passant_y << " != " << test_board->en_passant_y << endl;
+        return false;
+    }
 
     // Half turn since last capture
     if (this->half_turn_rule != test_board->half_turn_rule)
-            return false;
+    {
+        cerr << "Board: operator==: Half turn rule: " << this->half_turn_rule << " != " << test_board->half_turn_rule << endl;
+        return false;
+    }
 
     // Game turn
     if (this->game_turn != test_board->game_turn)
-            return false;
+    {
+        cerr << "Board: operator==: Game turn: " << this->game_turn << " != " << test_board->game_turn << endl;
+        return false;
+    }
 
     // Game rules
     if (this->chess960_rule != test_board->chess960_rule)
-            return false;
+    {
+        cerr << "Board: operator==: Chess960 rule: " << this->chess960_rule << " != " << test_board->chess960_rule << endl;
+        return false;
+    }
 
-    return true;            
+    return true;
 }

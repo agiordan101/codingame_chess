@@ -31,7 +31,6 @@ class Board {
     int         en_passant_y;
     bool        en_passant_available;
     int         half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
-    int         game_turn;                  // Game turn, incremented after each black move
 
     int         game_turn_max = 125;
 
@@ -41,25 +40,30 @@ class Board {
     int            fen_history_index;
 
     public:
-
-        vector<Move>    available_moves;
-        bool            moves_found;
-        bool            check;
+        int         game_turn;                  // Game turn, incremented after each black move
 
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
 
         void            log();
-        vector<Move>    find_moves();
+        void            log_history(int turns = -1);
         void            apply_move(Move move);
         float           game_state(); // -1 = Game continue | 0 = Black win | 0.5 = Draw | 1 = White win
-        bool            is_check();
+        
+        bool            get_check_state();
+        vector<Move>    get_available_moves();
+
         string          create_fen(bool with_turns = true);
         Board           *clone();
         
         bool    operator ==(Board *test_board);
 
     private:
+
+        vector<Move>    available_moves;
+        bool            moves_computed;
+        bool            check;
+        bool            check_computed;
 
         // Function pointer to apply castle depending on the chess960 rule
         bool    chess960_rule;
@@ -82,15 +86,16 @@ class Board {
         bool    _threefold_repetition_rule();
         bool    _insufficient_material_rule();
 
-        void    _find_moves_pawns(int x, int y);
-        void    _add_regular_move_or_promotion(int x, int y, int dx, int dy, int (*case_func)(int));
-        void    _find_moves_knights(int x, int y);
-        void    _find_moves_bishops(int x, int y);
-        void    _find_moves_rooks(int x, int y);
-        void    _find_moves_queens(int x, int y);
-        void    _find_moves_king(int x, int y);
-        void    _find_moves_castle(int x, int y, int castle_index);
-        bool    _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
+        vector<Move>    _find_moves();
+        void            _find_moves_pawns(int x, int y);
+        void            _add_regular_move_or_promotion(int x, int y, int dx, int dy);
+        void            _find_moves_knights(int x, int y);
+        void            _find_moves_bishops(int x, int y);
+        void            _find_moves_rooks(int x, int y);
+        void            _find_moves_queens(int x, int y);
+        void            _find_moves_king(int x, int y);
+        void            _find_moves_castle(int x, int y, int castle_index);
+        bool            _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
 
         void    _filter_non_legal_moves();
         bool    _is_check();

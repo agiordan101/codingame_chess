@@ -12,7 +12,7 @@ int main()
     GameEngine *game_engine = new GameEngine(board, p1, p2);
 
     float white_score = game_engine->start_games(100);
-    cout << "Final white score: " << white_score << endl;
+    cerr << "Final white score: " << white_score << endl;
 
     return 0;
 }

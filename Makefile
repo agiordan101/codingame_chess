@@ -1,15 +1,20 @@
 
-### Compile & Run project main
+### Compile & Run main.cpp
 run:
 	g++ main.cpp srcs/*/* -o chessproject.out
 	./chessproject.out
 
-### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-cgrun:
-	g++ main_codingame.cpp srcs/*/* -o mychessbot.out
-	cp mychessbot.out ../codingame-chess/.
-
-### Compile & Run unittests
+### Compile & Run unit tests
 test:
 	g++ main.test.cpp srcs/*/* -o unittests.out
 	./unittests.out
+
+### Compile & Copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
+cgrun:
+	g++ maincg.cpp srcs/*/* -o mychessbot.out
+	cp mychessbot.out ../codingame-chess/.
+
+### Compile & Copy the resulting executable into codingame chess engine folder to test my board implementation
+cgtest:
+	g++ maincg.test.cpp srcs/*/* -o mychessbot.out
+	cp mychessbot.out ../codingame-chess/.

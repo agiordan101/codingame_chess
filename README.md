@@ -23,17 +23,12 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create Board::revert_last_move()
     * Create AbstractHeurisic
     * Create BasicHeuristic ...
     * Create HeuristicAgent
+    * Refactor CGGameEngine
+    * CG game engine returns illegal castling move ?
     * Implement Board::Board(): Randomize the board generation
-
-    * Create a CGGameEngine (Do not inherit nor create an Abstract interface)
-    * main_codingame:
-        - Add "lastmove moves" in the first cout
-        - create a board and 1 player
-        - Apply the cg last move and mine to the local board, and compare available moves with the given ones
 
 - Refactor & Improvments :
 
@@ -46,6 +41,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Optimizations :
 
+    * Opti castle loops
+    * not legal moves - on apply 
     * Detect end games (checkmate) at the start of the turn. (Not having to resolve all moves)
 
 ## Project explanations

@@ -23,12 +23,15 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Clean branch and merge PiecesHeuristic class
-    * Create a REAL Makefile
+    * Create a REAL Makefile :
+        - Create mains & executables folders
+        - Clean rule
+        - make parameters
+        - gitignore executable
+    * Try using smart pointers
     * Use valgrind to prevent leaks
     * Create destructors
     * Why GameRunner get killed ? And each game is lower than the previous one ?
-    * Finalize PiecesHeuristic
     * Moves shuffle isn't working ! First move is always taken
 
     * Python script that merge all specified files into 1 (For codingame bot programming)

@@ -5,13 +5,14 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 ## Get started
 
 ### Compile & Run project main
-`make run`
+`make && ./bins/chessproject`
 
 ### Compile & Run unittests
-`make test`
+`make test && ./bins/unittests`
 
 ### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`make cgrun`
+`make cg`
+`make cgtest`
 
 ## Description
 
@@ -23,11 +24,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create a REAL Makefile :
-        - Create mains & executables folders
-        - Clean rule
-        - make parameters
-        - gitignore executable
     * Try using smart pointers
     * Use valgrind to prevent leaks
     * Create destructors

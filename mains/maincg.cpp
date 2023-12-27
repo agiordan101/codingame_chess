@@ -1,7 +1,7 @@
-# include "srcs/agents/HeuristicAgent.hpp"
-# include "srcs/agents/RandomAgent.hpp"
-# include "srcs/gameengine/CGGameEngine.hpp"
-# include "srcs/heuristics/PiecesHeuristic.hpp"
+# include "../srcs/agents/HeuristicAgent.hpp"
+# include "../srcs/agents/RandomAgent.hpp"
+# include "../srcs/gameengine/CGGameEngine.hpp"
+# include "../srcs/heuristics/PiecesHeuristic.hpp"
 
 using namespace std;
 

@@ -1,5 +1,5 @@
-#include "srcs/agents/RandomAgent.hpp"
-#include "srcs/gameengine/CGGameEngine.hpp"
+#include "../srcs/agents/RandomAgent.hpp"
+#include "../srcs/gameengine/CGGameEngine.hpp"
 
 using namespace std;
 

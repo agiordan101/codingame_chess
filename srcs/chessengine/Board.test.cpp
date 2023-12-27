@@ -1107,6 +1107,12 @@ int game_state_testLauncher()
         new Board("8/8/3K4/8/8/3k4/8/8 w - - 0 0"),
         0.5
     );
+    // Same, but with an extra piece on the board (Game continue)
+    success_count += game_state_unittest(
+        51,
+        new Board("8/8/3K4/8/8/3k4/8/2p5 w - - 0 0"),
+        -1
+    );
 
     // Insufficient material: King+knight vs king
     success_count += game_state_unittest(
@@ -1127,6 +1133,20 @@ int game_state_testLauncher()
         8,
         new Board("8/8/3K4/3B4/4b3/3k4/8/8 w - - 0 0"),
         0.5
+    );
+
+    // Game continue (Bishop vs Knight)
+    success_count += game_state_unittest(
+        81,
+        new Board("3k4/8/8/6K1/3B4/8/8/5n2 b - - 0 115"),
+        -1
+    );
+    
+    // Game continue (Knight vs Bishop)
+    success_count += game_state_unittest(
+        82,
+        new Board("3k4/8/8/6K1/3N4/8/8/5b2 b - - 0 115"),
+        -1
     );
 
     // Game continue (2 bishops on different square color)

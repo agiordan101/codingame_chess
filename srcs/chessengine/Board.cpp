@@ -533,7 +533,7 @@ bool Board::_insufficient_material_rule()
             if (piece == 'n')
             {
                 // If there is more than one knight, it's not a material insufficient
-                if (knight_found)
+                if (knight_found || bishop_found)
                     return false;
 
                 knight_found = true;
@@ -541,7 +541,8 @@ bool Board::_insufficient_material_rule()
             else if (piece == 'b')
             {
                 // If there is more than one bishop (Not on the same color), it's not a material insufficient
-                if (bishop_found && bishop_odd != (x + y) % 2)
+                if (knight_found ||
+                    bishop_found && bishop_odd != (x + y) % 2)
                     return false;
 
                 bishop_found = true;

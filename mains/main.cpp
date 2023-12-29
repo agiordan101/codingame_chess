@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv)
 {
-    int n_games = 20;
+    int n_games = 10;
 
     if (argc == 2)
     {
@@ -43,6 +43,13 @@ int main(int argc, char **argv)
     game_engine = new GameEngine(board, p2, p1);
     game_engine->start_games(n_games);
     delete game_engine;
+
+    delete a1;
+    delete p1;
+    delete a2;
+    delete p2;
+    delete h2;
+    delete board;
 
     return 0;
 }

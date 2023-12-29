@@ -8,7 +8,7 @@
 class RandomAgent : public AbstractAgent {
 
     public:
-        virtual vector<tuple<Move, float>> *get_qualities(Board *board, vector<Move> moves) override;
+        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
 };
 
 #endif

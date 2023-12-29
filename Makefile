@@ -17,7 +17,8 @@ all:
 
 ### Compile unit tests main
 test:
-	g++ mains/main.test.cpp $(ALL_FILES) -o $(TESTEXEC)
+	@g++ mains/main.test.cpp $(ALL_FILES) -o $(TESTEXEC)
+	$(TESTEXEC)
 
 ### Compile the bot into codingame chess engine folder, for its GameRunner/GameManager classes
 cg:

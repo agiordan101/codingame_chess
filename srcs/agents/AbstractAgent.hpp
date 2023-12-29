@@ -11,7 +11,7 @@
 class AbstractAgent {
 
     public:
-        virtual vector<tuple<Move, float>> *get_qualities(Board *board, vector<Move> moves) = 0;
+        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) = 0;
 };
 
 #endif

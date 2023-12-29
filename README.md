@@ -24,20 +24,21 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Try using smart pointers
-    * Use valgrind to prevent leaks
-    * Create destructors
-    * Why GameRunner get killed ? And each game is lower than the previous one ?
-    * Moves shuffle isn't working ! First move is always taken
+    * Create an enumeration for game_state results
+        And switch to -1: Black wins | 0: Draw | 1: White wins | 2: game continue
+    * Some kind of heuristic comparaison
+    * Use valgrind to remove invalid reads
 
-    * Python script that merge all specified files into 1 (For codingame bot programming)
-
-    * Refactor CGGameEngine
-    * CG game engine returns illegal castling move ? Report the bug ?
     * Implement Board::Board(): Randomize the board generation
+    * When an agent beat the random all the times : Python script that merge all specified files into 1 (For codingame bot programming)
+
+    * Try using smart pointers
+    * CG game engine returns illegal castling move ? Report the bug ?
+    * Create TimedBoard
 
 - Refactor & Improvments :
 
+    * Refactor CGGameEngine
     * Create 10 private vars : Opponent pieces | turn_pieces
         - Assing them at each new turn
         - Simplify find_move()
@@ -47,6 +48,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Optimizations :
 
+    * Use copilot to optimize 
     * Opti castle loops
     * not legal moves - on apply 
     * Detect end games (checkmate) at the start of the turn. (Not having to resolve all moves)
@@ -132,16 +134,25 @@ Despite the rules, the final position after castling is always the same:
             x: -1
             y: -1
 
-#### Heuristics
+#### RandomAgent
+#### HeuristicsAgent
 
-    Heuristic values should be between -1 and 1.
-        -1 : Black is winning
-        0 : Balanced game
-        1 : White is winning
+### Heuristics benchmarks
+
+Heuristic values should be between -1 and 1. Will be easier for deep learning, tree searchs and comparaison between heuristics :
+    -1 : Black is winning
+    0 : Balanced game
+    1 : White is winning
+
+Python script that creates a dataset : FEN / policy
+Do a MSE between heuristic policies and Stockfish results relevant ?
+    -> Each heuristics could have their performance score
+    -> Heuristics graph - x:Mean time y:MSE
 
 
 ### Unit testing
 
+Not up to date !
 All unit tests file must have the class name their are testing, with ".test.cpp" as suffix.
 
 Inside the file :
@@ -152,9 +163,6 @@ Inside the file :
 - Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
 
 ## Externals C++ libraries
-
-### THC the library is a C++ implementation of the rules of standard chess. (Import posiions using FEN / Export possible moves from a position / GUI?)
-https://github.com/billforsternz/thc-chess-library
 
 ### Time
 https://stackoverflow.com/questions/21856025/getting-an-accurate-execution-time-in-c-micro-seconds

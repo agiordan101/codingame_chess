@@ -134,6 +134,8 @@ string Board::create_fen(bool with_turns)
     char fen[85];
     int fen_i = 0;
 
+    bzero(fen, 85);
+
     // Write pieces
     int empty_cells_count = 0;
     for (int y = 0; y < 8; y++)
@@ -218,7 +220,11 @@ Board *Board::clone()
 
     // Copy history
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+    {
+        if (this->fen_history[i].empty())
+            break ;
         cloned_board->fen_history[i] = this->fen_history[i];
+    }
 
     return cloned_board;
 }
@@ -242,7 +248,10 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     // Initialize private variables
     check_computed = false;
     moves_computed = false;
+
     fen_history_index = 0;
+    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+        fen_history[i] = string();
     _update_fen_history();
 }
 
@@ -941,6 +950,8 @@ void Board::_filter_non_legal_moves()
         }
         else
             it++;
+
+        delete test_board;
     }
 }
 

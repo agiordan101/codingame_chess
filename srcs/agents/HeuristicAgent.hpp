@@ -8,7 +8,8 @@ class HeuristicAgent : public AbstractAgent {
     public:
         HeuristicAgent(AbstractHeuristic *heuristic);
         virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
-    
+        virtual string get_name() override;
+
     private:
         AbstractHeuristic* _heuristic;
 };

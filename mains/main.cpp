@@ -29,6 +29,11 @@ int main(int argc, char **argv)
     AbstractAgent *a1 = (AbstractAgent *)new RandomAgent();
     AbstractPlayer *p1 = (AbstractPlayer *)new BotPlayer(a1);
 
+    // AbstractHeuristic *h1 = (AbstractHeuristic *)new PiecesHeuristic();
+    // AbstractAgent *a1 = (AbstractAgent *)new HeuristicAgent(h1);
+    // AbstractPlayer *p1 = (AbstractPlayer *)new BotPlayer(a1);
+
+
     // AbstractAgent *a2 = (AbstractAgent *)new RandomAgent();
     // AbstractPlayer *p2 = (AbstractPlayer *)new BotPlayer(a2);
 
@@ -38,18 +43,18 @@ int main(int argc, char **argv)
 
     GameEngine *game_engine = new GameEngine(board, p1, p2);
     game_engine->start_games(n_games);
-    delete game_engine;
+    // delete game_engine;
 
     game_engine = new GameEngine(board, p2, p1);
     game_engine->start_games(n_games);
-    delete game_engine;
+    // delete game_engine;
 
-    delete a1;
-    delete p1;
-    delete a2;
-    delete p2;
-    delete h2;
-    delete board;
+    // delete a1;
+    // delete p1;
+    // delete a2;
+    // delete p2;
+    // delete h2;
+    // delete board;
 
     return 0;
 }

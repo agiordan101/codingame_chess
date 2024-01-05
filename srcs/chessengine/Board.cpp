@@ -90,21 +90,19 @@ float Board::game_state()
         _threefold_repetition_rule() ||
         _insufficient_material_rule()
     )
-        return 0.5;
+        return DRAW;
 
     available_moves = get_available_moves();
 
     // If no moves are available, it's either a Checkmate or a Stalemate
     if (available_moves.size() == 0)
     {
-        // 0 = Black win | 0.5 = Draw | 1 = White win
         if (get_check_state())
-            return white_turn ? 0 : 1;
-        return 0.5;
+            return white_turn ? BLACK_WIN : WHITE_WIN;
+        return DRAW;
     }
 
-    // -1 = Game continue
-    return -1;
+    return GAME_CONTINUE;
 }
 
 bool Board::get_check_state()

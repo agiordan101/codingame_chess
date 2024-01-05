@@ -127,7 +127,7 @@ void CGGameEngine::infinite_game_loop()
         this->_board->log();
 
         float game_state = this->_board->game_state();
-        if (game_state != -1)
+        if (game_state != GAME_CONTINUE)
         {
             cerr << "CGGameEngine: loop: Game is over :" << game_state << endl;
             delete this->_board;

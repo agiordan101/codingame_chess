@@ -24,8 +24,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Create an enumeration for game_state results
-        And switch to -1: Black wins | 0: Draw | 1: White wins | 2: game continue
+    * MinMax algo
     * Some kind of heuristic comparaison
     * Use valgrind to remove invalid reads
 
@@ -35,6 +34,13 @@ External libraries are used to test & debug my own chess engine (times, valids m
     * Try using smart pointers
     * CG game engine returns illegal castling move ? Report the bug ?
     * Create TimedBoard
+
+    * Use python to manipulate the bot etc ? Like CG does.
+        - GUI
+        - Evaluate chess bots elo, as cpp exec, with Stockfish ! (With one exec by algorithms)
+        - Create datasets with Stockfish
+
+    * REgex to valid chess FEN ?
 
 - Refactor & Improvments :
 
@@ -144,7 +150,7 @@ Heuristic values should be between -1 and 1. Will be easier for deep learning, t
     0 : Balanced game
     1 : White is winning
 
-Python script that creates a dataset : FEN / policy
+Python script that creates a dataset : FEN / policy / best move UCI
 Do a MSE between heuristic policies and Stockfish results relevant ?
     -> Each heuristics could have their performance score
     -> Heuristics graph - x:Mean time y:MSE

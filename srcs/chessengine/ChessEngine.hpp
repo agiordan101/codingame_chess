@@ -8,6 +8,11 @@ using namespace std;
 
 # define EMPTY_CELL '.'
 
+# define GAME_CONTINUE -2
+# define BLACK_WIN -1
+# define DRAW 0
+# define WHITE_WIN 1
+
 /* NOTATION FUNCTIONS */
 
 inline int  column_name_to_index(char column_name)

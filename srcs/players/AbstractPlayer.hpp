@@ -11,6 +11,7 @@ class AbstractPlayer {
 
     public:
         virtual Move choose_from(Board *board, vector<Move> moves) = 0;
+        virtual string get_name() = 0;
 };
 
 #endif

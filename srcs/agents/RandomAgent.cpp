@@ -8,3 +8,8 @@ void RandomAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
         qualities->push_back((float)rand() / RAND_MAX);
     }
 }
+
+string RandomAgent::get_name()
+{
+    return "RandomAgent";
+}

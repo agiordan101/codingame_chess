@@ -32,6 +32,11 @@ Move BotPlayer::choose_from(Board *board, vector<Move> moves)
     return moves.at(best_index);
 }
 
+string BotPlayer::get_name()
+{
+    return "Bot." + this->_agent->get_name();
+}
+
 float BotPlayer::max_float(float a, float b) {
     return max(a, b);
 }

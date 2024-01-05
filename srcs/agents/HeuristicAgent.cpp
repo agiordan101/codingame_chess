@@ -22,3 +22,8 @@ void HeuristicAgent::get_qualities(Board *board, vector<Move> moves, vector<floa
         delete next_turn_board;
     }
 }
+
+string HeuristicAgent::get_name()
+{
+    return "HeuristicAgent." + this->_heuristic->get_name();
+}

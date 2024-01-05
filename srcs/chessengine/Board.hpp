@@ -48,7 +48,7 @@ class Board {
         void            log();
         void            log_history(int turns = -1);
         void            apply_move(Move move);
-        float           game_state(); // -1 = Game continue | 0 = Black win | 0.5 = Draw | 1 = White win
+        float           game_state();
         
         bool            get_check_state();
         vector<Move>    get_available_moves();

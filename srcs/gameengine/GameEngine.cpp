@@ -12,36 +12,55 @@ GameEngine::GameEngine(Board* board, AbstractPlayer* white_player, AbstractPlaye
 
 float GameEngine::start_games(int n_games, int progress_bar_size)
 {
-    float result = 0;
-    float white_win = 0;
-    float black_win = 0;
-    float draws = 0;
+    float   result = 0;
+    int     white_win = 0;
+    int     black_win = 0;
+    int     draws = 0;
+
+    fprintf(
+        stderr,
+        "\nStarting %d games - White: %s - Black: %s\n",
+        n_games,
+        this->_white_player->get_name().c_str(),
+        this->_black_player->get_name().c_str()
+    );
+
     for (int i = 1; i <= n_games; i++)
     {
         result = this->game_loop();
-        // cerr << "Game " << i << " - White win: " << result << endl;
 
-        if (result == 0)
+        if (result == BLACK_WIN)
+        {
+            cerr << "B";
             black_win++;
-        else if (result == 1)
+        }
+        else if (result == WHITE_WIN)
+        {
+            cerr << "W";
             white_win++;
+        }
         else
+        {
+            cerr << "-";
             draws++;
-
-        // Calculate percentages
-        int white_percentage = (white_win / i) * progress_bar_size;
-        int black_percentage = (black_win / i) * progress_bar_size;
-        int draw_percentage = progress_bar_size - white_percentage - black_percentage;
-
-        // Print progress bar
-        cerr << "Game " << i << " - ["
-             << string(white_percentage, 'W') 
-             << string(draw_percentage, ' ') 
-             << string(black_percentage, 'B') 
-             << "] - "
-             << white_win << "/" << draws << "/" << black_win
-             << endl;
+        }
     }
+
+    // Calculate percentages
+    int white_percentage = ((float)white_win / n_games) * progress_bar_size;
+    int black_percentage = ((float)black_win / n_games) * progress_bar_size;
+    int draw_percentage = progress_bar_size - white_percentage - black_percentage;
+
+    // Print results
+    fprintf(
+        stderr,
+        "\nGame %d - [%s%s%s] - %d/%d/%d\n", 
+        n_games, 
+        string(white_percentage, 'W').c_str(), 
+        string(draw_percentage, ' ').c_str(), 
+        string(black_percentage, 'B').c_str(), 
+        white_win, draws, black_win
+    );
 
     return white_win;
 }
@@ -52,9 +71,8 @@ float GameEngine::game_loop()
 
     this->_player_turn = current_board->is_white_turn() ? 0 : 1;
 
-    // -1 = Game continue | 0 = Black win | 0.5 = Draw | 1 = White win
     float game_state = current_board->game_state();
-    while (game_state == -1)
+    while (game_state == GAME_CONTINUE)
     {
         vector<Move> moves = current_board->get_available_moves();
 

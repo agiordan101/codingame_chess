@@ -7,7 +7,7 @@ float PiecesHeuristic::evaluate(Board *board)
     const float max_value = 51;
     float evaluation = 0;
 
-    float state = board->game_state();
+    float state = board->get_game_state();
     if (state != GAME_CONTINUE)
     {
         if (state == BLACK_WIN)
@@ -36,10 +36,16 @@ float PiecesHeuristic::evaluate(Board *board)
         }
     }
 
-    float policy = min(evaluation / max_value, 0.9f);
+    float policy;
+    if (evaluation > max_value)
+        policy = 0.95f;
+    else if (evaluation < -max_value)
+        policy = -0.95f;
+    else
+        policy = evaluation / max_value;
 
     if (policy > 1)
-        cerr << "PiecesHeuristic: FEN: " << board->create_fen() << " | Pieces sum: " << evaluation << " | Policy: " << policy << endl;
+            cerr << "PiecesHeuristic: FEN: " << board->create_fen() << " | Pieces sum: " << evaluation << " | Policy: " << policy << endl;
 
     return policy;
 }

@@ -77,32 +77,21 @@ void Board::apply_move(Move move)
     // Update the engine
     check_computed = false;
     moves_computed = false;
+    game_state_computed = false;
+
     _update_castling_rights();
     _update_fen_history();
 }
 
-float Board::game_state()
+float Board::get_game_state()
 {
-    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
-    if (
-        half_turn_rule >= 100 ||
-        game_turn >= game_turn_max + 1 ||
-        _threefold_repetition_rule() ||
-        _insufficient_material_rule()
-    )
-        return DRAW;
-
-    available_moves = get_available_moves();
-
-    // If no moves are available, it's either a Checkmate or a Stalemate
-    if (available_moves.size() == 0)
+    if (!this->game_state_computed)
     {
-        if (get_check_state())
-            return white_turn ? BLACK_WIN : WHITE_WIN;
-        return DRAW;
+        this->game_state = _find_game_state();
+        this->game_state_computed = true;
     }
 
-    return GAME_CONTINUE;
+    return this->game_state;
 }
 
 bool Board::get_check_state()
@@ -246,6 +235,7 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     // Initialize private variables
     check_computed = false;
     moves_computed = false;
+    game_state_computed = false;
 
     fen_history_index = 0;
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
@@ -496,6 +486,30 @@ void Board::_update_fen_history()
         fen_history_index = 0;
 
     fen_history[fen_history_index++] = fen;
+}
+
+float Board::_find_game_state()
+{
+    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
+    if (
+        half_turn_rule >= 100 ||
+        game_turn >= game_turn_max + 1 ||
+        _threefold_repetition_rule() ||
+        _insufficient_material_rule()
+    )
+        return DRAW;
+
+    available_moves = get_available_moves();
+
+    // If no moves are available, it's either a Checkmate or a Stalemate
+    if (available_moves.size() == 0)
+    {
+        if (get_check_state())
+            return white_turn ? BLACK_WIN : WHITE_WIN;
+        return DRAW;
+    }
+
+    return GAME_CONTINUE;
 }
 
 bool Board::_threefold_repetition_rule()

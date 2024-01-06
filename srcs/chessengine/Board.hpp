@@ -48,8 +48,8 @@ class Board {
         void            log();
         void            log_history(int turns = -1);
         void            apply_move(Move move);
-        float           game_state();
         
+        float           get_game_state();
         bool            get_check_state();
         vector<Move>    get_available_moves();
         inline char     get_cell(int x, int y) { return this->board[y][x]; }
@@ -66,6 +66,8 @@ class Board {
         bool            moves_computed;
         bool            check;
         bool            check_computed;
+        float           game_state;
+        bool            game_state_computed;
 
         // Function pointer to apply castle depending on the chess960 rule
         bool    chess960_rule;
@@ -85,6 +87,7 @@ class Board {
         void    _update_castling_rights();
         void    _update_fen_history();
 
+        float   _find_game_state();
         bool    _threefold_repetition_rule();
         bool    _insufficient_material_rule();
 

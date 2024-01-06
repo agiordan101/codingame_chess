@@ -67,6 +67,7 @@ void CGGameEngine::infinite_game_loop()
 
     while (1)
     {
+        cerr << "\nCGGameEngine: " << this->_player->get_name() << endl;
         parse_turn();
 
         if (this->_lastmove)
@@ -126,7 +127,7 @@ void CGGameEngine::infinite_game_loop()
         cerr << "\nCGGameEngine: loop: Board AFTER applying the choosen move: " << move.to_uci() << endl;
         this->_board->log();
 
-        float game_state = this->_board->game_state();
+        float game_state = this->_board->get_game_state();
         if (game_state != GAME_CONTINUE)
         {
             cerr << "CGGameEngine: loop: Game is over :" << game_state << endl;

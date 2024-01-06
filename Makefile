@@ -1,7 +1,8 @@
 
 EXEC = ./bins/chessproject
 TESTEXEC = ./bins/unittests
-CGEXEC = ../codingame-chess/mychessbot.out
+CGEXEC1 = ../codingame-chess/mychessbot
+CGEXEC2 = ../codingame-chess/mychessbot2
 
 flag = -g -O2
 
@@ -22,8 +23,11 @@ test:
 
 ### Compile the bot into codingame chess engine folder, for its GameRunner/GameManager classes
 cg:
-	g++ $(flag) mains/maincg.cpp $(SRCS) -o $(CGEXEC)
+	g++ $(flag) mains/maincg.cpp $(SRCS) -o $(CGEXEC1)
+
+cg2:
+	g++ $(flag) mains/maincg.cpp $(SRCS) -o $(CGEXEC2)
 
 ### Compile a random bot into codingame chess engine folder to test my board implementation
 cgtest:
-	g++ mains/maincg.test.cpp $(SRCS) -o $(CGEXEC)
+	g++ mains/maincg.test.cpp $(SRCS) -o $(CGEXEC1)

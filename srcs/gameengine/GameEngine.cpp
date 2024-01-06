@@ -54,8 +54,7 @@ float GameEngine::start_games(int n_games, int progress_bar_size)
     // Print results
     fprintf(
         stderr,
-        "\nGame %d - [%s%s%s] - %d/%d/%d\n", 
-        n_games, 
+        "\nWDL results - [%s%s%s] - %d/%d/%d\n",
         string(white_percentage, 'W').c_str(), 
         string(draw_percentage, ' ').c_str(), 
         string(black_percentage, 'B').c_str(), 
@@ -71,7 +70,7 @@ float GameEngine::game_loop()
 
     this->_player_turn = current_board->is_white_turn() ? 0 : 1;
 
-    float game_state = current_board->game_state();
+    float game_state = current_board->get_game_state();
     while (game_state == GAME_CONTINUE)
     {
         vector<Move> moves = current_board->get_available_moves();
@@ -82,7 +81,7 @@ float GameEngine::game_loop()
         // current_board->log();
 
         this->_player_turn = (this->_player_turn + 1) % 2;
-        game_state = current_board->game_state();
+        game_state = current_board->get_game_state();
     }
 
     delete current_board;

@@ -25,6 +25,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 - Next steps :
 
     * MinMax algo
+    * Create TimedBoard (Imply AbstractBoard)
+    * Create TimedAgent (or TimedMinMax ?)
     * Some kind of heuristic comparaison
     * Use valgrind to remove invalid reads
 
@@ -33,7 +35,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
     * Try using smart pointers
     * CG game engine returns illegal castling move ? Report the bug ?
-    * Create TimedBoard
 
     * Use python to manipulate the bot etc ? Like CG does.
         - GUI
@@ -146,12 +147,12 @@ Despite the rules, the final position after castling is always the same:
 ### Heuristics benchmarks
 
 Heuristic values should be between -1 and 1. Will be easier for deep learning, tree searchs and comparaison between heuristics :
-    -1 : Black is winning
+    -1 : Black wins
     0 : Balanced game
-    1 : White is winning
+    1 : White wins
 
-Python script that creates a dataset : FEN / policy / best move UCI
-Do a MSE between heuristic policies and Stockfish results relevant ?
+Python script that creates a dataset : FEN / policy / best UCI move
+Do a MSE between heuristic policies and Stockfish results ?
     -> Each heuristics could have their performance score
     -> Heuristics graph - x:Mean time y:MSE
 

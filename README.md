@@ -14,6 +14,10 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 `make cg`
 `make cgtest`
 
+### Run python tools
+`make cg && python3 pythonTools/benchmarks.py`
+
+
 ## Description
 
 Project created in local, thanks to CodinGame SDK environment and CodinGame chess-engine to simulate exact same executions.
@@ -24,24 +28,38 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * MinMax algo
-    * Create TimedBoard (Imply AbstractBoard)
-    * Create TimedAgent (or TimedMinMax ?)
-    * Some kind of heuristic comparaison
+    * Algo comp :
+        - Try more ELO
+        - Try stockfish as p1
+        - REmove bad data ?
+        - Mean isn't relevant while 2 solutions are found !
+
+    * Simplify mains
+    * Rework Makefile to integrate python things
+        - + a make rule for each algorithms
+    * Duplicate CGGameRunner to create one that test everything ?
+    * Try to evaluate the current bot with Stockfish
+        - https://en.wikipedia.org/wiki/Elo_rating_system
+        - Best bot history, elo etc..
+        - Implement the immaginated algorithm
+
+    * BotPlayer : from vector to *vector
+
+    * Board optimization :
+        - Do not optimize Board methods ! Don't break anything
+        - Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
+        - Probably need to create more inline getter/Setter
+        - Create TimedBoard, inrehit from AbstractBoard, and pass an AbstractBoard in constructor parameters
+        - Create BitBoard, inherit from AbtractBoard
+        - Create a function/main to metric boards (Will mainly be usefull to optimize BitBoard performances)
+    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
+
+    * Modify Board::Board(): Randomize the board generation
+
     * Use valgrind to remove invalid reads
-
-    * Implement Board::Board(): Randomize the board generation
-    * When an agent beat the random all the times : Python script that merge all specified files into 1 (For codingame bot programming)
-
     * Try using smart pointers
     * CG game engine returns illegal castling move ? Report the bug ?
 
-    * Use python to manipulate the bot etc ? Like CG does.
-        - GUI
-        - Evaluate chess bots elo, as cpp exec, with Stockfish ! (With one exec by algorithms)
-        - Create datasets with Stockfish
-
-    * REgex to valid chess FEN ?
 
 - Refactor & Improvments :
 
@@ -52,13 +70,20 @@ External libraries are used to test & debug my own chess engine (times, valids m
             * Factorize opp_case_func and EMPTY_cell tests
             * Factorize edge tests
     * Board::Board() parsing protection from invalid FEN
+        - REgex to valid chess FEN ?
 
 - Optimizations :
 
     * Use copilot to optimize 
     * Opti castle loops
     * not legal moves - on apply 
-    * Detect end games (checkmate) at the start of the turn. (Not having to resolve all moves)
+    * Board :
+        - _filter_non_legal_moves():
+            - Do not find the king through iterating over the board for each moves.
+                Should save the king position.
+        - find_move():
+            - Create move in order of piece values
+         
 
 ## Project explanations
 
@@ -69,8 +94,8 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 ### Entity heritage
 
-- GameEngine (One big engine doing benchmarks too ?)
-    * CodinGameGameEngine ?
+- GameEngine
+- CGGameEngine
 
 - AbtractPlayer
     * BotPlayer
@@ -86,7 +111,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
     * HeuristicAgent
     * MinMaxAgent
     * MCTSAgent
-    * TimedAlgorithm
+    * TimedAgent ?
 
 - AbstractHeuristic
     * PiecesHeuristic
@@ -144,7 +169,31 @@ Despite the rules, the final position after castling is always the same:
 #### RandomAgent
 #### HeuristicsAgent
 
-### Heuristics benchmarks
+### Python tools
+
+* What do I want from python ? :
+    - Integration test
+        * Create a random position, provide the FEN and a list of moves.
+        * Create a new type of standard input/output, where the C++ bot send all its available move. Python could asserts their validity
+    - Benchmark exe/bots - plots
+    - Benchmark heuristic (See next sections)
+        * Create a protocol and use stockfish for a MSE for example. (hard to normalize stockfish output ?)
+        * Compare speed and results of all heuristic (First heuristic choice won't be much the same ?)
+    - Evaluate a bot ELO (with stockfish)
+    - Create a dataset PO
+    - Python script that merge all specified files into 1 (For codingame bot programming)
+
+#### ELO rating algorithm using Stockfish
+
+Just a graph X: Stockfish ELO - Y: Winrate
+    - Try n games different ELO
+    - Linear regression degres 2
+
+Info about Stockfish :
+    - Time constraints alter the ELO.
+    - Under 10ms, ELO 1300 could be rater lower than 600
+
+#### Heuristics benchmarks
 
 Heuristic values should be between -1 and 1. Will be easier for deep learning, tree searchs and comparaison between heuristics :
     -1 : Black wins

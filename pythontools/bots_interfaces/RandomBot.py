@@ -1,0 +1,14 @@
+
+import random
+from chess import Board
+
+from bots_interfaces.AbstractBot import AbstractBot
+
+
+class RandomBot(AbstractBot):
+
+    def __str__(self) -> str:
+        return "RandomBot"
+    
+    def get_next_move(self, board: Board) -> str:
+        return random.choice([m.uci() for m in list(board.legal_moves)])

@@ -21,7 +21,7 @@ Move BotPlayer::choose_from(Board *board, vector<Move> moves)
     {
         new_best_quality = (this->*best_heuristic_choose)(best_quality, qualities.at(i));
 
-        // cerr << "Move: " << qualities->at(i).to_uci() << " | Quality: " << current_quality << " | Best quality: " << best_quality << " | New best quality: " << new_best_quality << endl;
+        // cerr << "Move: " << moves.at(i).to_uci() << " | Quality: " << qualities.at(i) << " | Best quality: " << best_quality << " | New best quality: " << new_best_quality << endl;
         if (best_quality != new_best_quality)
         {
             best_index = i;

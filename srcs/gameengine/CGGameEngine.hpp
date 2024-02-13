@@ -7,7 +7,7 @@
 class CGGameEngine {
 
     public:
-        CGGameEngine(BotPlayer* player, bool lastmove = true, bool fen = false, bool moves = false, bool draw = false, bool game = false, bool score = false);
+        CGGameEngine(BotPlayer* player);
         void infinite_game_loop();
     
     private:
@@ -20,15 +20,14 @@ class CGGameEngine {
         bool        _game;
         bool        _score;
 
-        Move            *_last_move;
-        Board           *_board;
+        Move            *_cg_last_move;
         Board           *_cg_board;
+        Board           *_board;
         vector<Move>    _possible_moves;
         int             _possible_moves_count;
 
-        void    parse_first_turn();
-        void    set_requested_inputs();
-        void    parse_turn();
+        void    _parse_first_turn();
+        void    _parse_turn();
 };
 
 #endif

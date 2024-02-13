@@ -14,10 +14,10 @@ int main()
 
     // AbstractAgent *agent = (AbstractAgent *)new RandomAgent();
     // AbstractAgent *agent = (AbstractAgent *)new HeuristicAgent(heuristic);
-    AbstractAgent *agent = (AbstractAgent *)new MinMaxAgent(heuristic, 2);
+    AbstractAgent *agent = (AbstractAgent *)new MinMaxAgent(heuristic, 3);
 
     BotPlayer *player = new BotPlayer(agent);
-    CGGameEngine *game_engine = new CGGameEngine(player, false, true);
+    CGGameEngine *game_engine = new CGGameEngine(player);
 
     game_engine->infinite_game_loop();
 }

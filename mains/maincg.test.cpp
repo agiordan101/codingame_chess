@@ -10,7 +10,7 @@ int main()
     AbstractAgent *agent = (AbstractAgent *)new RandomAgent();
     BotPlayer *player = new BotPlayer(agent);
 
-    CGGameEngine *game_engine = new CGGameEngine(player, true, true, true);
+    CGGameEngine *game_engine = new CGGameEngine(player);
 
     game_engine->infinite_game_loop();
 }

@@ -1,13 +1,13 @@
-#ifndef CGGAMEENGINE_HPP
-# define CGGAMEENGINE_HPP
+#ifndef GAMEENGINEINTTESTS_HPP
+# define GAMEENGINEINTTESTS_HPP
 
 #include "../chessengine/Board.hpp"
 #include "../players/BotPlayer.hpp"
 
-class CGGameEngine {
+class GameEngineIntTests {
 
     public:
-        CGGameEngine(BotPlayer* player);
+        GameEngineIntTests(BotPlayer* player);
         void infinite_game_loop();
     
     private:

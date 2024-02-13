@@ -19,7 +19,12 @@ class CGBot(AbstractBot):
         return self.name
 
     def start(self, board: Board):
-        self.process = subprocess.Popen(self.path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
+        self.process = subprocess.Popen(
+            self.path,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+        )
 
         # Send 2 variables to the bot
         self.process.stdin.write("2\n")

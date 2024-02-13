@@ -2,24 +2,32 @@
 # define GAMEENGINE_HPP
 
 #include "../chessengine/Board.hpp"
-#include "../players/AbstractPlayer.hpp"
+#include "../players/BotPlayer.hpp"
 
 class GameEngine {
 
     public:
-        GameEngine(Board* board, AbstractPlayer* white_player, AbstractPlayer* black_player);
-        float start_games(int n_games, int progress_bar_size = 40);
-
+        GameEngine(BotPlayer* player);
+        void infinite_game_loop();
+    
     private:
 
-        Board*          _board;
-        AbstractPlayer* _white_player;
-        AbstractPlayer* _black_player;
-        AbstractPlayer* _players[2];
-        int             _player_turn; // 0 for white, 1 for black
+        BotPlayer*  _player;
+        bool        _lastmove;
+        bool        _fen;
+        bool        _moves;
+        bool        _draw;
+        bool        _game;
+        bool        _score;
 
-        float game_loop();
+        Move            *_cg_last_move;
+        Board           *_cg_board;
+        Board           *_board;
+        vector<Move>    _possible_moves;
+        int             _possible_moves_count;
 
+        void    _parse_first_turn();
+        void    _parse_turn();
 };
 
 #endif

@@ -1,89 +1,98 @@
 #include "GameEngine.hpp"
 
-GameEngine::GameEngine(Board* board, AbstractPlayer* white_player, AbstractPlayer* black_player)
+// --- PUBLIC METHODS ---
+
+GameEngine::GameEngine(BotPlayer *player)
 {
-    this->_board = board;
-    this->_white_player = white_player;
-    this->_black_player = black_player;
-    this->_players[0] = white_player;
-    this->_players[1] = black_player;
-    this->_player_turn = 0;
+    this->_player = player;
+    this->_cg_last_move = NULL;
+    this->_cg_board = NULL;
+    this->_board = NULL;
 }
 
-float GameEngine::start_games(int n_games, int progress_bar_size)
+void GameEngine::infinite_game_loop()
 {
-    float   result = 0;
-    int     white_win = 0;
-    int     black_win = 0;
-    int     draws = 0;
+    this->_parse_first_turn();
+    cout << "lastmove fen" << endl;
 
-    fprintf(
-        stderr,
-        "\nStarting %d games - White: %s - Black: %s\n",
-        n_games,
-        this->_white_player->get_name().c_str(),
-        this->_black_player->get_name().c_str()
-    );
-
-    for (int i = 1; i <= n_games; i++)
+    while (1)
     {
-        result = this->game_loop();
+        _parse_turn();
 
-        if (result == BLACK_WIN)
+        // First turns
+        if (this->_cg_board->game_turn == 1)
         {
-            cerr << "B";
-            black_win++;
-        }
-        else if (result == WHITE_WIN)
-        {
-            cerr << "W";
-            white_win++;
+            this->_board = this->_cg_board->clone();
+            cerr << "\nGameEngine: Initial board:" << endl;
+            this->_board->log();
         }
         else
+            this->_board->apply_move(*this->_cg_last_move);
+
+        vector<Move> moves = this->_board->get_available_moves();
+
+        Move move = this->_player->choose_from(this->_board, moves);
+
+        this->_board->apply_move(move);
+
+        float game_state = this->_board->get_game_state();
+        if (game_state != GAME_CONTINUE)
         {
-            cerr << "-";
-            draws++;
+            cerr << "\nGameEngine: Game is over :" << game_state << endl;
+            this->_board->log();
+            delete this->_board;
         }
+
+        cout << move.to_uci() << endl;
     }
-
-    // Calculate percentages
-    int white_percentage = ((float)white_win / n_games) * progress_bar_size;
-    int black_percentage = ((float)black_win / n_games) * progress_bar_size;
-    int draw_percentage = progress_bar_size - white_percentage - black_percentage;
-
-    // Print results
-    fprintf(
-        stderr,
-        "\nWDL results - [%s%s%s] - %d/%d/%d\n",
-        string(white_percentage, 'W').c_str(), 
-        string(draw_percentage, ' ').c_str(), 
-        string(black_percentage, 'B').c_str(), 
-        white_win, draws, black_win
-    );
-
-    return white_win;
 }
 
-float GameEngine::game_loop()
+// --- PRIVATE METHODS ---
+
+void GameEngine::_parse_first_turn()
 {
-    Board *current_board = this->_board->clone();
+    int constants_count;
+    string name;
+    string value;
+    bool    crazyHouse = false;
+    int     maxMoves = 0;
 
-    this->_player_turn = current_board->is_white_turn() ? 0 : 1;
+    cin >> constants_count; cin.ignore();
 
-    float game_state = current_board->get_game_state();
-    while (game_state == GAME_CONTINUE)
-    {
-        vector<Move> moves = current_board->get_available_moves();
-
-        Move move = this->_players[this->_player_turn]->choose_from(current_board, moves);
-
-        current_board->apply_move(move);
-        // current_board->log();
-
-        this->_player_turn = (this->_player_turn + 1) % 2;
-        game_state = current_board->get_game_state();
+    for (int i = 0; i < constants_count; i++) {
+        cin >> name >> value; cin.ignore();
+        
+        if (name == "crazyHouse")
+            crazyHouse = value == "1";
+        else if (name == "maxMoves")
+            maxMoves = stoi(value);
     }
+}
 
-    delete current_board;
-    return game_state;
+void    GameEngine::_parse_turn()
+{
+    // Parse last move
+    string move;
+    cin >> move;
+
+    this->_cg_last_move = move == "none" ? NULL : new Move(move);
+
+    // Parse FEN
+    string board;
+    string color;
+    string castling;
+    string en_passant;
+    string half_move_clock_str;
+    string full_move_str;
+
+    cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
+    
+    int half_move_clock = stoi(half_move_clock_str);
+    int full_move = stoi(full_move_str);
+
+    if (this->_cg_board)
+        delete this->_cg_board;
+    this->_cg_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
+
+    cin.ignore();
 }

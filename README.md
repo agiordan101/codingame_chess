@@ -4,18 +4,36 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 
 ## Get started
 
-### Compile & Run project main
-`make && ./bins/chessproject`
+### Setup
+`make setup`
 
-### Compile & Run unittests
-`make test && ./bins/unittests`
+### Run unit tests to assure everything is ok
+`make test`
 
-### Compile and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`make cg`
-`make cgtest`
+### Compile all bots
+`make`
 
-### Run python tools
-`make cg && python3 pythonTools/benchmarks.py`
+### Compile a specific bot and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
+`make mm2`
+`make mm3`
+
+### Python tools usage
+
+Bot names, as python script argument, could be :
+
+#### Versus
+`python3 python/versus.py {botName} {botName}`
+
+#### ELO rating algorithm
+
+Run a bunch of games against Stockfish instances with different ELO.
+From this dataset, we then fit linear regression algorithms to predict the given bot ELO. (i.e. With stockfish ELO would have a 50% win rate against the given bot)
+ 
+`python3 python/versus.py {botName} {botName}`
+
+Displays a graph X: Stockfish ELO - Y: Winrate
+    - Try n games different ELO
+    - Linear regression degrees 1, 2, 3
 
 
 ## Description
@@ -23,67 +41,6 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 Project created in local, thanks to CodinGame SDK environment and CodinGame chess-engine to simulate exact same executions.
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
-
-## Roadmap
-
-- Next steps :
-
-    * Algo comp :
-        - Try more ELO
-        - Try stockfish as p1
-        - REmove bad data ?
-        - Mean isn't relevant while 2 solutions are found !
-
-    * Simplify mains
-    * Rework Makefile to integrate python things
-        - + a make rule for each algorithms
-    * Duplicate CGGameRunner to create one that test everything ?
-    * Try to evaluate the current bot with Stockfish
-        - https://en.wikipedia.org/wiki/Elo_rating_system
-        - Best bot history, elo etc..
-        - Implement the immaginated algorithm
-
-    * BotPlayer : from vector to *vector
-
-    * Board optimization :
-        - Do not optimize Board methods ! Don't break anything
-        - Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
-        - Probably need to create more inline getter/Setter
-        - Create TimedBoard, inrehit from AbstractBoard, and pass an AbstractBoard in constructor parameters
-        - Create BitBoard, inherit from AbtractBoard
-        - Create a function/main to metric boards (Will mainly be usefull to optimize BitBoard performances)
-    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
-
-    * Modify Board::Board(): Randomize the board generation
-
-    * Use valgrind to remove invalid reads
-    * Try using smart pointers
-    * CG game engine returns illegal castling move ? Report the bug ?
-
-
-- Refactor & Improvments :
-
-    * Refactor CGGameEngine
-    * Create 10 private vars : Opponent pieces | turn_pieces
-        - Assing them at each new turn
-        - Simplify find_move()
-            * Factorize opp_case_func and EMPTY_cell tests
-            * Factorize edge tests
-    * Board::Board() parsing protection from invalid FEN
-        - REgex to valid chess FEN ?
-
-- Optimizations :
-
-    * Use copilot to optimize 
-    * Opti castle loops
-    * not legal moves - on apply 
-    * Board :
-        - _filter_non_legal_moves():
-            - Do not find the king through iterating over the board for each moves.
-                Should save the king position.
-        - find_move():
-            - Create move in order of piece values
-         
 
 ## Project explanations
 
@@ -93,9 +50,6 @@ External libraries are used to test & debug my own chess engine (times, valids m
 - dev   ->  Stable version in devlopment
 
 ### Entity heritage
-
-- GameEngine
-- CGGameEngine
 
 - AbtractPlayer
     * BotPlayer
@@ -183,12 +137,6 @@ Despite the rules, the final position after castling is always the same:
     - Create a dataset PO
     - Python script that merge all specified files into 1 (For codingame bot programming)
 
-#### ELO rating algorithm using Stockfish
-
-Just a graph X: Stockfish ELO - Y: Winrate
-    - Try n games different ELO
-    - Linear regression degres 2
-
 Info about Stockfish :
     - Time constraints alter the ELO.
     - Under 10ms, ELO 1300 could be rater lower than 600
@@ -217,6 +165,68 @@ Inside the file :
 - One region per class method, with multiple unit test functions and their associated launcher.
 - Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
 - Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
+
+## Roadmap
+
+- Next steps :
+
+    * Add png in README.md
+
+    * Create GameEngineIntTests.cpp :
+        - Assert given fen is identical as the current one
+        - Preshot the game ends
+        - Log each move with their quality
+        - Log how many nodes are computed
+        - Log time uses
+        - New CG protocol : "move fen avmove"
+        - avmove: Send a list of moves to the Python GameRunner so it asserts their validity
+
+    * Setup git hooks:
+        On commit:
+            make test
+        On push:
+            make format
+
+    * BotPlayer : from vector to *vector
+
+    * Board optimization :
+        - Do not optimize Board methods ! Don't break anything
+        - Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
+        - Probably need to create more inline getter/Setter
+        - Create TimedBoard, inrehit from AbstractBoard, and pass an AbstractBoard in constructor parameters
+        - Create BitBoard, inherit from AbtractBoard
+        - Create a function/main to metric boards (Will mainly be usefull to optimize BitBoard performances)
+    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
+
+    * Modify Board::Board(): Randomize the board generation
+
+    * Use valgrind to remove invalid reads
+    * Try using smart pointers
+    * CG game engine returns illegal castling move ? Report the bug ?
+
+
+- Refactor & Improvments :
+
+    * Create 10 private vars : Opponent pieces | turn_pieces
+        - Assing them at each new turn
+        - Simplify find_move()
+            * Factorize opp_case_func and EMPTY_cell tests
+            * Factorize edge tests
+    * Board::Board() parsing protection from invalid FEN
+        - REgex to valid chess FEN ?
+
+- Optimizations :
+
+    * Use copilot to optimize 
+    * Opti castle loops
+    * not legal moves - on apply 
+    * Board :
+        - _filter_non_legal_moves():
+            - Do not find the king through iterating over the board for each moves.
+                Should save the king position.
+        - find_move():
+            - Create move in order of piece values
+         
 
 ## Externals C++ libraries
 

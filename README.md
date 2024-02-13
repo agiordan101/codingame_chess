@@ -28,20 +28,10 @@ External libraries are used to test & debug my own chess engine (times, valids m
 
 - Next steps :
 
-    * Algo comp :
-        - Try more ELO
-        - Try stockfish as p1
-        - REmove bad data ?
-        - Mean isn't relevant while 2 solutions are found !
-
     * Simplify mains
     * Rework Makefile to integrate python things
-        - + a make rule for each algorithms
+
     * Duplicate CGGameRunner to create one that test everything ?
-    * Try to evaluate the current bot with Stockfish
-        - https://en.wikipedia.org/wiki/Elo_rating_system
-        - Best bot history, elo etc..
-        - Implement the immaginated algorithm
 
     * BotPlayer : from vector to *vector
 

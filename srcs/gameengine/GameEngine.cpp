@@ -84,6 +84,9 @@ float GameEngine::game_loop()
         game_state = current_board->get_game_state();
     }
 
+    cerr << "Game is over: " << game_state << endl;
+    current_board->log();
+
     delete current_board;
     return game_state;
 }

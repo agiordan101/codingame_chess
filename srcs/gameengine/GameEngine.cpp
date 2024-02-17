@@ -23,8 +23,8 @@ void GameEngine::infinite_game_loop()
         if (this->_cg_board->game_turn == 1)
         {
             this->_board = this->_cg_board->clone();
-            cerr << "\nGameEngine: Initial board:" << endl;
-            this->_board->log();
+            // cerr << "\nGameEngine: Initial board:" << endl;
+            // this->_board->log();
         }
         else
             this->_board->apply_move(*this->_cg_last_move);
@@ -35,15 +35,16 @@ void GameEngine::infinite_game_loop()
 
         this->_board->apply_move(move);
 
+        cout << move.to_uci() << endl;
+
         float game_state = this->_board->get_game_state();
         if (game_state != GAME_CONTINUE)
         {
-            cerr << "\nGameEngine: Game is over :" << game_state << endl;
+            cerr << "\nGameEngine: Game is over : " << game_state << endl;
             this->_board->log();
-            delete this->_board;
+            // if (this->_board)
+            //     delete this->_board;
         }
-
-        cout << move.to_uci() << endl;
     }
 }
 

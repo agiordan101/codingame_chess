@@ -75,13 +75,15 @@ class GameRunner:
             else:
                 draws += 1
 
+        _winrate = p1_wins / (p1_wins + p2_wins) if p1_wins + p2_wins else 0.5
+
         print(f"----- {n_game} games over -----")
         print(f"P1 wins: {p1_wins} -> {str(p1)}")
         print(f"P2 wins: {p2_wins} -> {str(p2)}")
         print(f"  Draws: {draws}")
-        print(f"Winrate: {p1_wins / (p1_wins + p2_wins)}")
+        print(f"Winrate: {_winrate}")
 
         if winrate:
-            return p1_wins / (p1_wins + p2_wins)
+            return _winrate
 
         return {"W": p1_wins, "D": draws, "L": p2_wins}

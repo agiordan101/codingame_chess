@@ -1,7 +1,7 @@
 #ifndef MINMAXITERDEEPAGENT_HPP
 # define MINMAXITERDEEPAGENT_HPP
 
-#include "AbstractAgent.hpp"
+# include "AbstractAgent.hpp"
 
 class MinMaxIterDeepAgent : public AbstractAgent {
 
@@ -12,16 +12,18 @@ class MinMaxIterDeepAgent : public AbstractAgent {
 
     private:
         AbstractHeuristic* _heuristic;
-        int _ms_constraint;
+        float _ms_constraint;
         clock_t _start_time;
 
-        float minmax(Board *board, int depth, float alpha, float beta);
-        float max_float(float a, float b);
-        float min_float(float a, float b);
-        bool  alpha_cut(float best_quality, float *alpha, float *beta);
-        bool  beta_cut(float best_quality, float *alpha, float *beta);
+        int _depth_max_reached;
+        int _nodes_explored;
+
+        float minmax(Board *board, int max_depth, int depth);
+        float max_node(Board *board, vector<Move> *moves, int max_depth, int depth);
+        float min_node(Board *board, vector<Move> *moves, int max_depth, int depth);
 
         bool is_time_up();
+        float elapsed_time();
 };
 
 #endif

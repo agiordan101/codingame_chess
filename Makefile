@@ -5,6 +5,7 @@ MM2_EXEC = mm2
 MM3_EXEC = mm3
 MMITERDEEP_EXEC = mmid
 MMITERDEEP100_EXEC = mmid100
+MMITERDEEPTT_EXEC = mmidtt
 
 flag = -g -O2
 
@@ -29,9 +30,13 @@ MINMAXITERDEEP_SRCS = $(BOT_SRCS)\
 	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
+MINMAXITERDEEPTT_SRCS = $(BOT_SRCS)\
+	$(SRCS_PATH)/agents/MinMaxIterDeepTTAgent.cpp\
+	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
+	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
-all: test mm2 mm3 mmid mmid100
+all: test mm2 mm3 mmid mmid100 mmidtt
 
 ### Install python tools for code formatting
 setup:
@@ -67,3 +72,7 @@ mmid:
 mmid100:
 	g++ $(flag) mains/maincg_$(MMITERDEEP100_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP100_EXEC)
 	cp ./bins/$(MMITERDEEP100_EXEC) ../codingame-chess/$(CG_EXEC)
+
+mmidtt:
+	g++ $(flag) mains/maincg_$(MMITERDEEPTT_EXEC).cpp $(MINMAXITERDEEPTT_SRCS) -o ./bins/$(MMITERDEEPTT_EXEC)
+	cp ./bins/$(MMITERDEEPTT_EXEC) ../codingame-chess/$(CG_EXEC)

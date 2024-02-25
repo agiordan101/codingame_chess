@@ -32,10 +32,15 @@ void GameEngine::infinite_game_loop()
         vector<Move> moves = this->_board->get_available_moves();
 
         Move move = this->_player->choose_from(this->_board, moves);
+        vector<string> stats = this->_player->get_stats();
+
+        cout << move.to_uci();
+
+        for (string stat: stats)
+            cout << " " << stat;
+        cout << endl;
 
         this->_board->apply_move(move);
-
-        cout << move.to_uci() << endl;
 
         float game_state = this->_board->get_game_state();
         if (game_state != GAME_CONTINUE)

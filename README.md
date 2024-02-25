@@ -175,15 +175,13 @@ Inside the file :
 
 - Next steps :
 
-    * Create a second mmid 100ms
     * MinMaxIterDeepAgent:
-        - First iter deep
         - Then implement hash table
         - Then alpha beta
             - Think about 2 methods: for min node and max node
+
     * Add png in README.md
     * Transform game state from static define to enum
-    * Make GameRunner.play_game private
 
     * Create GameEngineIntTests.cpp :
         - Assert given fen is identical as the current one

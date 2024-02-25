@@ -3,7 +3,11 @@
 MinMaxIterDeepAgent::MinMaxIterDeepAgent(AbstractHeuristic *heuristic, int ms_constraint)
 {
     this->_heuristic = heuristic;
-    this->_ms_constraint = ms_constraint * 0.95;
+    this->_ms_constraint = ms_constraint;
+    this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_depth_max_reached = 0;
+    this->_nodes_explored = 0;
+    this->_start_time = 0;
 }
 
 void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
@@ -38,10 +42,19 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
     if (max_depth > this->_depth_max_reached)
         this->_depth_max_reached = max_depth;
 
-    cerr << endl;
-    cerr << "MinMaxIterDeepAgent: iter deep depth=" << max_depth << " (max=" << this->_depth_max_reached << ")" << endl;
-    cerr << "MinMaxIterDeepAgent: nodes_explored=" << this->_nodes_explored << endl;
-    cerr << "MinMaxIterDeepAgent: time=" << elapsed_time() << "/" << this->_ms_constraint << "ms" << endl;
+    float dtime = elapsed_time();
+    if (dtime >= _ms_constraint)
+        cerr << "MinMaxIterDeepAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms" << endl;
+}
+
+vector<string> MinMaxIterDeepAgent::get_stats()
+{
+    vector<string> stats;
+
+    stats.push_back("depth=" + to_string(this->_depth_max_reached));
+    stats.push_back("states=" + to_string(this->_nodes_explored));
+    cerr << "MinMaxIterDeepAgent: stats=" << stats[0] << " " << stats[1] << endl;
+    return stats;
 }
 
 string MinMaxIterDeepAgent::get_name()
@@ -118,7 +131,7 @@ float MinMaxIterDeepAgent::min_node(Board *board, vector<Move>* moves, int max_d
 bool MinMaxIterDeepAgent::is_time_up()
 {
     // return true;
-    return this->elapsed_time() >= (float)this->_ms_constraint;
+    return this->elapsed_time() >= this->_ms_turn_stop;
 }
 
 float MinMaxIterDeepAgent::elapsed_time()

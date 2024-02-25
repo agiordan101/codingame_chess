@@ -32,6 +32,11 @@ Move BotPlayer::choose_from(Board *board, vector<Move> moves)
     return moves.at(best_index);
 }
 
+vector<string> BotPlayer::get_stats()
+{
+    return this->_agent->get_stats();
+}
+
 string BotPlayer::get_name()
 {
     return "Bot." + this->_agent->get_name();

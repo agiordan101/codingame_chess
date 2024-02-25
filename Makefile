@@ -4,6 +4,7 @@ CG_EXEC = mychessbot
 MM2_EXEC = mm2
 MM3_EXEC = mm3
 MMITERDEEP_EXEC = mmid
+MMITERDEEP100_EXEC = mmid100
 
 flag = -g -O2
 
@@ -30,7 +31,7 @@ MINMAXITERDEEP_SRCS = $(BOT_SRCS)\
 
 
 ### Compile project main
-all: test mm2 mm3
+all: test mm2 mm3 mmid mmid100
 
 ### Install python tools for code formatting
 setup:
@@ -62,3 +63,7 @@ mm3:
 mmid:
 	g++ $(flag) mains/maincg_$(MMITERDEEP_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP_EXEC)
 	cp ./bins/$(MMITERDEEP_EXEC) ../codingame-chess/$(CG_EXEC)
+
+mmid100:
+	g++ $(flag) mains/maincg_$(MMITERDEEP100_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP100_EXEC)
+	cp ./bins/$(MMITERDEEP100_EXEC) ../codingame-chess/$(CG_EXEC)

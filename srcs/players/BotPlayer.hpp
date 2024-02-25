@@ -7,6 +7,8 @@ class BotPlayer: public AbstractPlayer {
 
     public:
         BotPlayer(AbstractAgent *agent);
+        vector<string> get_stats();
+
         virtual Move choose_from(Board *board, vector<Move> moves) override;
         virtual string get_name() override;
 

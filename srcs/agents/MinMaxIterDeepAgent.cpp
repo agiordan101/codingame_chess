@@ -21,7 +21,7 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
     for (int i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
-    int max_depth = 0;
+    int max_depth = 1;
     while (!this->is_time_up())
     {
         for (int i = 0; i < moves.size(); i++)
@@ -29,7 +29,7 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
             new_board = board->clone();
             new_board->apply_move(moves[i]);
 
-            float move_quality = this->minmax(new_board, max_depth, 0);
+            float move_quality = this->minmax(new_board, max_depth, 1);
             // cerr << "Move: " << move.to_uci() << " - Quality: " << move_quality << endl;
 
             qualities->at(i) = move_quality;
@@ -53,7 +53,7 @@ vector<string> MinMaxIterDeepAgent::get_stats()
 
     stats.push_back("depth=" + to_string(this->_depth_max_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "MinMaxIterDeepAgent: stats=" << stats[0] << " " << stats[1] << endl;
+    cerr << this->get_name() << ": stats=" << stats[0] << " " << stats[1] << endl;
     return stats;
 }
 
@@ -130,7 +130,6 @@ float MinMaxIterDeepAgent::min_node(Board *board, vector<Move>* moves, int max_d
 
 bool MinMaxIterDeepAgent::is_time_up()
 {
-    // return true;
     return this->elapsed_time() >= this->_ms_turn_stop;
 }
 

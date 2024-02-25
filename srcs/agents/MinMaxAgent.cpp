@@ -4,11 +4,13 @@ MinMaxAgent::MinMaxAgent(AbstractHeuristic *heuristic, int depth)
 {
     this->_heuristic = heuristic;
     this->_max_depth = depth;
+    this->_nodes_explored = 0;
 }
 
 void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
     Board *new_board;
+    this->_nodes_explored = 0;
 
     for (Move move : moves)
     {
@@ -22,6 +24,8 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
 
         delete new_board;
     }
+
+    cerr << this->get_name() << ": maxdepth=" << this->_max_depth << " nodes=" << this->_nodes_explored << endl;
 }
 
 string MinMaxAgent::get_name()
@@ -31,6 +35,8 @@ string MinMaxAgent::get_name()
 
 float MinMaxAgent::minmax(Board *board, int depth, float alpha, float beta)
 {
+    this->_nodes_explored++;
+
     // If we reach the max depth or the game is over, we evaluate the board
     if (depth == this->_max_depth || board->get_game_state() != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);

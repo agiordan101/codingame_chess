@@ -13,6 +13,7 @@ class MinMaxAgent : public AbstractAgent {
     private:
         AbstractHeuristic* _heuristic;
         int _max_depth;
+        int _nodes_explored;
 
         float minmax(Board *board, int depth, float alpha, float beta);
         float max_float(float a, float b);

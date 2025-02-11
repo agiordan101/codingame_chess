@@ -11,7 +11,7 @@ int main()
         new BotPlayer(
             new MinMaxIterDeepAgent(
                 new PiecesHeuristic(),
-                500 // Milliseconds constraint
+                50 // Milliseconds constraint
             )
         )
     );

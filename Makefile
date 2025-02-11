@@ -4,6 +4,7 @@ CG_EXEC = mychessbot
 MM2_EXEC = mm2
 MM3_EXEC = mm3
 MMITERDEEP_EXEC = mmid
+MMITERDEEP50_EXEC = mmid50
 MMITERDEEP100_EXEC = mmid100
 MMITERDEEPTT_EXEC = mmidtt
 
@@ -36,7 +37,7 @@ MINMAXITERDEEPTT_SRCS = $(BOT_SRCS)\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
-all: test mm2 mm3 mmid mmid100 mmidtt
+all: test mm2 mm3 mmid mmid50 mmid100 mmidtt
 
 ### Install python tools for code formatting
 setup:
@@ -68,6 +69,10 @@ mm3:
 mmid:
 	g++ $(flag) mains/maincg_$(MMITERDEEP_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP_EXEC)
 	cp ./bins/$(MMITERDEEP_EXEC) ../codingame-chess/$(CG_EXEC)
+
+mmid50:
+	g++ $(flag) mains/maincg_$(MMITERDEEP50_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP50_EXEC)
+	cp ./bins/$(MMITERDEEP50_EXEC) ../codingame-chess/$(CG_EXEC)
 
 mmid100:
 	g++ $(flag) mains/maincg_$(MMITERDEEP100_EXEC).cpp $(MINMAXITERDEEP_SRCS) -o ./bins/$(MMITERDEEP100_EXEC)

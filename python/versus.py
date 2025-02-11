@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from bots_interfaces.CGBot import CGBot
 from bots_interfaces.StockfishBot import StockfishBot
+from bots_interfaces.RandomBot import RandomBot
 from tools.GameRunner import GameRunner
 
 
@@ -18,7 +19,8 @@ def _update(frame, fig, ax, xdata, ydata, results, line, bot1, bot2):
 
     # Play a game and get the result
     game = GameRunner()
-    result = game.play_games(bot1, bot2)
+
+    result = game.play_games(bot1, bot2, n_game=2)
 
     results["W"] += result["W"]
     results["L"] += result["L"]
@@ -30,17 +32,17 @@ def _update(frame, fig, ax, xdata, ydata, results, line, bot1, bot2):
         win_ratio = round(results["W"] / (results["W"] + results["L"]), 3)
 
     # Append the game number and result to the plot data
-    xdata.append(frame)
+    xdata.append(frame * 2)
     ydata.append(win_ratio)
 
     # Update the line data
     line.set_data(xdata, ydata)
 
     # Update the line label with the last division result
-    line.set_label(f'Win ratio: {win_ratio} (Draws: {results["D"]}/{frame})')
+    line.set_label(f'Win ratio: {win_ratio} (Draws: {results["D"]}/{frame * 2})')
 
     # Adjust the plot limits
-    ax.set_xlim(0, frame)
+    ax.set_xlim(0, frame * 2)
     ax.set_ylim(0, 1)
 
     # Update the legend
@@ -102,13 +104,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create the bots using the names provided as arguments
-    if args.bot1_name[:2] == "sf":
-        bot1 = StockfishBot(args.bot1_name[2:])
+    if args.bot1_name == "random":
+        bot1 = RandomBot()
+    elif args.bot1_name[:2] == "sf":
+        bot1 = StockfishBot(args.bot1_name[2:], 50)
     else:
         bot1 = CGBot(args.bot1_name)
 
-    if args.bot2_name[:2] == "sf":
-        bot2 = StockfishBot(args.bot2_name[2:])
+    if args.bot2_name == "random":
+        bot2 = RandomBot()
+    elif args.bot2_name[:2] == "sf":
+        bot2 = StockfishBot(args.bot2_name[2:], 50)
     else:
         bot2 = CGBot(args.bot2_name)
 

@@ -46,6 +46,26 @@ class CGBot(AbstractBot):
 
     def get_next_move(self, board: Board) -> str:
 
+        self._send_info(board)
+
+        line = self.process.stdout.readline().strip()
+        move = line.split(" ")[0]
+        
+        return move
+
+    def get_next_move_and_stat(self, board: Board) -> dict[str, object]:
+
+        self._send_info(board)
+
+        line = self.process.stdout.readline().strip()
+        responses = line.split(" ")
+
+        data = {'move': responses[0]}
+        data.update(dict(map(lambda x: x.split("="), responses[1:])))
+        
+        return data
+
+    def _send_info(self, board: Board):
         if self.lastmove:
             if len(board.move_stack) > 0:
                 self.process.stdin.write(board.peek().uci() + "\n")
@@ -64,10 +84,6 @@ class CGBot(AbstractBot):
             for m in available_moves:
                 self.process.stdin.write(m + "\n")
         self.process.stdin.flush()
-
-        # print("Waiting for the response ...")
-        response = self.process.stdout.readline().strip()
-        return response
 
     def stop(self):
         self.process.kill()

@@ -52,8 +52,16 @@ class Board {
         float           get_game_state();
         bool            get_check_state();
         vector<Move>    get_available_moves();
+
         inline char     get_cell(int x, int y) { return this->board[y][x]; }
-        bool            is_white_turn() { return this->white_turn; }
+        inline int      get_castling_rights() {
+            return
+                (this->castles[0] ? 1 : 0) +\
+                (this->castles[1] ? 1 : 0) << 1 +\
+                (this->castles[2] ? 1 : 0) << 2 +\
+                (this->castles[3] ? 1 : 0) << 3;
+        }
+        inline bool     is_white_turn() { return this->white_turn; }
 
         string          create_fen(bool with_turns = true);
         Board           *clone();

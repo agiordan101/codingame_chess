@@ -1,0 +1,20 @@
+
+MinMaxIterDeepAgent[50ms].PiecesHeuristic: stats=depth=5 states=2034
+MinMaxIterDeepAgent[100ms].PiecesHeuristic: stats=depth=5 states=3106
+
+->
+
+
+En end game avec seulement 1 piece forte, les rois créent un stalemate par répétition alors que le mate est facile.
+Surement parce que :
+    - l'heuristique n'est pas suffisante pour que le graph trouve le mate.
+    - Le graph n'est pas assez gros -> Il faut opti l'engine.
+
+---
+
+
+Le game engine  rentre dans une condition "game_state != GAME_CONTINUE" et log le board.
+On y retrouve : "GameEngine: Game is over : 0"
+Bizzare, ca devrait être 1 non ?
+-> En meme temps il y a un spike de nodes visitées
+

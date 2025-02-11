@@ -14,8 +14,9 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 `make`
 
 ### Compile a specific bot and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`make mm2`
-`make mm3`
+
+- `make mm2`
+- `make mm3`
 
 ### Python tools usage
 
@@ -47,7 +48,7 @@ External libraries are used to test & debug my own chess engine (times, valids m
 ### Branches
 
 - main  ->  Stable best version used in CodinGame
-- dev   ->  Stable version in devlopment
+- dev   ->  Stable version in development
 
 ### Entity heritage
 
@@ -120,8 +121,13 @@ Despite the rules, the final position after castling is always the same:
             x: -1
             y: -1
 
-#### RandomAgent
-#### HeuristicsAgent
+#### MinMaxAgent
+
+    - MinMax: Alternatively choose the min and the max value returned by the heuristic function
+    - Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
+    - Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
+    - Transposition table: Hashing the position we can create an unique index to lookup a table (Collisions may appear depending on the hash function). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
+    - Hash function -  :
 
 ### Python tools
 
@@ -139,7 +145,7 @@ Despite the rules, the final position after castling is always the same:
 
 Info about Stockfish :
     - Time constraints alter the ELO.
-    - Under 10ms, ELO 1300 could be rater lower than 600
+    - Under 10ms, ELO 1300 could be rated lower than 600
 
 #### Heuristics benchmarks
 
@@ -168,9 +174,24 @@ Inside the file :
 
 ## Roadmap
 
+- Project new beginning : 
+
+    * Checks status of MinMaxIterDeepAgent and MinMaxIterDeepTTAgent against MinMaxAgent
+
+    * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
+
+    * Reword win ratio so it takes draws into count
+
+
 - Next steps :
 
+    * MinMaxIterDeepAgent:
+        - Then implement hash table
+        - Then alpha beta
+            - Think about 2 methods: for min node and max node
+
     * Add png in README.md
+    * Transform game state from static define to enum
 
     * Create GameEngineIntTests.cpp :
         - Assert given fen is identical as the current one
@@ -227,6 +248,21 @@ Inside the file :
         - find_move():
             - Create move in order of piece values
          
+
+## Tests
+
+sf500 100ms  vs mm3         -> 97% win / 42 games
+
+sf1000 100ms vs sf800 None  -> 60% win
+sf1000 100ms vs sf1000 10ms -> 60.0% win / 50 games
+sf1000 100ms vs sf1000 50ms -> 46.6% win / 50 games
+sf1000 100ms vs sf1000 None -> 47.3% win / 74 games
+sf1000 50ms  vs sf1000 None -> 48.3% win / 208 games
+
+mmid100      vs mmid50      -> 64% win / 70 games
+mmid100      vs mmid500     -> 22.2% win / 10 games
+
+In conclusion, time per turn associated to Stockfish doesn't matter above 50ms
 
 ## Externals C++ libraries
 

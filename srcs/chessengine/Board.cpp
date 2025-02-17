@@ -27,6 +27,7 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
+    cerr << "Board: FEN: " << create_fen() << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
     cerr << "Board: Castling: w " << castles[0] << " | w " << castles[1] << " | b " << castles[2] << " | b " << castles[3] << endl;
     cerr << "Board: Kings initial columns: w " << kings_initial_columns[0] << " - b " << kings_initial_columns[1] << endl;
@@ -35,8 +36,8 @@ void Board::log() {
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
     cerr << "----+----------------" << endl;
-    cerr << " i  | 0 1 2 3 4 5 6 7" << endl;
-    cerr << "  n | A B C D E F G H" << endl;
+    cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
+    cerr << " uci| A B C D E F G H" << endl;
     cerr << "----+----------------" << endl;
     for (int y = 0; y < 8; y++)
     {
@@ -105,6 +106,22 @@ bool Board::get_check_state()
     return this->check;
 }
 
+char Board::get_cell(int x, int y) {
+    return this->board[y][x];
+}
+
+int Board::get_castling_rights() {
+    return
+        (this->castles[0] ? 1 : 0) +\
+        (this->castles[1] ? 1 : 0) << 1 +\
+        (this->castles[2] ? 1 : 0) << 2 +\
+        (this->castles[3] ? 1 : 0) << 3;
+}
+
+bool Board::is_white_turn() {
+    return this->white_turn;
+}
+
 vector<Move> Board::get_available_moves()
 {
     if (!this->moves_computed)
@@ -162,14 +179,28 @@ string Board::create_fen(bool with_turns)
     // Write castling
     if (castles[0] != -1 || castles[1] != -1 || castles[2] != -1 || castles[3] != -1)
     {
-        if (castles[0] != -1)
-            fen[fen_i++] = toupper(column_index_to_name(castles[0]));
-        if (castles[1] != -1)
-            fen[fen_i++] = toupper(column_index_to_name(castles[1]));
-        if (castles[2] != -1)
-            fen[fen_i++] = column_index_to_name(castles[2]);
-        if (castles[3] != -1)
-            fen[fen_i++] = column_index_to_name(castles[3]);
+        if (chess960_rule)
+        {
+            if (castles[0] != -1)
+                fen[fen_i++] = toupper(column_index_to_name(castles[0]));
+            if (castles[1] != -1)
+                fen[fen_i++] = toupper(column_index_to_name(castles[1]));
+            if (castles[2] != -1)
+                fen[fen_i++] = column_index_to_name(castles[2]);
+            if (castles[3] != -1)
+                fen[fen_i++] = column_index_to_name(castles[3]);
+        }
+        else
+        {
+            if (castles[0] != -1)
+                fen[fen_i++] = castles[0] == 7 ? 'K' : 'Q';
+            if (castles[1] != -1)
+                fen[fen_i++] = castles[1] == 7 ? 'K' : 'Q';
+            if (castles[2] != -1)
+                fen[fen_i++] = castles[2] == 7 ? 'k' : 'q';
+            if (castles[3] != -1)
+                fen[fen_i++] = castles[3] == 7 ? 'k' : 'q';
+        }
     }
     else
         fen[fen_i++] = '-';
@@ -220,6 +251,10 @@ Board *Board::clone()
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
 {
+    // Set the right castling function pointer
+    chess960_rule = _chess960_rule;
+    _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
+
     // Parse FEN data
     _parse_board(_board);
     white_turn = _color == "w";
@@ -227,10 +262,6 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     _parse_en_passant(_en_passant);
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
-
-    // Set the right castling function pointer
-    chess960_rule = _chess960_rule;
-    _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
 
     // Initialize private variables
     check_computed = false;
@@ -279,12 +310,20 @@ void Board::_parse_castling(string castling_fen)
     for (int i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
-            castles[white_castles_i++] = column_name_to_index(castling_fen[i]);
-        if (islower(castling_fen[i]))
-            castles[2 + black_castles_i++] = column_name_to_index(castling_fen[i]);
+        {
+            if (chess960_rule)
+                castles[white_castles_i++] = column_name_to_index(castling_fen[i]);
+            else
+                castles[white_castles_i++] = castling_fen[i] == 'K' ? 7 : 0;
+        }
+        else
+        {
+            if (chess960_rule)
+                castles[2 + black_castles_i++] = column_name_to_index(castling_fen[i]);
+            else
+                castles[2 + black_castles_i++] = castling_fen[i] == 'k' ? 7 : 0;
+        }
     }
-    // for (int i = 0; i < 4; i++)
-    //     cerr << "Castle parsing " << castles[i] << endl;
 
     // Find kings initial column indexes
     for (int i = 0; i < 8; i++)
@@ -294,8 +333,6 @@ void Board::_parse_castling(string castling_fen)
         if (board[0][i] == 'k')
             kings_initial_columns[1] = i;
     }
-    // for (int i = 0; i < 2; i++)
-    //     cerr << "King initial pos " << kings_initial_columns[i] << endl;
 }
 
 void Board::_parse_en_passant(string _en_passant)
@@ -1148,6 +1185,12 @@ bool Board::_is_check(int king_x, int king_y)
 
 bool    Board::operator ==(Board *test_board) {
 
+    // Assert that the tested board is a Board instance
+    if (!test_board) {
+        cerr << "Board: operator==: The tested board is not a Board instance" << endl;
+        return false;
+    }
+
     // Test equalities on all FEN data
 
     // Board pieces equality
@@ -1178,7 +1221,7 @@ bool    Board::operator ==(Board *test_board) {
             cerr << "Board: operator==: Castling rights: " << this->castles[i] << " != " << test_board->castles[i] << " && " << this->castles[i] << " != " << test_board->castles[i + 1] << endl;
             return false;
         }
-        
+
         if (this->castles[i + 1] >= 0 &&
             this->castles[i + 1] != test_board->castles[i] &&
             this->castles[i + 1] != test_board->castles[i + 1])

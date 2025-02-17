@@ -889,7 +889,7 @@ int find_king_moves_testLauncher()
 
     // No castles - Extremety 2
     success_count += find_moves_RegularCases_FindAllMoves(
-        48,
+        49,
         new Board("8/8/8/8/8/8/########/4BRKR w FH - 3 11"),
         requested_moves,
         0
@@ -912,7 +912,7 @@ int find_moves_not_illegal_ones_testLauncher()
     requested_moves[5] = new Move(6, 6, 6, 4, 0); // Queen saves - Vertically
     requested_moves[6] = new Move(6, 6, 4, 4, 0); // Queen saves - Diagonally
     success_count += find_moves_RegularCases_FindAllMoves(
-        37,
+        50,
         new Board("8/1R6/2B5/7r/K6r/4P3/6Q1/8 w - - 0 1"),
         requested_moves,
         7
@@ -924,20 +924,32 @@ int find_moves_not_illegal_ones_testLauncher()
     requested_moves[2] = new Move(2, 1, 3, 2, 0); // Pawn eats
     requested_moves[3] = new Move(6, 5, 3, 2, 0); // Bishop eats
     success_count += find_moves_RegularCases_FindAllMoves(
-        38,
+        51,
         new Board("3q4/2p5/3R3r/8/2#1#3/2#k#1b1/2###3/8 b - - 0 1"),
         requested_moves,
         4
     );
 
-    // Pieces cannot move if it puts the king in check
+    // Pinned pieces cannot move (= if the move puts the king in check)
     requested_moves[0] = new Move(4, 3, 4, 2, 0); // Queen takes
     requested_moves[1] = new Move(3, 4, 2, 4, 0); // Rook takes
     success_count += find_moves_RegularCases_FindAllMoves(
-        39,
+        52,
         new Board("8/8/4q3/4Q3/2qRKPq1/4BN2/4q1b1/8 w - - 0 1"),
         requested_moves,
         2
+    );
+
+    // 2 pinned pieces cannot move at the same time (Whitte pawn can't take the en-passant)
+    requested_moves[0] = new Move(0, 3, 0, 2, 0); // Kink moves up
+    requested_moves[1] = new Move(0, 3, 1, 2, 0); // Kink moves up right
+    requested_moves[2] = new Move(0, 3, 0, 4, 0); // Kink moves down
+    requested_moves[3] = new Move(1, 3, 1, 2, 0); // Pawn move up
+    success_count += find_moves_RegularCases_FindAllMoves(
+        53,
+        new Board("8/8/8/KPp4r/8/8/8/8/8 w - c6 0 1"),
+        requested_moves,
+        4
     );
 
     return success_count;
@@ -971,51 +983,65 @@ int create_fen_testLauncher()
 
     // Pieces test
     success_count += create_fen_unittest(
-        1,
-        new Board("r1bqkbnr/8/8/8/8/8/8/RNBQKB1R w - - 0 1"),
+        7,
+        new Board("r1bqkbnr/8/8/8/8/8/8/RNBQKB1R w - - 0 1", true),
         "r1bqkbnr/8/8/8/8/8/8/RNBQKB1R w - - 0 1"
     );
 
     // Pieces test 2. Edge test
     success_count += create_fen_unittest(
         1,
-        new Board("1nb2bn1/8/8/3pP3/8/8/8/1NB2BN1 w - - 0 1"),
+        new Board("1nb2bn1/8/8/3pP3/8/8/8/1NB2BN1 w - - 0 1", true),
         "1nb2bn1/8/8/3pP3/8/8/8/1NB2BN1 w - - 0 1"
     );
 
     // Empty board test + castling test
     success_count += create_fen_unittest(
         2,
-        new Board("8/8/8/8/8/8/8/8 b AHah - 1 2"),
+        new Board("8/8/8/8/8/8/8/8 b AHah - 1 2", true),
         "8/8/8/8/8/8/8/8 b AHah - 1 2"
     );
 
     // Not full castling rights test
     success_count += create_fen_unittest(
         3,
-        new Board("8/8/8/8/8/8/8/8 w Ac - 0 1"),
+        new Board("8/8/8/8/8/8/8/8 w Ac - 0 1", true),
         "8/8/8/8/8/8/8/8 w Ac - 0 1"
     );
 
     // En passant test
     success_count += create_fen_unittest(
         4,
-        new Board("8/8/8/8/8/8/8/8 w - h7 0 1"),
+        new Board("8/8/8/8/8/8/8/8 w - h7 0 1", true),
         "8/8/8/8/8/8/8/8 w - h7 0 1"
     );
 
     // Half turn rule test
     success_count += create_fen_unittest(
         5,
-        new Board("8/8/8/8/8/8/8/8 w - - 12 1"),
+        new Board("8/8/8/8/8/8/8/8 w - - 12 1", true),
         "8/8/8/8/8/8/8/8 w - - 12 1"
     );
 
     // Game turn test
     success_count += create_fen_unittest(
         6,
-        new Board("8/8/8/8/8/8/8/8 w - - 0 101"),
+        new Board("8/8/8/8/8/8/8/8 w - - 0 101", true),
         "8/8/8/8/8/8/8/8 w - - 0 101"
+    );
+
+    // Empty board test + castling test with standard rules
+    success_count += create_fen_unittest(
+        8,
+        new Board("8/8/8/8/8/8/8/8 b KQkq - 1 2", false),
+        "8/8/8/8/8/8/8/8 b KQkq - 1 2"
+    );
+
+    // Not full castling rights test
+    success_count += create_fen_unittest(
+        9,
+        new Board("8/8/8/8/8/8/8/8 w Kq - 0 1", false),
+        "8/8/8/8/8/8/8/8 w Kq - 0 1"
     );
 
     return success_count;

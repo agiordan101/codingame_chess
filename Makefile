@@ -3,6 +3,7 @@ TEST_EXEC = unittests
 CG_EXEC = mychessbot
 MM2_EXEC = mm2
 MM3_EXEC = mm3
+BITBOARD_EXEC = main_test_bitboard
 
 flag = -g -O2
 
@@ -21,15 +22,6 @@ BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 
 MINMAX_SRCS = $(BOT_SRCS)\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
-
-MINMAXITERDEEP_SRCS = $(BOT_SRCS)\
-	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
-
-MINMAXITERDEEPTT_SRCS = $(BOT_SRCS)\
-	$(SRCS_PATH)/agents/MinMaxIterDeepTTAgent.cpp\
-	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
@@ -61,3 +53,7 @@ mm2:
 mm3:
 	g++ $(flag) mains/maincg_$(MM3_EXEC).cpp $(MINMAX_SRCS) -o ./bins/$(MM3_EXEC)
 	cp ./bins/$(MM3_EXEC) ../codingame-chess/$(CG_EXEC)
+
+bitboard:
+	g++ $(flag) mains/$(BITBOARD_EXEC).cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(BITBOARD_EXEC)
+	./bins/$(BITBOARD_EXEC)

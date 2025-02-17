@@ -23,9 +23,9 @@ class Board {
     */
 
     // FEN data:
-    char        board[8][8];
+    char        board[8][8];                // 0 0 coordinate is the up left corner
     bool        white_turn;
-    int         castles[4];                 // Column index where the castle is available - 2 first for White and 2 last for Black
+    int         castles[4];                 // Rook column index where the castle is available - 2 first for White and 2 last for Black
     int         kings_initial_columns[2];   // First for white king and second for black king
     int         en_passant_x;               // En passant coordinates & availability are created after a pawn move of 2 squares
     int         en_passant_y;
@@ -45,28 +45,22 @@ class Board {
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
 
-        void            log();
-        void            log_history(int turns = -1);
-        void            apply_move(Move move);
-        
+        bool            is_white_turn();
+        char            get_cell(int x, int y);
         float           get_game_state();
         bool            get_check_state();
-        vector<Move>    get_available_moves();
-
-        inline char     get_cell(int x, int y) { return this->board[y][x]; }
-        inline int      get_castling_rights() {
-            return
-                (this->castles[0] ? 1 : 0) +\
-                (this->castles[1] ? 1 : 0) << 1 +\
-                (this->castles[2] ? 1 : 0) << 2 +\
-                (this->castles[3] ? 1 : 0) << 3;
-        }
-        inline bool     is_white_turn() { return this->white_turn; }
+        int             get_castling_rights();
 
         string          create_fen(bool with_turns = true);
         Board           *clone();
         
-        bool    operator ==(Board *test_board);
+        vector<Move>    get_available_moves();
+        void            apply_move(Move move);
+        
+        void            log();
+        void            log_history(int turns = -1);
+
+        bool            operator ==(Board *test_board);
 
     private:
 

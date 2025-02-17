@@ -88,6 +88,7 @@ As the Board support both Standard chess rules and Chess960 rules, the UCI repre
 - Standard rules -> King moves by 2
 
 Despite the rules, the final position after castling is always the same:
+                0 1 2 3 4 5 6 7
                 a b c d e f g h
 - Left castle:      K R
 - Right castle:           R K
@@ -174,24 +175,33 @@ Inside the file :
 
 ## Roadmap
 
-- Project new beginning : 
-
-    * Checks status of MinMaxIterDeepAgent and MinMaxIterDeepTTAgent against MinMaxAgent
-
-    * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
-
-    * Reword win ratio so it takes draws into count
-
-
 - Next steps :
 
-    * MinMaxIterDeepAgent:
-        - Then implement hash table
-        - Then alpha beta
-            - Think about 2 methods: for min node and max node
+    * Board optimization :
+        - (DONE) Do not optimize Board methods ! Don't break anything
+        - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
+        - (DONE) Probably need to create more inline getter/Setter
+        - (IN PROGRESS) Create BitBoard, inherit from AbtractBoard. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
+        - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
+        - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
+            - Simulate N games and create an average time for all methods ?
+        - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * Add png in README.md
-    * Transform game state from static define to enum
+    * Duplicate GameEngine so it uses BitBoard and BitMove only. Too dirty to use AbtractBoard and AbtractMove in all implementation. It would force dynamic casts at many places ...
+            In order to manipulate both implementation in Agent, Bot and heuristics I'm force to use AbstractBoard.
+            So I'll just implement BitBoard, make sure it is ok, and remove the old one.
+            The most important point to have Abtract Board and Move was to use their unit tests
+        -> I can still mesure them by keeping one implementation commented
+
+    * Just re create a branch on "Improvements" and copy BitBoard/BitMove implementations once they are finished
+
+    * Regroup all .test. files into a tests folder
+
+    * clone_testLauncher(): Add another test with info and rule = false
+    * Create test counting all possible moves in the future (N+1, N+2, ...) and compare the result number to several online sources
+
+    * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
+    * Reword win ratio so it takes draws into count
 
     * Create GameEngineIntTests.cpp :
         - Assert given fen is identical as the current one
@@ -202,6 +212,16 @@ Inside the file :
         - New CG protocol : "move fen avmove"
         - avmove: Send a list of moves to the Python GameRunner so it asserts their validity
 
+    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
+
+    * MinMaxIterDeepAgent:
+        - Then implement hash table
+        - Then alpha beta
+            - Think about 2 methods: for min node and max node
+
+    * Add png in README.md
+    * Transform game state from static define to enum
+
     * Setup git hooks:
         On commit:
             make test
@@ -209,15 +229,6 @@ Inside the file :
             make format
 
     * BotPlayer : from vector to *vector
-
-    * Board optimization :
-        - Do not optimize Board methods ! Don't break anything
-        - Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
-        - Probably need to create more inline getter/Setter
-        - Create TimedBoard, inrehit from AbstractBoard, and pass an AbstractBoard in constructor parameters
-        - Create BitBoard, inherit from AbtractBoard
-        - Create a function/main to metric boards (Will mainly be usefull to optimize BitBoard performances)
-    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
 
     * Modify Board::Board(): Randomize the board generation
 

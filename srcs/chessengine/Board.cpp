@@ -1,3 +1,7 @@
+// --- BASIC BOARD IMPLEMENTATION---
+
+# pragma region Board
+
 #include "Board.hpp"
 
 // --- PUBLIC METHODS ---
@@ -1263,3 +1267,646 @@ bool    Board::operator ==(Board *test_board) {
 
     return true;
 }
+
+# pragma endregion Board
+
+
+# pragma region BitBoard
+
+// #include "Board.hpp"
+
+// // --- PUBLIC METHODS ---
+
+// Board::Board(string _fen, bool _chess960_rule) {
+    
+//     stringstream ss(_fen);
+//     string board;
+//     string color;
+//     string castling;
+//     string en_passant;
+//     string half_turn_rule;
+//     string game_turn;
+
+//     getline(ss, board, ' ');
+//     getline(ss, color, ' ');
+//     getline(ss, castling, ' ');
+//     getline(ss, en_passant, ' ');
+//     getline(ss, half_turn_rule, ' ');
+//     getline(ss, game_turn, ' ');
+
+//     _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule);
+// }
+
+// Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule) {
+//     _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule);
+// }
+
+// void Board::log() {
+//     cerr << "Board: FEN: " << create_fen() << endl;
+//     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
+//     cerr << "Board: White castling: " << endl << std::bitset<64>(white_castles) << endl;
+//     cerr << "Board: Black castling: " << endl << std::bitset<64>(black_castles) << endl;
+//     cerr << "Board: White king initial columns: " << endl << std::bitset<64>(white_king_start) << endl;
+//     cerr << "Board: Black king initial columns: " << endl << std::bitset<64>(black_king_start) << endl;
+//     cerr << "Board: En passant: " << endl << std::bitset<64>(en_passant) << endl;
+//     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
+//     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
+
+//     cerr << "----+----------------" << endl;
+//     cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
+//     cerr << " uci| A B C D E F G H" << endl;
+//     cerr << "----+----------------" << endl;
+
+//     char piece = '.';
+//     for (int y = 0; y < 8; y++)
+//     {
+//         cerr << y << " " << line_index_to_number(y) << " |";
+//         for (int x = 0; x < 8; x++)
+//         {
+//             cerr << " " << get_cell(x, y);
+//         }
+//         cerr << endl;
+//     }
+//     cerr << "----+----------------" << endl;
+
+//     // cerr << " White pawns :  " << std::bitset<64>(white_pawns) << endl;
+//     // cerr << " White knights: " << std::bitset<64>(white_knights) << endl;
+//     // cerr << " White bishops: " << std::bitset<64>(white_bishops) << endl;
+//     // cerr << " White rooks :  " << std::bitset<64>(white_rooks) << endl;
+//     // cerr << " White queens : " << std::bitset<64>(white_queens) << endl;
+//     // cerr << " White king :   " << std::bitset<64>(white_king) << endl;
+//     // cerr << " Black pawns :  " << std::bitset<64>(black_pawns) << endl;
+//     // cerr << " Black knights: " << std::bitset<64>(black_knights) << endl;
+//     // cerr << " Black bishops: " << std::bitset<64>(black_bishops) << endl;
+//     // cerr << " Black rooks :  " << std::bitset<64>(black_rooks) << endl;
+//     // cerr << " Black queens : " << std::bitset<64>(black_queens) << endl;
+//     // cerr << " Black king :   " << std::bitset<64>(black_king) << endl;
+// }
+
+// void Board::log_history(int turns) {
+// }
+
+// void Board::apply_move(Move move) {
+//     // Disable en passant if it was available on this turn
+//     // _update_en_passant();
+
+//     _apply_move(move->piece, move->src, move->dst, move->promotion);
+
+//     // Enable en passant if it was set in this turn
+//     // _update_en_passant();
+
+//     // Only increment game turn after black turn
+//     if (!white_turn)
+//         game_turn += 1;
+
+//     white_turn = !white_turn;
+//     half_turn_rule += 1;
+
+//     // Update the engine
+//     // uncheck_mask = 1UL;
+//     // attacked_squares = 0UL;
+
+//     // _update_castling_rights();
+//     _update_fen_history();
+// }
+
+// float Board::get_game_state() {
+//     return GAME_CONTINUE;
+// }
+
+// bool Board::get_check_state() {
+//     return false;
+
+//     // either we look for the square to uncheck (What happen is there is checkmate ?)
+//     //  return uncheck_mask;
+//     // Either we detect if the kind is under attack
+//     //  return attacked_squares & (white_turn ? white_king : black_king);
+// }
+
+// inline char Board::get_cell(int x, int y) {
+
+//     uint64_t pos_mask = 1UL << (y * 8 + x);
+    
+//     if (white_pawns & pos_mask)
+//         return 'P';
+//     if (white_knights & pos_mask)
+//         return 'N';
+//     if (white_bishops & pos_mask)
+//         return 'B';
+//     if (white_rooks & pos_mask)
+//         return 'R';
+//     if (white_queens & pos_mask)
+//         return 'Q';
+//     if (white_king & pos_mask)
+//         return 'K';
+//     if (black_pawns & pos_mask)
+//         return 'p';
+//     if (black_knights & pos_mask)
+//         return 'n';
+//     if (black_bishops & pos_mask)
+//         return 'b';
+//     if (black_rooks & pos_mask)
+//         return 'r';
+//     if (black_queens & pos_mask)
+//         return 'q';
+//     if (black_king & pos_mask)
+//         return 'k';
+
+//     return '.';
+// }
+
+// inline int Board::get_castling_rights() {
+//     return 0;
+// }
+
+// inline bool Board::is_white_turn() {
+//     return true;
+// }
+
+// vector<Move> Board::get_available_moves() {
+//     // https://www.codeproject.com/Articles/5313417/Worlds-Fastest-board-Chess-Movegenerator
+//     //  - We Define a checkmask
+//     //  - We Define a pinmask
+//     // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
+
+//     // Update check mask
+//     // Update pin mask
+
+//     // Generate pawn moves
+//     //  - iterate over all pawns
+//     //    -> (pawn position << 9) & ~ColumnA & enemy_pieces & check_mask & pin_mask
+//     //    -> (pawn position << 7) & ~ColumnH & enemy_pieces & check_mask & pin_mask
+    
+//     // Generate knight moves
+//     //  - iterate over all knights
+//     //    Pourquoi les knights ont un " & ~(pinHV | pinD12)" tilde ?
+//     //   Pour savoir si il sont pin ? Mais on fais des operations pour avoir les moves possible
+//     //  donc on agis sur la position finale pas sur celle de base ..
+
+//     // pin_mask = 0 si la piece n'est pas pin,
+//     // donc (pin_mask_diags | pin_mask_lines) = les moves legal par la piece pin 
+
+//     return vector<Move>();
+// }
+
+// string Board::create_fen(bool with_turns) {
+//     char fen[85];
+//     int fen_i = 0;
+
+//     bzero(fen, 85);
+
+//     // Write pieces
+//     int empty_cells_count = 0;
+//     for (int y = 0; y < 8; y++)
+//     {
+//         for (int x = 0; x < 8; x++)
+//         {
+//             // TODO: Don't use get_cell() but a mask we shift at each for loop beginning
+//             //          And create get_cell(uint64_t mask) method, used inside get_cell(int, int)
+//             if (get_cell(x, y) == EMPTY_CELL)
+//             {
+//                 empty_cells_count++;
+//                 continue ;
+//             }
+
+//             if (empty_cells_count > 0)
+//             {
+//                 fen[fen_i++] = '0' + empty_cells_count;
+//                 empty_cells_count = 0;
+//             }
+
+//             fen[fen_i++] = get_cell(x, y);
+//         }
+
+//         if (empty_cells_count > 0)
+//         {
+//             fen[fen_i++] = '0' + empty_cells_count;
+//             empty_cells_count = 0;
+//         }
+
+//         if (y != 7)
+//             fen[fen_i++] = '/';
+//     }
+//     fen[fen_i++] = ' ';
+
+//     // Write turn
+//     fen[fen_i++] = white_turn ? 'w' : 'b';
+//     fen[fen_i++] = ' ';
+
+//     // Write castling
+//     if (white_castles || black_castles)
+//     {
+//         if (chess960_rule)
+//             _create_fen_for_chess960_castling(fen, &fen_i);
+//         else
+//             _create_fen_for_standard_castling(fen, &fen_i);
+//     }
+//     else
+//         fen[fen_i++] = '-';
+//     fen[fen_i++] = ' ';
+
+//     // Write en passant
+//     if (en_passant)
+//     {
+//         string en_passant_str = board_to_algebraic(en_passant);
+//         fen[fen_i++] = en_passant_str[0];
+//         fen[fen_i++] = en_passant_str[1];
+//     }
+//     else
+//         fen[fen_i++] = '-';
+//     fen[fen_i++] = ' ';
+
+//     string fen_string = string(fen, fen_i);
+
+//     if (!with_turns)
+//         return fen_string;
+
+//     // Write half turn rule
+//     fen_string += to_string(half_turn_rule);
+//     fen_string += string(" ");
+
+//     // Write game turn
+//     fen_string += to_string(game_turn);
+
+//     return fen_string;
+// }
+
+// Board *Board::clone()
+// {
+//     // TODO: Create a new constructor, taking an instance in param, which then copy all the needed data
+//     Board *cloned_board = new Board(create_fen(), chess960_rule);
+
+//     // Copy history
+//     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+//     {
+//         if (this->fen_history[i].empty())
+//             break ;
+//         cloned_board->fen_history[i] = this->fen_history[i];
+//     }
+
+//     return cloned_board;
+// }
+
+// // --- PRIVATE METHODS ---
+
+// void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
+// {
+//     // Initialize private variables
+//     chess960_rule = _chess960_rule;
+//     uncheck_mask = 0xFFFFFFFFFFFFFFFF;
+//     attacked_squares = 0;
+
+//     // Parse FEN data
+//     _parse_board(_board);
+//     white_turn = _color == "w";
+//     _parse_castling(_castling);
+//     en_passant = _en_passant != "-" ? algebraic_to_board(_en_passant) : 0;
+//     half_turn_rule = _half_turn_rule;
+//     game_turn = _game_turn;
+
+//     fen_history_index = 0;
+//     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+//         fen_history[i] = string();
+//     _update_fen_history();
+// }
+
+// void Board::_parse_board(string fen_board) {
+
+//     char pos_index = 0;
+    
+//     // Parse _board string into boards
+//     for (int i = 0; i < fen_board.length(); i++) {
+
+//         char piece = fen_board[i];
+        
+//         if (isdigit(piece))
+//         {
+//             pos_index += atoi(&fen_board[i]);
+//         }
+//         else if (piece != '/')
+//         {
+//             white_pawns |= (uint64_t)(piece == 'P') << pos_index;
+//             white_knights |= (uint64_t)(piece == 'N') << pos_index;
+//             white_bishops |= (uint64_t)(piece == 'B') << pos_index;
+//             white_rooks |= (uint64_t)(piece == 'R') << pos_index;
+//             white_queens |= (uint64_t)(piece == 'Q') << pos_index;
+//             white_king |= (uint64_t)(piece == 'K') << pos_index;
+//             black_pawns |= (uint64_t)(piece == 'p') << pos_index;
+//             black_knights |= (uint64_t)(piece == 'n') << pos_index;
+//             black_bishops |= (uint64_t)(piece == 'b') << pos_index;
+//             black_rooks |= (uint64_t)(piece == 'r') << pos_index;
+//             black_queens |= (uint64_t)(piece == 'q') << pos_index;
+//             black_king |= (uint64_t)(piece == 'k') << pos_index;
+
+//             pos_index++;
+//         }
+//     }
+// }
+
+// void Board::_parse_castling(string castling_fen) {
+
+//     // TODO: Init longs at 0 ?
+
+//     // '-' means that no castling are available
+//     if (castling_fen == "-")
+//         return ;
+
+//     // Parse castling fen 'AHah' into 0707 for example
+//     for (int i = 0; i < castling_fen.length(); i++)
+//     {
+//         if (isupper(castling_fen[i]))
+//         {
+//             if (chess960_rule)
+//                 white_castles |= algebraic_to_board(string(1, castling_fen[i]) + '1');
+//             else
+//                 white_castles |= castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL;
+//         }
+//         else
+//         {
+//             if (chess960_rule)
+//                 black_castles |= algebraic_to_board(string(1, castling_fen[i]) + '8');
+//             else
+//                 black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL;
+//         }
+//     }
+
+//     // Save kings initial column indexes
+//     white_king_start = white_king;
+//     black_king_start = black_king;
+// }
+
+// void    Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
+// {
+//     // Loop over the castling boards from the right to the left
+//     uint64_t white_mask = 1UL << 63;
+//     for (int x = 7; x >= 0; x--)
+//     {
+//         if (white_castles & white_mask)
+//         {
+//             fen[*fen_i] = x == 0 ? 'Q' : 'K';
+//             (*fen_i)++;
+//         }
+//         white_mask = 1UL << (55 + x);
+//     }
+
+//     uint64_t black_mask = 1UL << 7;
+//     for (int x = 7; x >= 0; x--)
+//     {
+//         if (black_castles & black_mask)
+//         {
+//             fen[*fen_i] = x == 0 ? 'q' : 'k';
+//             (*fen_i)++;
+//         }
+//         black_mask >>= 1;
+//     }
+// }
+
+// void    Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
+// {
+//     // Loop over the castling boards from the left to the right
+//     uint64_t white_mask = 1UL << 56;
+//     for (int x = 0; x < 8; x++)
+//     {
+//         if (white_castles & white_mask)
+//         {
+//             fen[*fen_i] = toupper(column_index_to_name(x));
+//             (*fen_i)++;
+//         }
+//         white_mask <<= 1;
+//     }
+
+//     uint64_t black_mask = 1UL;
+//     for (int x = 0; x < 8; x++)
+//     {
+//         if (black_castles & black_mask)
+//         {
+//             fen[*fen_i] = column_index_to_name(x);
+//             (*fen_i)++;
+//         }
+//         black_mask <<= 1;
+//     }
+// }
+
+// void Board::_find_moves_castle(int x, int y, int castle_index)
+// {
+//     // For castling. we have to know if the squares the king is passing through are attacked :
+
+//     // Pawns -> Just slide them
+//     // Knights -> Just slide them
+//     // King -> Just slide it
+
+//     // Sliders -> Loop over them, resolve x-rays using lookup tables
+// }
+
+// void Board::_update_fen_history()
+// {
+//     // Remove half turn rule and game turn (For future Threefold rule comparisons)
+//     string fen = create_fen(false);
+
+//     // Loop the history
+//     if (fen_history_index == FEN_HISTORY_SIZE)
+//         fen_history_index = 0;
+
+//     fen_history[fen_history_index++] = fen;
+// }
+
+// // --- OPERATORS ---
+
+// bool Board::operator==(Board *test_board_abstracted) {
+//     // TODO: move this in the Board class, as inlined method
+//     return this->create_fen() == test_board_abstracted->create_fen();
+// }
+
+// // --- LOOKUP METHODS ---
+
+// void Board::_create_lookup_tables()
+// {
+//     memset(pawn_lookup, 0, sizeof(uint64_t) * 64 * 2);
+//     memset(knight_lookup, 0, sizeof(uint64_t) * 64);
+//     memset(sliding_lookup, 0, sizeof(uint64_t) * 64 * 8);
+//     memset(king_lookup, 0, sizeof(uint64_t) * 64);
+
+//     uint64_t pos_mask = 1UL;
+//     for (int y = 0; y < 8; y++)
+//     {
+//         for (int x = 0; x < 8; x++)
+//         {
+//             // Create the lookup table for the current position
+//             _create_pawn_lookup_table(y, x, pos_mask);
+//             _create_knight_lookup_table(y, x, pos_mask);
+//             _create_sliding_lookup_table(y, x, pos_mask);
+//             _create_king_lookup_table(y, x, pos_mask);
+//             pos_mask <<= 1;
+//         }
+//     }
+// }
+
+// void Board::_create_pawn_lookup_table(int y, int x, uint64_t position)
+// {
+//     uint64_t pawn_mask = 0UL;
+//     if (y > 0)
+//     {
+//         if (x > 0)
+//             pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+//         if (x < 7)
+//             pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+//     }
+//     pawn_lookup[position][0] = pawn_mask;
+    
+//     pawn_mask = 0UL;
+//     if (0 < y && y < 7)
+//     {
+//         if (x > 0)
+//             pawn_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+//         if (x < 7)
+//             pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+//     }
+//     pawn_lookup[position][1] = pawn_mask;
+// }
+
+// void Board::_create_knight_lookup_table(int y, int x, uint64_t position)
+// {
+//     uint64_t knight_mask = 0UL;
+//     if (x > 0)
+//     {
+//         // 2 up 1 left
+//         if (y > 1)
+//             knight_mask |= 1UL << ((y - 2) * 8 + (x - 1));
+//         // 2 down 1 left
+//         if (y < 6)
+//             knight_mask |= 1UL << ((y + 2) * 8 + (x - 1));
+//     }
+//     if (x > 1)
+//     {
+//         // 2 left 1 up
+//         if (y > 0)
+//         knight_mask |= 1UL << ((y - 1) * 8 + (x - 2));
+//         // 2 left 1 down
+//         if (y < 7)
+//             knight_mask |= 1UL << ((y + 1) * 8 + (x - 2));
+//     }
+//     if (x < 6)
+//     {
+//         // 2 right 1 down
+//         if (y > 0)
+//         knight_mask |= 1UL << ((y - 1) * 8 + (x + 2));
+//         // 2 right 1 up
+//         if (y < 7)
+//             knight_mask |= 1UL << ((y + 1) * 8 + (x + 2));
+//     }
+//     if (x < 7)
+//     {
+//         // 2 up 1 right
+//         if (y > 1)
+//             knight_mask |= 1UL << ((y - 2) * 8 + (x + 1));
+//         // 2 down 1 right
+//         if (y < 6)
+//             knight_mask |= 1UL << ((y + 2) * 8 + (x + 1));
+//     }
+
+//     knight_lookup[position] = knight_mask;
+// }
+
+// void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
+// {
+//     // North
+//     uint64_t sliding_pos = position;
+//     for (int j = y; j >= 0; j--)
+//     {
+//         sliding_lookup[position][0] |= sliding_pos;
+//         sliding_pos >>= 8;
+//     }
+
+//     // North-East
+//     sliding_pos = position;
+//     for (int j = y, i = x; j >= 0 && i < 8; j--, i++)
+//     {
+//         sliding_lookup[position][1] |= sliding_pos;
+//         sliding_pos >>= 7;
+//     }
+
+//     // East
+//     sliding_pos = position;
+//     for (int i = x; i < 8; i++)
+//     {
+//         sliding_lookup[position][2] |= sliding_pos;
+//         sliding_pos <<= 1;
+//     }
+
+//     // South-East
+//     sliding_pos = position;
+//     for (int j = y, i = x; j < 8 && i < 8; j++, i++)
+//     {
+//         sliding_lookup[position][3] |= sliding_pos;
+//         sliding_pos <<= 9;
+//     }
+
+//     // South
+//     sliding_pos = position;
+//     for (int j = y; j < 8; j++)
+//     {
+//         sliding_lookup[position][4] |= sliding_pos;
+//         sliding_pos <<= 8;
+//     }
+
+//     // South-West
+//     sliding_pos = position;
+//     for (int j = y, i = x; j < 8 && i >= 0; j++, i--)
+//     {
+//         sliding_lookup[position][5] |= sliding_pos;
+//         sliding_pos <<= 7;
+//     }
+    
+//     // West
+//     sliding_pos = position;
+//     for (int i = x; i >= 0; i--)
+//     {
+//         sliding_lookup[position][6] |= sliding_pos;
+//         sliding_pos >>= 1;
+//     }
+
+//     // North-West
+//     sliding_pos = position;
+//     for (int j = y, i = x; j >= 0 && i >= 0; j--, i--)
+//     {
+//         sliding_lookup[position][7] |= sliding_pos;
+//         sliding_pos >>= 9;
+//     }
+// }
+
+// void Board::_create_king_lookup_table(int y, int x, uint64_t position)
+// {
+//     uint64_t king_mask = 0UL;
+//     if (x > 0)
+//     {
+//         // 1 up left
+//         if (y > 0)
+//             king_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+//         // 1 left
+//         king_mask |= 1UL << (y * 8 + (x - 1));
+//         // 1 down left
+//         if (y < 7)
+//             king_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+//     }
+//     if (x < 7)
+//     {
+//         // 1 up right
+//         if (y > 0)
+//             king_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+//         // 1 right
+//         king_mask |= 1UL << (y * 8 + (x + 1));
+//         // 1 down right
+//         if (y < 7)
+//             king_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+//     }
+//     // 1 up
+//     if (y > 0)
+//         king_mask |= 1UL << ((y - 1) * 8 + x);
+//     // 1 down
+//     if (y < 7)
+//         king_mask |= 1UL << ((y + 1) * 8 + x);
+
+//     king_lookup[position] = king_mask;    
+// }
+
+# pragma endregion BitBoard

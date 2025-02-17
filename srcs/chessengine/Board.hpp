@@ -2,12 +2,16 @@
 #ifndef BOARD_HPP
 # define BOARD_HPP
 
-#include "Move.hpp"
-#include "ChessEngine.hpp"
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-#include <bits/stdc++.h>
+// --- BASIC BOARD IMPLEMENTATION---
+
+# pragma region Board
+
+# include "Move.hpp"
+# include "ChessEngine.hpp"
+# include <stdio.h>
+# include <string.h>
+# include <vector>
+# include <bits/stdc++.h>
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
@@ -108,5 +112,150 @@ class Board {
         bool    _is_check();
         bool    _is_check(int x, int y);
 };
+
+# pragma endregion Board
+
+// --- BIT BOARD IMPLEMENTATION---
+
+# pragma region BitBoard
+
+// # include "Move.hpp"
+// # include "ChessEngine.hpp"
+// # include <stdio.h>
+// # include <string.h>
+// # include <vector>
+// # include <bits/stdc++.h>
+
+// // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
+// // So we can assume that a position cannot be repeated at more than 50 moves away
+// # define FEN_HISTORY_SIZE 50
+
+// class Board {
+//     /*
+//     Board represent all FEN data :
+//     rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1
+    
+//     White = Upper case = First indexes
+//     Black = Lower case = Last indexes
+//     */
+
+//     bool        chess960_rule;
+
+//     // FEN data: Pieces
+//     uint64_t    white_pawns;
+//     uint64_t    white_knights;
+//     uint64_t    white_bishops;
+//     uint64_t    white_rooks;
+//     uint64_t    white_queens;
+//     uint64_t    white_king;
+//     uint64_t    black_pawns;
+//     uint64_t    black_knights;
+//     uint64_t    black_bishops;
+//     uint64_t    black_rooks;
+//     uint64_t    black_queens;
+//     uint64_t    black_king;
+//     // uint64_t    *all_pieces[12] = {&white_pawns, &white_knights, &white_bishops, &white_rooks, &white_queens, &white_king, &black_pawns, &black_knights, &black_bishops, &black_rooks, &black_queens, &black_king};
+//     // char    all_pieces_letters[12] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+    
+//     // FEN data: Player turn
+//     bool        white_turn;
+    
+//     // FEN data: Castling info
+//     uint64_t        white_castles;              // Positions where the castle is available
+//     uint64_t        black_castles;
+//     uint64_t        white_king_start;           // Initial position of the kings
+//     uint64_t        black_king_start;
+    
+//     // FEN data: en passant and turns
+//     uint64_t        en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
+//     int         half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
+//     int         game_turn_max = 125;
+
+//     public:
+//         int         game_turn;                  // Game turn, incremented after each black move
+
+//         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
+//         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
+
+//         bool            is_white_turn() override;
+//         char            get_cell(int x, int y) override;
+//         float           get_game_state() override;
+//         bool            get_check_state() override;
+//         int             get_castling_rights() override;
+
+//         string          create_fen(bool with_turns = true) override;
+//         Board           *clone() override;
+
+//         vector<Move>    get_available_moves() override;
+//         void            apply_move(Move move) override;
+
+//         void            log() override;
+//         void            log_history(int turns = -1) override;
+
+//         bool            operator ==(Board *test_board) override;
+
+//     private:
+
+//         // Internal data 
+//         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
+//         uint64_t   attacked_squares; // Squares attacked by the opponent
+
+//         // FEN history is used to check the Threefold Repetition rule
+//         // Each FEN is saved in the history after each move
+//         string         fen_history[FEN_HISTORY_SIZE];
+//         int            fen_history_index;
+
+//         // // Function pointer to apply castle depending on the chess960 rule
+//         // bool    (Board::*_handle_castle)(int, int, int, int);
+
+//         void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule);
+//         void    _parse_board(string fen_board);
+//         void    _parse_castling(string castling_fen);
+//         void    _create_fen_for_standard_castling(char *fen, int *fen_i);
+//         void    _create_fen_for_chess960_castling(char *fen, int *fen_i);
+
+//         void    _apply_move(char piece, uint64_t src, uint64_t dst, char _promotion);
+//         // bool    _handle_standard_castle(int src_x, int src_y, int dst_x, int _);
+//         // bool    _handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y);
+//         // void    _apply_castle(int src_x, int src_y, int dst_x, int dst_y);
+
+//         // void    _update_en_passant();
+//         // void    _update_castling_rights();
+//         void    _update_fen_history();
+
+//         // float   _find_game_state();
+//         // bool    _threefold_repetition_rule();
+//         // bool    _insufficient_material_rule();
+
+//         vector<Move>    _find_moves();
+//         // void            _find_moves_pawns(int x, int y);
+//         // void            _add_regular_move_or_promotion(int x, int y, int dx, int dy);
+//         // void            _find_moves_knights(int x, int y);
+//         // void            _find_moves_bishops(int x, int y);
+//         // void            _find_moves_rooks(int x, int y);
+//         // void            _find_moves_queens(int x, int y);
+//         // void            _find_moves_king(int x, int y);
+//         void            _find_moves_castle(int x, int y, int castle_index);
+//         // bool            _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
+
+//         // void    _filter_non_legal_moves();
+//         // bool    _is_check();
+//         // bool    _is_check(int x, int y);
+
+//         // LOOKUP TABLES
+
+//         uint64_t pawn_lookup[64][2]; // 0: white, 1: black
+//         uint64_t knight_lookup[64];
+//         uint64_t sliding_lookup[64][8]; // 0: N, 1: NE, 2: E, 3: SE, 4: S, 5: SW, 6: W, 7: NW
+//         uint64_t king_lookup[64];
+
+//         void    _create_lookup_tables();
+//         void    _create_pawn_lookup_table(int y, int x, uint64_t position);
+//         void    _create_knight_lookup_table(int y, int x, uint64_t position);
+//         void    _create_sliding_lookup_table(int y, int x, uint64_t position);
+//         void    _create_king_lookup_table(int y, int x, uint64_t position);
+// };
+
+# pragma endregion BitBoard
 
 #endif

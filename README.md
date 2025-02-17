@@ -187,13 +187,7 @@ Inside the file :
             - Simulate N games and create an average time for all methods ?
         - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * Duplicate GameEngine so it uses BitBoard and BitMove only. Too dirty to use AbtractBoard and AbtractMove in all implementation. It would force dynamic casts at many places ...
-            In order to manipulate both implementation in Agent, Bot and heuristics I'm force to use AbstractBoard.
-            So I'll just implement BitBoard, make sure it is ok, and remove the old one.
-            The most important point to have Abtract Board and Move was to use their unit tests
-        -> I can still mesure them by keeping one implementation commented
-
-    * Just re create a branch on "Improvements" and copy BitBoard/BitMove implementations once they are finished
+    * Use #if, #elif, #else, and #endif directives to switch between basic Board or BitBoard implementations
 
     * Regroup all .test. files into a tests folder
 

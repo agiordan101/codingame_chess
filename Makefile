@@ -1,11 +1,10 @@
 
 TEST_EXEC = unittests
 CG_EXEC = mychessbot
-MM2_EXEC = mm2
-MM3_EXEC = mm3
-BITBOARD_EXEC = main_test_bitboard
+MM_EXEC = mm2
+MMBB_EXEC = mmbb
 
-flag = -g -O2
+flag = -g -O2 # -Wall -Wextra
 
 SRCS_PATH = srcs
 ALL_FILES = $(wildcard $(SRCS_PATH)/*/*.cpp)
@@ -47,13 +46,9 @@ test:
 
 ### Compile the bots and copy them into codingame chess engine folder
 mm2:
-	g++ $(flag) mains/maincg_$(MM2_EXEC).cpp $(MINMAX_SRCS) -o ./bins/$(MM2_EXEC)
-	cp ./bins/$(MM2_EXEC) ../codingame-chess/$(CG_EXEC)
+	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MM_EXEC)
+	cp ./bins/$(MM_EXEC) ../codingame-chess/$(CG_EXEC)
 
-mm3:
-	g++ $(flag) mains/maincg_$(MM3_EXEC).cpp $(MINMAX_SRCS) -o ./bins/$(MM3_EXEC)
-	cp ./bins/$(MM3_EXEC) ../codingame-chess/$(CG_EXEC)
-
-bitboard:
-	g++ $(flag) mains/$(BITBOARD_EXEC).cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(BITBOARD_EXEC)
-	./bins/$(BITBOARD_EXEC)
+mmbb:
+	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MMBB_EXEC)
+	cp ./bins/$(MMBB_EXEC) ../codingame-chess/$(CG_EXEC)

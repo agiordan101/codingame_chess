@@ -1,15 +1,15 @@
 #ifndef GAMEENGINE_HPP
 # define GAMEENGINE_HPP
 
-#include "../chessengine/Board.hpp"
-#include "../players/BotPlayer.hpp"
+# include "../chessengine/Board.hpp"
+# include "../players/BotPlayer.hpp"
 
 class GameEngine {
 
     public:
         GameEngine(BotPlayer* player);
         void infinite_game_loop();
-    
+
     private:
 
         BotPlayer*  _player;

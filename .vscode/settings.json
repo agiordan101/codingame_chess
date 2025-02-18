@@ -52,6 +52,7 @@
         "unordered_set": "cpp",
         "ranges": "cpp",
         "span": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "complex": "cpp"
     }
 }

@@ -21,6 +21,15 @@ int Move_unittest(int test_index, string uci, Move *requested_move)
     return 0;
 }
 
+# if BITBOARD_IMPLEMENTATION == 1
+
+int Move_unittestLauncher()
+{ 
+    return 0;
+}
+
+# else
+
 int Move_unittestLauncher()
 {
     int success_count = 0;
@@ -68,6 +77,8 @@ int Move_unittestLauncher()
     return success_count;
 }
 
+# endif
+
 #pragma endregion Move
 
 #pragma region to_uci
@@ -87,6 +98,15 @@ int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, str
     cerr << "- Requested UCI : " << requested_uci << endl;
     return 0;
 }
+
+# if BITBOARD_IMPLEMENTATION == 1
+
+int to_uci_unittestLauncher()
+{ 
+    return 0;
+}
+
+# else
 
 int to_uci_unittestLauncher()
 {
@@ -171,6 +191,8 @@ int to_uci_unittestLauncher()
     return success_count;
 }
 
+# endif
+
 #pragma endregion to_uci
 
 #pragma region equaloperator
@@ -192,6 +214,15 @@ int equaloperator_unittest(int test_index, Move *move1, Move *move2, bool expect
     cerr << "- Expected result : " << expected_result << endl;
     return 0;
 }
+
+# if BITBOARD_IMPLEMENTATION == 1
+
+int equaloperator_unittestLauncher()
+{ 
+    return 0;
+}
+
+# else
 
 int equaloperator_unittestLauncher()
 {
@@ -228,6 +259,8 @@ int equaloperator_unittestLauncher()
     return success_count;
 }
 
+# endif
+
 #pragma endregion equaloperator
 
 #pragma region compare_move_vector
@@ -251,6 +284,15 @@ int compare_move_vector_unittest(int test_index, vector<Move> movelst1, vector<M
     cerr << "- Expected result : " << expected_result << endl;
     return 0;
 }
+
+# if BITBOARD_IMPLEMENTATION == 1
+
+int compare_move_vector_unittestLauncher()
+{ 
+    return 0;
+}
+
+# else
 
 int compare_move_vector_unittestLauncher()
 {
@@ -291,6 +333,8 @@ int compare_move_vector_unittestLauncher()
 
     return success_count;
 }
+
+# endif
 
 #pragma endregion compare_move_vector
 

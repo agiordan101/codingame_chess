@@ -1,5 +1,6 @@
-# include "../srcs/agents/MinMaxAgent.hpp"
+
 # include "../srcs/gameengine/GameEngine.hpp"
+# include "../srcs/agents/MinMaxAgent.hpp"
 # include "../srcs/heuristics/PiecesHeuristic.hpp"
 # include "../srcs/players/BotPlayer.hpp"
 

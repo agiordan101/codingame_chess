@@ -12,7 +12,7 @@ int main()
         new BotPlayer(
             new MinMaxAgent(
                 new PiecesHeuristic(),
-                2
+                1
             )
         )
     );

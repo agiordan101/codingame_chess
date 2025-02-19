@@ -3,6 +3,7 @@ TEST_EXEC = unittests
 CG_EXEC = mychessbot
 MM_EXEC = mm2
 MMBB_EXEC = mmbb
+BITBOARDTEST_EXEC = bbtest
 
 flag = -g -O2 # -Wall -Wextra
 
@@ -24,7 +25,7 @@ MINMAX_SRCS = $(BOT_SRCS)\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
-all: test mm2 mm3
+all: test mmbb mm2
 
 ### Install python tools for code formatting
 setup:
@@ -52,3 +53,7 @@ mm2:
 mmbb:
 	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MMBB_EXEC)
 	cp ./bins/$(MMBB_EXEC) ../codingame-chess/$(CG_EXEC)
+
+bbtest:
+	g++ $(flag) mains/main_test_bitboard.cpp $(MINMAX_SRCS) -o ./bins/$(BITBOARDTEST_EXEC)
+	./bins/$(BITBOARDTEST_EXEC)

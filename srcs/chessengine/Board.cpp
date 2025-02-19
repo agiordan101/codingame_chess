@@ -1,4 +1,5 @@
 #include "Board.hpp"
+#include <locale>
 
 # if BITBOARD_IMPLEMENTATION == 1
 
@@ -29,6 +30,9 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
+    std::locale::global(std::locale("C.UTF-8"));
+    std::wcout.imbue(std::locale("C.UTF-8"));
+
     cerr << "Board: FEN: " << create_fen() << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
     cerr << "Board: White castling: " << endl << std::bitset<64>(white_castles) << endl;
@@ -43,18 +47,14 @@ void Board::log() {
     cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
     cerr << " uci| A B C D E F G H" << endl;
     cerr << "----+----------------" << endl;
-
-    char piece = '.';
     for (int y = 0; y < 8; y++)
     {
-        cerr << y << " " << line_index_to_number(y) << " |";
+        wcout << y << " " << line_index_to_number(y) << " |";
         for (int x = 0; x < 8; x++)
-        {
-            cerr << " " << get_cell(x, y);
-        }
-        cerr << endl;
+            wcout << " " << convert_piece_to_unicode(get_cell(x, y));
+        wcout << endl;
     }
-    cerr << "----+----------------" << endl;
+    wcout << "----+----------------" << endl;
 
     // cerr << " White pawns :  " << std::bitset<64>(white_pawns) << endl;
     // cerr << " White knights: " << std::bitset<64>(white_knights) << endl;
@@ -110,7 +110,7 @@ bool Board::get_check_state() {
     //  return attacked_squares & (white_turn ? white_king : black_king);
 }
 
-inline char Board::get_cell(int x, int y) {
+char Board::get_cell(int x, int y) {
 
     uint64_t pos_mask = 1UL << (y * 8 + x);
     
@@ -142,7 +142,7 @@ inline char Board::get_cell(int x, int y) {
     return '.';
 }
 
-inline int Board::get_castling_rights() {
+int Board::get_castling_rights() {
     return 0;
 }
 
@@ -661,6 +661,9 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
+    std::locale::global(std::locale("C.UTF-8"));
+    std::wcout.imbue(std::locale("C.UTF-8"));
+
     cerr << "Board: FEN: " << create_fen() << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
     cerr << "Board: Castling: w " << castles[0] << " | w " << castles[1] << " | b " << castles[2] << " | b " << castles[3] << endl;
@@ -675,12 +678,12 @@ void Board::log() {
     cerr << "----+----------------" << endl;
     for (int y = 0; y < 8; y++)
     {
-        cerr << y << " " << line_index_to_number(y) << " |";
+        wcout << y << " " << line_index_to_number(y) << " |";
         for (int x = 0; x < 8; x++)
-            cerr << " " << board[y][x];
-        cerr << endl;
+            wcout << " " << convert_piece_to_unicode(board[y][x]);
+        wcout << endl;
     }
-    cerr << "----+----------------" << endl;
+    wcout << "----+----------------" << endl;
 }
 
 void Board::log_history(int turns)

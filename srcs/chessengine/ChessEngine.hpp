@@ -109,4 +109,37 @@ inline float get_piece_value(char piece)
     }
 }
 
+inline wchar_t convert_piece_to_unicode(char piece)
+{
+    switch (piece)
+    {
+        case 'P':
+            return L'♟';
+        case 'N':
+            return L'♞';
+        case 'B':
+            return L'♝';
+        case 'R':
+            return L'♜';
+        case 'Q':
+            return L'♛';
+        case 'K':
+            return L'♚';
+        case 'p':
+            return L'♙';
+        case 'n':
+            return L'♘';
+        case 'b':
+            return L'♗';
+        case 'r':
+            return L'♖';
+        case 'q':
+            return L'♕';
+        case 'k':
+            return L'♔';
+        default:
+            return piece;
+    }
+}
+
 #endif

@@ -31,12 +31,18 @@ void Move::log() {
     cerr << "Move: Promote to " << (this->promotion ? this->promotion : EMPTY_CELL) << endl;
 }
 
+// TODO: Add a castle boolean to the Move class
 string Move::to_uci(bool chess960_rules)
 {
     uint64_t tmp_dst = this->dst;
     // Standard castles :       e1g1 or e1c1
     if (!chess960_rules)
-        tmp_dst = this->dst < this->src ? 1UL << 58 : 1UL << 62;
+    {
+        if (this->dst & 0x00000000000000FFUL)
+            tmp_dst = this->dst < this->src ? 1UL << 2 : 1UL << 6;
+        else
+            tmp_dst = this->dst < this->src ? 1UL << 58 : 1UL << 62;
+    }
 
     // Normal move + castles:   e2e4
     string uci = bitboard_to_algebraic(this->src) + bitboard_to_algebraic(tmp_dst);

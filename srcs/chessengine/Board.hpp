@@ -43,8 +43,6 @@ class Board {
     uint64_t    black_rooks;
     uint64_t    black_queens;
     uint64_t    black_king;
-    // uint64_t    *all_pieces[12] = {&white_pawns, &white_knights, &white_bishops, &white_rooks, &white_queens, &white_king, &black_pawns, &black_knights, &black_bishops, &black_rooks, &black_queens, &black_king};
-    // char    all_pieces_letters[12] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
     
     // FEN data: Player turn
     bool        white_turn;
@@ -84,10 +82,13 @@ class Board {
         bool            operator ==(Board *test_board);
 
     private:
+        // uint64_t    *all_pieces[12] = {&white_pawns, &white_knights, &white_bishops, &white_rooks, &white_queens, &white_king, &black_pawns, &black_knights, &black_bishops, &black_rooks, &black_queens, &black_king};
+        // char    all_pieces_letters[12] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
 
-        // Internal data 
+        // Engine variables 
         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
         uint64_t   attacked_squares; // Squares attacked by the opponent
+        uint64_t   pieces_mask; // All pieces on the board
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move

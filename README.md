@@ -175,19 +175,30 @@ Inside the file :
 
 ## Roadmap
 
+Board optimization :
+    - (DONE) Do not optimize Board methods ! Don't break anything
+    - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
+    - (DONE) Probably need to create more inline getter/Setter
+    - (IN PROGRESS) Create BitBoard, inherit from AbtractBoard. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
+    - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
+    - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
+        - Simulate N games and create an average time for all methods ?
+    - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
+
 - Next steps :
 
-    * Board optimization :
-        - (DONE) Do not optimize Board methods ! Don't break anything
-        - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
-        - (DONE) Probably need to create more inline getter/Setter
-        - (IN PROGRESS) Create BitBoard, inherit from AbtractBoard. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
-        - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
-        - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
-            - Simulate N games and create an average time for all methods ?
-        - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
+    * Add a castle flag and rule flag to the Move class.
+        In GameEngine we cannot pass a castle flag in .to_uci(). Should should know wether it is a caslting or not, and the rule.
+        Castle flag could be an int representing 5 states :
+        - No castling
+        - White left castle
+        - White right castle
+        - ...
+    * Convert apply_move tests to bitboard
 
-    * Use #if, #elif, #else, and #endif directives to switch between basic Board or BitBoard implementations
+    * Think about removing the rule boolean from the implemenation, and switch some code at compile time depending on a global variable.
+        - It will speed up the engine
+        - We won't use boards with different rules in the same executable
 
     * Regroup all .test. files into a tests folder
 

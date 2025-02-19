@@ -6,7 +6,7 @@ int Move_unittest(int test_index, string uci, Move *requested_move)
 {
     Move final_move = Move(uci);
 
-    if (final_move == requested_move)
+    if (final_move == requested_move && final_move.to_uci() == uci)
         return 1;
 
     cerr << "\n---------- Move - Move_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
@@ -67,11 +67,29 @@ int Move_unittestLauncher()
         new Move(7, 1, 7, 0, 'b')
     );
 
-    // (Castling)
+    // White castle - Left side
     success_count += Move_unittest(
         7,
         "e1a1",
         new Move(4, 7, 0, 7, 0)
+    );
+    // White castle - Right side
+    success_count += Move_unittest(
+        8,
+        "e1h1",
+        new Move(4, 7, 7, 7, 0)
+    );
+    // Black castle - Left side
+    success_count += Move_unittest(
+        9,
+        "e8a8",
+        new Move(4, 0, 0, 0, 0)
+    );
+    // Black castle - Right side
+    success_count += Move_unittest(
+        10,
+        "e8h8",
+        new Move(4, 0, 7, 0, 0)
     );
 
     return success_count;
@@ -86,8 +104,9 @@ int Move_unittestLauncher()
 int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, string requested_uci)
 {
     string final_uci = move->to_uci(regular_rules_castling);
+    Move *duplicate_move = new Move(final_uci);
 
-    if (final_uci == requested_uci)
+    if (final_uci == requested_uci && *move == duplicate_move)
         return 1;
 
     cerr << "\n---------- Move - to_uci_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
@@ -155,14 +174,14 @@ int to_uci_unittestLauncher()
     // Same right castle with 2 different rules :
     Move *castling_move = new Move(4, 7, 7, 7, 0);
 
-    //  - Regular chess castle rule
+    //  - White castle - Right - Regular chess rule
     success_count += to_uci_unittest(
         7,
         castling_move,
         true,
         "e1g1"
     );
-    //  - Chess960 castle rule 
+    //  - White castle - Right - Chess960 rule 
     success_count += to_uci_unittest(
         8,
         castling_move,
@@ -173,19 +192,55 @@ int to_uci_unittestLauncher()
     // Same left castle with 2 different rules :
     castling_move = new Move(4, 7, 0, 7, 0);
 
-    //  - Regular chess castle rule
+    //  - White castle - Left - Regular chess rule
     success_count += to_uci_unittest(
         9,
         castling_move,
         true,
         "e1c1"
     );
-    //  - Chess960 castle rule 
+    //  - White castle - Left - Chess960 rule 
     success_count += to_uci_unittest(
         10,
         castling_move,
         false,
         "e1a1"
+    );
+
+    // Same right castle with 2 different rules :
+    castling_move = new Move(4, 0, 7, 0, 0);
+
+    //  - Black castle - Right - Regular chess rule
+    success_count += to_uci_unittest(
+        11,
+        castling_move,
+        true,
+        "e8g8"
+    );
+    //  - Black castle - Right - Chess960 rule 
+    success_count += to_uci_unittest(
+        12,
+        castling_move,
+        false,
+        "e8h8"
+    );
+
+    // Same left castle with 2 different rules :
+    castling_move = new Move(4, 0, 0, 0, 0);
+
+    //  - Black castle - Left - Regular chess rule
+    success_count += to_uci_unittest(
+        13,
+        castling_move,
+        true,
+        "e8c8"
+    );
+    //  - Black castle - Left - Chess960 rule 
+    success_count += to_uci_unittest(
+        14,
+        castling_move,
+        false,
+        "e8a8"
     );
 
     return success_count;

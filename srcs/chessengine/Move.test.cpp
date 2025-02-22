@@ -6,7 +6,7 @@ int Move_unittest(int test_index, string uci, Move *requested_move)
 {
     Move final_move = Move(uci);
 
-    if (final_move == requested_move && final_move.to_uci() == uci)
+    if (final_move == requested_move)
         return 1;
 
     cerr << "\n---------- Move - Move_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
@@ -25,7 +25,68 @@ int Move_unittest(int test_index, string uci, Move *requested_move)
 
 int Move_unittestLauncher()
 { 
-    return 0;
+    int success_count = 0;
+
+    // All columns and lines
+    success_count += Move_unittest(
+        1,
+        "a8b7",
+        new Move('p', 1UL << 0, 1UL << 9)
+    );
+    success_count += Move_unittest(
+        2,
+        "c5d6",
+        new Move('p', 1UL << 26, 1UL << 19)
+    );
+    success_count += Move_unittest(
+        3,
+        "e4f3",
+        new Move('p', 1UL << 36, 1UL << 45)
+    );
+    success_count += Move_unittest(
+        4,
+        "g1h2",
+        new Move('p', 1UL << 62, 1UL << 55)
+    );
+
+    // Promotions
+    success_count += Move_unittest(
+        5,
+        "a7a8r",
+        new Move('P', 1UL << 8, 1UL << 0, 'R')
+    );
+    success_count += Move_unittest(
+        6,
+        "h7h8b",
+        new Move('p', 1UL << 15, 1UL << 7, 'b')
+    );
+
+    // White castle - Left side
+    success_count += Move_unittest(
+        7,
+        "e1a1",
+        new Move('K', 1UL << 60, 1UL << 56)
+    );
+    // White castle - Right side
+    success_count += Move_unittest(
+        8,
+        "e1h1",
+        new Move('K', 1UL << 60, 1UL << 63)
+    );
+    // Black castle - Left side
+    success_count += Move_unittest(
+        9,
+        "e8a8",
+        new Move('k', 1UL << 4, 1UL << 0)
+    );
+    // Black castle - Right side
+    success_count += Move_unittest(
+        10,
+        "e8h8",
+        new Move('k', 1UL << 4, 1UL << 7)
+    );
+
+    return success_count;
 }
 
 # else
@@ -34,6 +95,7 @@ int Move_unittestLauncher()
 {
     int success_count = 0;
 
+    // All columns and lines
     success_count += Move_unittest(
         1,
         "a8b7",
@@ -101,12 +163,11 @@ int Move_unittestLauncher()
 
 #pragma region to_uci
 
-int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, string requested_uci)
+int to_uci_unittest(int test_index, Move *move, bool chess960_rules, bool castling, string requested_uci)
 {
-    string final_uci = move->to_uci(regular_rules_castling);
-    Move *duplicate_move = new Move(final_uci);
+    string final_uci = move->to_uci(chess960_rules, castling);
 
-    if (final_uci == requested_uci && *move == duplicate_move)
+    if (final_uci == requested_uci)
         return 1;
 
     cerr << "\n---------- Move - to_uci_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
@@ -122,7 +183,133 @@ int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, str
 
 int to_uci_unittestLauncher()
 { 
-    return 0;
+    int success_count = 0;
+
+    // All columns and lines
+    success_count += to_uci_unittest(
+        1,
+        new Move('p', 1UL << 48, 1UL << 8, 0, castle_info_e::NOTCASTLE),
+        false,
+        false,
+        "a2a7"
+    );
+    success_count += to_uci_unittest(
+        2,
+        new Move('p', 1UL << 17, 1UL << 46, 0, castle_info_e::NOTCASTLE),
+        false,
+        false,
+        "b6g3"
+    );
+    success_count += to_uci_unittest(
+        3,
+        new Move('p', 1UL << 3, 1UL << 60, 0, castle_info_e::NOTCASTLE),
+        true,
+        false,
+        "d8e1"
+    );
+    success_count += to_uci_unittest(
+        4,
+        new Move('p', 1UL << 34, 1UL << 29, 0, castle_info_e::NOTCASTLE),
+        true,
+        false,
+        "c4f5"
+    );
+    
+    // Promotions
+    success_count += to_uci_unittest(
+        5,
+        new Move('p', 1UL << 14, 1UL << 6, 'q', castle_info_e::NOTCASTLE),
+        false,
+        false,
+        "g7g8q"
+    );
+    success_count += to_uci_unittest(
+        6,
+        new Move('P', 1UL << 14, 1UL << 6, 'N', castle_info_e::NOTCASTLE),
+        true,
+        false,
+        "g7g8n"
+    );
+    
+    //  - White castle - Right - Regular chess rule
+    Move *castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, castle_info_e::WHITERIGHT);
+    success_count += to_uci_unittest(
+        7,
+        castling_move,
+        false,
+        true,
+        "e1g1"
+    );
+    //  - White castle - Right - Chess960 rule 
+    castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, castle_info_e::WHITERIGHT);
+    success_count += to_uci_unittest(
+        8,
+        castling_move,
+        true,
+        true,
+        "e1h1"
+    );
+    
+    //  - White castle - Left - Regular chess rule
+    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, castle_info_e::WHITELEFT);
+    success_count += to_uci_unittest(
+        9,
+        castling_move,
+        false,
+        true,
+        "e1c1"
+    );
+    //  - White castle - Left - Chess960 rule 
+    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, castle_info_e::WHITELEFT);
+    success_count += to_uci_unittest(
+        10,
+        castling_move,
+        true,
+        true,
+        "e1a1"
+    );
+
+    //  - Black castle - Right - Regular chess rule
+    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, castle_info_e::BLACKRIGHT);
+    success_count += to_uci_unittest(
+        11,
+        castling_move,
+        false,
+        true,
+        "e8g8"
+    );
+
+    //  - Black castle - Right - Chess960 rule
+    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, castle_info_e::BLACKRIGHT);
+    success_count += to_uci_unittest(
+        12,
+        castling_move,
+        true,
+        true,
+        "e8h8"
+    );
+
+    //  - Black castle - Left - Regular chess rule
+    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, castle_info_e::BLACKLEFT);
+    success_count += to_uci_unittest(
+        13,
+        castling_move,
+        false,
+        true,
+        "e8c8"
+    );
+
+    //  - Black castle - Left - Chess960 rule
+    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, castle_info_e::BLACKLEFT);
+    success_count += to_uci_unittest(
+        14,
+        castling_move,
+        true,
+        true,
+        "e8a8"
+    );
+
+    return success_count;
 }
 
 # else
@@ -273,8 +460,63 @@ int equaloperator_unittest(int test_index, Move *move1, Move *move2, bool expect
 # if BITBOARD_IMPLEMENTATION == 1
 
 int equaloperator_unittestLauncher()
-{ 
-    return 0;
+{
+    int success_count = 0;
+
+    success_count += equaloperator_unittest(
+        1,
+        new Move('p', 1UL << 0, 1UL << 9),
+        new Move('p', 1UL << 0, 1UL << 9),
+        true
+    );
+    success_count += equaloperator_unittest(
+        2,
+        new Move('p', 1UL << 0, 1UL << 9),
+        new Move('p', 1UL << 0, 1UL << 8),
+        false
+    );
+
+    success_count += equaloperator_unittest(
+        3,
+        new Move("a1b7"),
+        new Move("a1b7"),
+        true
+    );
+    success_count += equaloperator_unittest(
+        4,
+        new Move("a1b7"),
+        new Move("a1b8"),
+        false
+    );
+
+    // Promotions
+    success_count += equaloperator_unittest(
+        5,
+        new Move('P', 1UL << 8, 1UL << 0, 'R'),
+        new Move('P', 1UL << 8, 1UL << 0, 'R'),
+        true
+    );
+    success_count += equaloperator_unittest(
+        6,
+        new Move('P', 1UL << 8, 1UL << 0, 'R'),
+        new Move('P', 1UL << 8, 1UL << 0, 'Q'),
+        false
+    );
+
+    success_count += equaloperator_unittest(
+        7,
+        new Move("a1b7r"),
+        new Move("a1b7r"),
+        true
+    );
+    success_count += equaloperator_unittest(
+        8,
+        new Move("a1b7r"),
+        new Move("a1b8q"),
+        false
+    );
+
+    return success_count;
 }
 
 # else
@@ -291,7 +533,7 @@ int equaloperator_unittestLauncher()
     );
 
     success_count += equaloperator_unittest(
-        1,
+        2,
         new Move("a1b7"),
         new Move("a1b7"),
         true
@@ -299,13 +541,13 @@ int equaloperator_unittestLauncher()
 
     // Promotions
     success_count += equaloperator_unittest(
-        5,
+        3,
         new Move(0, 1, 0, 0, 'R'),
         new Move(0, 1, 0, 0, 'R'),
         true
     );
     success_count += equaloperator_unittest(
-        6,
+        4,
         new Move(6, 1, 6, 0, 'b'),
         new Move(6, 1, 6, 0, 'b'),
         true

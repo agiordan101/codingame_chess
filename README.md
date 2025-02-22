@@ -187,14 +187,7 @@ Board optimization :
 
 - Next steps :
 
-    * Add a castle flag and rule flag to the Move class.
-        In GameEngine we cannot pass a castle flag in .to_uci(). Should should know wether it is a caslting or not, and the rule.
-        Castle flag could be an int representing 5 states :
-        - No castling
-        - White left castle
-        - White right castle
-        - ...
-    * Convert apply_move tests to bitboard
+    * Convert Board.apply_move() tests to bitboard
 
     * Think about removing the rule boolean from the implemenation, and switch some code at compile time depending on a global variable.
         - It will speed up the engine

@@ -7,12 +7,28 @@ using namespace std;
 # include <iostream>
 
 # define BITBOARD_IMPLEMENTATION 1
+# define CHESS960_RULES 1
 
 # define EMPTY_CELL '.'
+
+/* ENUMS */
+
 # define GAME_CONTINUE -2
 # define BLACK_WIN -1
 # define DRAW 0
 # define WHITE_WIN 1
+
+// enum for Move type
+enum castle_info_e
+{
+    NOINFO,
+    NOTCASTLE,
+    WHITELEFT,
+    WHITERIGHT,
+    BLACKLEFT,
+    BLACKRIGHT
+};
+
 
 /* NOTATION FUNCTIONS */
 

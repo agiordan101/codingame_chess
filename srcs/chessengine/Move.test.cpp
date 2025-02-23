@@ -163,6 +163,8 @@ int Move_unittestLauncher()
 
 #pragma region to_uci
 
+# if BITBOARD_IMPLEMENTATION == 1
+
 int to_uci_unittest(int test_index, Move *move, bool chess960_rules, bool castling, string requested_uci)
 {
     string final_uci = move->to_uci(chess960_rules, castling);
@@ -178,8 +180,6 @@ int to_uci_unittest(int test_index, Move *move, bool chess960_rules, bool castli
     cerr << "- Requested UCI : " << requested_uci << endl;
     return 0;
 }
-
-# if BITBOARD_IMPLEMENTATION == 1
 
 int to_uci_unittestLauncher()
 { 
@@ -313,6 +313,22 @@ int to_uci_unittestLauncher()
 }
 
 # else
+
+int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, string requested_uci)
+{
+    string final_uci = move->to_uci(regular_rules_castling);
+
+    if (final_uci == requested_uci)
+        return 1;
+
+    cerr << "\n---------- Move - to_uci_unittest() - Test " << test_index << " - !!! FAILURE !!! ----------" << endl;
+    cerr << "- Move : " << endl;
+    move->log();
+
+    cerr << "\n- Final UCI : " << final_uci << endl;
+    cerr << "- Requested UCI : " << requested_uci << endl;
+    return 0;
+}
 
 int to_uci_unittestLauncher()
 {

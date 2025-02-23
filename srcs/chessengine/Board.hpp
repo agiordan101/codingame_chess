@@ -55,8 +55,8 @@ class Board {
     
     // FEN data: en passant and turns
     uint64_t        en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
-    int         half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
-    int         game_turn_max = 125;
+    int             half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
+    int             game_turn_max = 125;
 
     public:
         int         game_turn;                  // Game turn, incremented after each black move
@@ -64,7 +64,7 @@ class Board {
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
 
-        inline bool            is_white_turn() { return white_turn; }
+        inline bool     is_white_turn() { return white_turn; }
         char            get_cell(int x, int y);
         float           get_game_state();
         bool            get_check_state();
@@ -99,18 +99,21 @@ class Board {
         // bool    (Board::*_handle_castle)(int, int, int, int);
 
         void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule);
+        void    _initialize_bitboards();
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
+        
+        char    _get_cell(uint64_t mask);
+
         void    _create_fen_for_standard_castling(char *fen, int *fen_i);
         void    _create_fen_for_chess960_castling(char *fen, int *fen_i);
 
-        void    _apply_move(char piece, uint64_t src, uint64_t dst, char _promotion);
+        void    _apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info);
         // bool    _handle_standard_castle(int src_x, int src_y, int dst_x, int _);
         // bool    _handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y);
         // void    _apply_castle(int src_x, int src_y, int dst_x, int dst_y);
 
-        // void    _update_en_passant();
-        // void    _update_castling_rights();
+        void    _update_engine_data();
         void    _update_fen_history();
 
         // float   _find_game_state();

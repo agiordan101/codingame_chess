@@ -35,11 +35,11 @@ void Board::log() {
 
     cerr << "Board: FEN: " << create_fen() << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
-    cerr << "Board: White castling: " << endl << std::bitset<64>(white_castles) << endl;
-    cerr << "Board: Black castling: " << endl << std::bitset<64>(black_castles) << endl;
-    cerr << "Board: White king initial columns: " << endl << std::bitset<64>(white_king_start) << endl;
-    cerr << "Board: Black king initial columns: " << endl << std::bitset<64>(black_king_start) << endl;
-    cerr << "Board: En passant: " << endl << std::bitset<64>(en_passant) << endl;
+    cerr << "Board: White castling: " << endl << bitset<64>(white_castles) << endl;
+    cerr << "Board: Black castling: " << endl << bitset<64>(black_castles) << endl;
+    cerr << "Board: White king initial columns: " << (white_king_start ? bitboard_to_algebraic(white_king_start) : "Unavailable") << endl;
+    cerr << "Board: Black king initial columns: " << (black_king_start ? bitboard_to_algebraic(black_king_start) : "Unavailable") << endl;
+    cerr << "Board: En passant: " << (en_passant ? bitboard_to_algebraic(en_passant) : "Unavailable") << endl;
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
@@ -56,31 +56,27 @@ void Board::log() {
     }
     wcout << "----+----------------" << endl;
 
-    // cerr << " White pawns :  " << std::bitset<64>(white_pawns) << endl;
-    // cerr << " White knights: " << std::bitset<64>(white_knights) << endl;
-    // cerr << " White bishops: " << std::bitset<64>(white_bishops) << endl;
-    // cerr << " White rooks :  " << std::bitset<64>(white_rooks) << endl;
-    // cerr << " White queens : " << std::bitset<64>(white_queens) << endl;
-    // cerr << " White king :   " << std::bitset<64>(white_king) << endl;
-    // cerr << " Black pawns :  " << std::bitset<64>(black_pawns) << endl;
-    // cerr << " Black knights: " << std::bitset<64>(black_knights) << endl;
-    // cerr << " Black bishops: " << std::bitset<64>(black_bishops) << endl;
-    // cerr << " Black rooks :  " << std::bitset<64>(black_rooks) << endl;
-    // cerr << " Black queens : " << std::bitset<64>(black_queens) << endl;
-    // cerr << " Black king :   " << std::bitset<64>(black_king) << endl;
+    // cerr << " White pawns :  " << bitset<64>(white_pawns) << endl;
+    // cerr << " White knights: " << bitset<64>(white_knights) << endl;
+    // cerr << " White bishops: " << bitset<64>(white_bishops) << endl;
+    // cerr << " White rooks :  " << bitset<64>(white_rooks) << endl;
+    // cerr << " White queens : " << bitset<64>(white_queens) << endl;
+    // cerr << " White king :   " << bitset<64>(white_king) << endl;
+    // cerr << " Black pawns :  " << bitset<64>(black_pawns) << endl;
+    // cerr << " Black knights: " << bitset<64>(black_knights) << endl;
+    // cerr << " Black bishops: " << bitset<64>(black_bishops) << endl;
+    // cerr << " Black rooks :  " << bitset<64>(black_rooks) << endl;
+    // cerr << " Black queens : " << bitset<64>(black_queens) << endl;
+    // cerr << " Black king :   " << bitset<64>(black_king) << endl;
 }
 
 void Board::log_history(int turns) {
 }
 
-void Board::apply_move(Move move) {
-    // Disable en passant if it was available on this turn
-    en_passant = 0UL;
-
-    _apply_move(move.piece, move.src, move.dst, move.promotion);
-
-    // Enable en passant if it was set in this turn
-    // _update_en_passant();
+void Board::apply_move(Move move)
+{
+    char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
+    _apply_move(piece, move.src, move.dst, move.promotion, move.castle_info);
 
     // Only increment game turn after black turn
     if (!white_turn)
@@ -89,13 +85,8 @@ void Board::apply_move(Move move) {
     white_turn = !white_turn;
     half_turn_rule += 1;
 
-    // Update the engine
-    // uncheck_mask = 1UL;
-    // attacked_squares = 0UL;
-
-    // _update_castling_rights();
+    _update_engine_data();
     _update_fen_history();
-    // _update_engine();
 }
 
 float Board::get_game_state() {
@@ -115,32 +106,7 @@ char Board::get_cell(int x, int y) {
 
     uint64_t pos_mask = 1UL << (y * 8 + x);
     
-    if (white_pawns & pos_mask)
-        return 'P';
-    if (white_knights & pos_mask)
-        return 'N';
-    if (white_bishops & pos_mask)
-        return 'B';
-    if (white_rooks & pos_mask)
-        return 'R';
-    if (white_queens & pos_mask)
-        return 'Q';
-    if (white_king & pos_mask)
-        return 'K';
-    if (black_pawns & pos_mask)
-        return 'p';
-    if (black_knights & pos_mask)
-        return 'n';
-    if (black_bishops & pos_mask)
-        return 'b';
-    if (black_rooks & pos_mask)
-        return 'r';
-    if (black_queens & pos_mask)
-        return 'q';
-    if (black_king & pos_mask)
-        return 'k';
-
-    return '.';
+    return _get_cell(pos_mask);
 }
 
 int Board::get_castling_rights() {
@@ -277,8 +243,8 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
 {
     // Initialize private variables
     chess960_rule = _chess960_rule;
-    uncheck_mask = 0xFFFFFFFFFFFFFFFF;
-    attacked_squares = 0;
+
+    _initialize_bitboards();
 
     // Parse FEN data
     _parse_board(_board);
@@ -288,10 +254,37 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
+    _update_engine_data();
+
     fen_history_index = 0;
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
         fen_history[i] = string();
     _update_fen_history();
+}
+
+void Board::_initialize_bitboards() {
+    white_pawns = 0UL;
+    white_knights = 0UL;
+    white_bishops = 0UL;
+    white_rooks = 0UL;
+    white_queens = 0UL;
+    white_king = 0UL;
+    black_pawns = 0UL;
+    black_knights = 0UL;
+    black_bishops = 0UL;
+    black_rooks = 0UL;
+    black_queens = 0UL;
+    black_king = 0UL;
+
+    white_castles = 0UL;
+    black_castles = 0UL;
+    white_king_start = 0UL;
+    black_king_start = 0UL;
+    en_passant = 0UL;
+
+    uncheck_mask = 0xFFFFFFFFFFFFFFFF;
+    attacked_squares = 0UL;
+    pieces_mask = 0UL;
 }
 
 void Board::_parse_board(string fen_board) {
@@ -359,6 +352,36 @@ void Board::_parse_castling(string castling_fen) {
     black_king_start = black_king;
 }
 
+char Board::_get_cell(uint64_t mask)
+{
+    if (white_pawns & mask)
+        return 'P';
+    if (white_knights & mask)
+        return 'N';
+    if (white_bishops & mask)
+        return 'B';
+    if (white_rooks & mask)
+        return 'R';
+    if (white_queens & mask)
+        return 'Q';
+    if (white_king & mask)
+        return 'K';
+    if (black_pawns & mask)
+        return 'p';
+    if (black_knights & mask)
+        return 'n';
+    if (black_bishops & mask)
+        return 'b';
+    if (black_rooks & mask)
+        return 'r';
+    if (black_queens & mask)
+        return 'q';
+    if (black_king & mask)
+        return 'k';
+
+    return EMPTY_CELL;
+}
+
 void    Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
 {
     // Loop over the castling boards from the right to the left
@@ -411,7 +434,7 @@ void    Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
     }
 }
 
-void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char _promotion)
+void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info)
 {
     //TODO: Rename this function to _move_piece() ?
 
@@ -461,6 +484,8 @@ void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char _promoti
         return ;
     }
 
+    uint64_t save_en_passant = en_passant;
+    en_passant = 0UL;
     // Detect if a pawn moves
     if (src & (white_pawns | black_pawns))
     {
@@ -468,20 +493,21 @@ void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char _promoti
         half_turn_rule = -1;
         
         // If the pawn move is a promotion, the final piece is the promotion piece, not the original one
-        piece = _promotion ? _promotion : piece;
-        
+        if (promotion)
+            piece = white_turn ? toupper(promotion) : promotion;
+
         // If the pawn move is an en passant, handle the capture
-        if (dst == en_passant)
+        if (dst == save_en_passant)
         {
-            white_pawns &= ~en_passant >> 8;
-            black_pawns &= ~en_passant << 8;
+            white_pawns &= (~save_en_passant) >> 8;
+            black_pawns &= (~save_en_passant) << 8;
         }
-        
+
         // If the pawn moves 2 squares, we generate an en-passant
         if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
-            en_passant = src << 8;
-        if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
             en_passant = src >> 8;
+        if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
+            en_passant = src << 8;
     }
     // If the piece is a king or a rook, we have to update the castling rights
     else if (src & white_king)
@@ -557,15 +583,11 @@ void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char _promoti
         black_king |= dst;
 }
 
-void Board::_find_moves_castle(int x, int y, int castle_index)
+void Board::_update_engine_data()
 {
-    // For castling. we have to know if the squares the king is passing through are attacked :
-
-    // Pawns -> Just slide them
-    // Knights -> Just slide them
-    // King -> Just slide it
-
-    // Sliders -> Loop over them, resolve x-rays using lookup tables
+    pieces_mask = white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
+    // uncheck_mask = 1UL;
+    // attacked_squares = 0UL;
 }
 
 void Board::_update_fen_history()
@@ -578,6 +600,17 @@ void Board::_update_fen_history()
         fen_history_index = 0;
 
     fen_history[fen_history_index++] = fen;
+}
+
+void Board::_find_moves_castle(int x, int y, int castle_index)
+{
+    // For castling. we have to know if the squares the king is passing through are attacked :
+
+    // Pawns -> Just slide them
+    // Knights -> Just slide them
+    // King -> Just slide it
+
+    // Sliders -> Loop over them, resolve x-rays using lookup tables
 }
 
 // --- OPERATORS ---

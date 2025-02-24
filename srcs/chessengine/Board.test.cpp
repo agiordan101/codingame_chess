@@ -28,178 +28,6 @@ int apply_move_validMove_ApplyIt(int testIndex, Board *initial_board, Board *req
     return 1;
 }
 
-# if BITBOARD_IMPLEMENTATION == 1
-
-int apply_move_testLauncher()
-{
-    int successCount = 0;
-
-    // Regular Black moves - (Reset the half turn rule due to a pawn advance)
-    successCount += apply_move_validMove_ApplyIt(
-        1,
-        new Board("8/p7/8/8/8/8/8/8 b - - 5 1"),
-        new Board("8/8/p7/8/8/8/8/8 w - - 0 2"),
-        new Move('p', 1UL << 8, 1UL << 16)
-    );
-    // 2 advance black pawn that create a "en passant"
-    successCount += apply_move_validMove_ApplyIt(
-        2,
-        new Board("8/1p6/8/2P5/8/8/8/8 b - - 0 1"),
-        new Board("8/8/8/1pP5/8/8/8/8 w - b6 0 2"),
-        new Move('p', 1UL << 9, 1UL << 25)
-    );
-    // 2 "en passant" in a row
-    successCount += apply_move_validMove_ApplyIt(
-        3,
-        new Board("8/1p6/8/2P5/4P3/8/8/8 b - e4 0 1"),
-        new Board("8/8/8/1pP5/4P3/8/8/8 w - b6 0 2"),
-        new Move('p', 1UL << 9, 1UL << 25)
-    );
-
-    // Regular White moves - (Don't reset the half turn rule)
-    successCount += apply_move_validMove_ApplyIt(
-        4,
-        new Board("8/8/8/8/8/8/8/3Q4 w - - 5 1"),
-        new Board("8/8/8/8/6Q1/8/8/8 b - - 6 1"),
-        new Move('Q', 1UL << 59, 1UL << 38)
-    );
-    // 2 advance white pawn that create a "en passant"
-    successCount += apply_move_validMove_ApplyIt(
-        5,
-        new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
-        new Board("8/8/8/8/3pP3/8/8/8 b - e3 0 1"),
-        new Move('P', 1UL << 52, 1UL << 36)
-    );
-
-    // Black Chess960 Castle left
-    successCount += apply_move_validMove_ApplyIt(
-        6,
-        new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1"),
-        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT)
-    );
-    // Black Chess960 Castle right
-    successCount += apply_move_validMove_ApplyIt(
-        7,
-        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1"),
-        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2"),
-        new Move('k', 1UL << 1, 1UL << 7, 0, BLACKRIGHT)
-    );
-    // White Chess960 Castle left
-    successCount += apply_move_validMove_ApplyIt(
-        8,
-        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1"),
-        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1"),
-        new Move('K', 1UL << 62, 1UL << 56, 0, WHITELEFT)
-    );
-    // White Chess960 Castle right
-    successCount += apply_move_validMove_ApplyIt(
-        9,
-        new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
-        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
-        new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT)
-    );
-    // White king takes black rook, not castling
-    successCount += apply_move_validMove_ApplyIt(
-        10,
-        new Board("8/8/8/8/8/8/8/1Kr5 w - - 2 78"),
-        new Board("8/8/8/8/8/8/8/2K5 b - - 0 78"),
-        new Move('K', 1UL << 57, 1UL << 58)
-    );
-
-    // Black Standard Castle left
-    successCount += apply_move_validMove_ApplyIt(
-        11,
-        new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1", false),
-        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2", false),
-        new Move('K', 1UL << 4, 1UL << 0, 0, BLACKLEFT)
-    );
-    // Black Standard Castle right
-    successCount += apply_move_validMove_ApplyIt(
-        12,
-        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1", false),
-        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2", false),
-        new Move('K', 1UL << 1, 1UL << 7, 0, BLACKRIGHT)
-    );
-    // White Standard Castle left
-    successCount += apply_move_validMove_ApplyIt(
-        13,
-        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1", false),
-        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1", false),
-        new Move('K', 1UL << 62, 1UL << 56, 0, WHITELEFT)
-    );
-    // White Standard Castle right
-    successCount += apply_move_validMove_ApplyIt(
-        14,
-        new Board("8/8/8/8/8/8/8/4K2R w H - 0 1", false),
-        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1", false),
-        new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT)
-    );
-
-    // Castles rights test - King moves
-    successCount += apply_move_validMove_ApplyIt(
-        15,
-        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
-        new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
-        new Move('K', 1UL << 60, 1UL << 52)
-    );
-    // Castles rights test - Rook moves
-    successCount += apply_move_validMove_ApplyIt(
-        16,
-        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
-        new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
-        new Move('R', 1UL << 56, 1UL << 48)
-    );
-    // Castles rights test - Rook moves
-    successCount += apply_move_validMove_ApplyIt(
-        17,
-        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
-        new Board("8/8/8/8/8/8/7R/R3K21 b A - 1 1"),
-        new Move('R', 1UL << 63, 1UL << 55)
-    );
-
-    // Promotion White
-    successCount += apply_move_validMove_ApplyIt(
-        18,
-        new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
-        new Board("5Q2/8/8/8/8/8/8/8 b - - 0 1"),
-        new Move('P', 1UL << 13, 1UL << 5, 'Q')
-    );
-
-    // Promotion Black
-    successCount += apply_move_validMove_ApplyIt(
-        20,
-        new Board("8/8/8/8/8/8/5p2/8 b - - 0 1"),
-        new Board("8/8/8/8/8/8/8/5r2 w - - 0 2"),
-        new Move('p', 1UL << 53, 1UL << 61, 'r')
-    );
-
-    // En passant White
-    successCount += apply_move_validMove_ApplyIt(
-        22,
-        new Board("8/8/8/4pP2/8/8/8/8 w - e6 0 1"),
-        new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
-        new Move('P', 1UL << 29, 1UL << 20)
-    );
-    // En passant Black
-    successCount += apply_move_validMove_ApplyIt(
-        24,
-        new Board("8/8/8/8/2pP4/8/8/8 b - d3 0 1"),
-        new Board("8/8/8/8/8/3p4/8/8 w - - 0 2"),
-        new Move('p', 1UL << 34, 1UL << 43)
-    );
-
-    // Reset the half turn rule when a piece is captured
-    successCount += apply_move_validMove_ApplyIt(
-        26,
-        new Board("8/8/4r3/8/8/8/4B3/8 b - - 5 1"),
-        new Board("8/8/8/8/8/8/4r3/8 w - - 0 2"),
-        new Move('r', 1UL << 20, 1UL << 52)
-    );
-
-    return successCount;
-}
-
 int apply_move_testLauncher_uci()
 {
     int successCount = 0;
@@ -332,12 +160,6 @@ int apply_move_testLauncher_uci()
 
     // Promotion White
     successCount += apply_move_validMove_ApplyIt(
-        118,
-        new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
-        new Board("5Q2/8/8/8/8/8/8/8 b - - 0 1"),
-        new Move('P', 1UL << 13, 1UL << 5, 'Q')
-    );
-    successCount += apply_move_validMove_ApplyIt(
         119,
         new Board("8/3P4/8/8/8/8/8/8 w - - 0 1"),
         new Board("3N4/8/8/8/8/8/8/8 b - - 0 1"),
@@ -346,7 +168,7 @@ int apply_move_testLauncher_uci()
 
     // Promotion Black
     successCount += apply_move_validMove_ApplyIt(
-        21,
+        121,
         new Board("8/8/8/8/8/8/3p4/8 b - - 0 1"),
         new Board("8/8/8/8/8/8/8/3b4 w - - 0 2"),
         new Move("d2d1b")
@@ -354,14 +176,14 @@ int apply_move_testLauncher_uci()
 
     // En passant White
     successCount += apply_move_validMove_ApplyIt(
-        23,
+        123,
         new Board("8/8/8/4pP2/8/8/8/8 w - e6 0 1"),
         new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
         new Move("f5e6")
     );
     // En passant Black
     successCount += apply_move_validMove_ApplyIt(
-        25,
+        125,
         new Board("8/8/8/8/2pP4/8/8/8 b - d3 0 1"),
         new Board("8/8/8/8/8/3p4/8/8 w - - 0 2"),
         new Move("c4d3")
@@ -369,10 +191,242 @@ int apply_move_testLauncher_uci()
 
     // Reset the half turn rule when a piece is captured
     successCount += apply_move_validMove_ApplyIt(
-        26,
+        126,
         new Board("8/8/4r3/8/8/8/4B3/8 b - - 5 1"),
         new Board("8/8/8/8/8/8/4r3/8 w - - 0 2"),
         new Move("e6e2")
+    );
+
+    // White captures a piece
+    successCount += apply_move_validMove_ApplyIt(
+        127,
+        new Board("8/8/8/6r1/8/4B3/8/8 w - - 5 1"),
+        new Board("8/8/8/6B1/8/8/8/8 b - - 0 1"),
+        new Move("e3g5")
+    );
+    // Black captures a piece
+    successCount += apply_move_validMove_ApplyIt(
+        128,
+        new Board("8/8/8/6b1/8/4R3/8/8 b - - 5 1"),
+        new Board("8/8/8/8/8/4b3/8/8 w - - 0 2"),
+        new Move("g5e3")
+    );
+
+    // White promotes to Queen while capturing a piece
+    successCount += apply_move_validMove_ApplyIt(
+        129,
+        new Board("4q3/3P4/8/8/8/8/8/8 w - - 5 1"),
+        new Board("4Q3/8/8/8/8/8/8/8 b - - 0 1"),
+        new Move("d7e8q")
+    );
+    // Black promotes to Queen while capturing a piece
+    successCount += apply_move_validMove_ApplyIt(
+        130,
+        new Board("8/8/8/8/8/8/3p4/4Q3 b - - 5 1"),
+        new Board("8/8/8/8/8/8/8/4q3 w - - 0 2"),
+        new Move("d2e1q")
+    );
+
+    return successCount;
+}
+
+# if BITBOARD_IMPLEMENTATION == 1
+
+int apply_move_testLauncher()
+{
+    int successCount = 0;
+
+    // Regular Black moves - (Reset the half turn rule due to a pawn advance)
+    successCount += apply_move_validMove_ApplyIt(
+        1,
+        new Board("8/p7/8/8/8/8/8/8 b - - 5 1"),
+        new Board("8/8/p7/8/8/8/8/8 w - - 0 2"),
+        new Move('p', 1UL << 8, 1UL << 16)
+    );
+    // 2 advance black pawn that create a "en passant"
+    successCount += apply_move_validMove_ApplyIt(
+        2,
+        new Board("8/1p6/8/2P5/8/8/8/8 b - - 0 1"),
+        new Board("8/8/8/1pP5/8/8/8/8 w - b6 0 2"),
+        new Move('p', 1UL << 9, 1UL << 25)
+    );
+    // 2 "en passant" in a row
+    successCount += apply_move_validMove_ApplyIt(
+        3,
+        new Board("8/1p6/8/2P5/4P3/8/8/8 b - e4 0 1"),
+        new Board("8/8/8/1pP5/4P3/8/8/8 w - b6 0 2"),
+        new Move('p', 1UL << 9, 1UL << 25)
+    );
+
+    // Regular White moves - (Don't reset the half turn rule)
+    successCount += apply_move_validMove_ApplyIt(
+        4,
+        new Board("8/8/8/8/8/8/8/3Q4 w - - 5 1"),
+        new Board("8/8/8/8/6Q1/8/8/8 b - - 6 1"),
+        new Move('Q', 1UL << 59, 1UL << 38)
+    );
+    // 2 advance white pawn that create a "en passant"
+    successCount += apply_move_validMove_ApplyIt(
+        5,
+        new Board("8/8/8/8/3p4/8/4P3/8 w - - 0 1"),
+        new Board("8/8/8/8/3pP3/8/8/8 b - e3 0 1"),
+        new Move('P', 1UL << 52, 1UL << 36)
+    );
+
+    // Black Chess960 Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        6,
+        new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1"),
+        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2"),
+        new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT)
+    );
+    // Black Chess960 Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        7,
+        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1"),
+        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2"),
+        new Move('k', 1UL << 1, 1UL << 7, 0, BLACKRIGHT)
+    );
+    // White Chess960 Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        8,
+        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1"),
+        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1"),
+        new Move('K', 1UL << 62, 1UL << 56, 0, WHITELEFT)
+    );
+    // White Chess960 Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        9,
+        new Board("8/8/8/8/8/8/8/4K2R w H - 0 1"),
+        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1"),
+        new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT)
+    );
+    // White king takes black rook, not castling
+    successCount += apply_move_validMove_ApplyIt(
+        10,
+        new Board("8/8/8/8/8/8/8/1Kr5 w - - 2 78"),
+        new Board("8/8/8/8/8/8/8/2K5 b - - 0 78"),
+        new Move('K', 1UL << 57, 1UL << 58)
+    );
+
+    // Black Standard Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        11,
+        new Board("r3k3/8/8/8/8/8/8/8 b a - 0 1", false),
+        new Board("2kr4/8/8/8/8/8/8/8 w - - 1 2", false),
+        new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT)
+    );
+    // Black Standard Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        12,
+        new Board("1k5r/8/8/8/8/8/8/8 b h - 0 1", false),
+        new Board("5rk1/8/8/8/8/8/8/8 w - - 1 2", false),
+        new Move('k', 1UL << 1, 1UL << 7, 0, BLACKRIGHT)
+    );
+    // White Standard Castle left
+    successCount += apply_move_validMove_ApplyIt(
+        13,
+        new Board("8/8/8/8/8/8/8/R5K1 w A - 0 1", false),
+        new Board("8/8/8/8/8/8/8/2KR4 b - - 1 1", false),
+        new Move('K', 1UL << 62, 1UL << 56, 0, WHITELEFT)
+    );
+    // White Standard Castle right
+    successCount += apply_move_validMove_ApplyIt(
+        14,
+        new Board("8/8/8/8/8/8/8/4K2R w H - 0 1", false),
+        new Board("8/8/8/8/8/8/8/5RK1 b - - 1 1", false),
+        new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT)
+    );
+
+    // Castles rights test - King moves
+    successCount += apply_move_validMove_ApplyIt(
+        15,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
+        new Move('K', 1UL << 60, 1UL << 52)
+    );
+    // Castles rights test - Rook moves
+    successCount += apply_move_validMove_ApplyIt(
+        16,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
+        new Move('R', 1UL << 56, 1UL << 48)
+    );
+    // Castles rights test - Rook moves
+    successCount += apply_move_validMove_ApplyIt(
+        17,
+        new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/8/7R/R3K21 b A - 1 1"),
+        new Move('R', 1UL << 63, 1UL << 55)
+    );
+
+    // Promotion White
+    successCount += apply_move_validMove_ApplyIt(
+        18,
+        new Board("8/5P2/8/8/8/8/8/8 w - - 0 1"),
+        new Board("5Q2/8/8/8/8/8/8/8 b - - 0 1"),
+        new Move('P', 1UL << 13, 1UL << 5, 'Q')
+    );
+
+    // Promotion Black
+    successCount += apply_move_validMove_ApplyIt(
+        20,
+        new Board("8/8/8/8/8/8/5p2/8 b - - 0 1"),
+        new Board("8/8/8/8/8/8/8/5r2 w - - 0 2"),
+        new Move('p', 1UL << 53, 1UL << 61, 'r')
+    );
+
+    // En passant White
+    successCount += apply_move_validMove_ApplyIt(
+        22,
+        new Board("8/8/8/4pP2/8/8/8/8 w - e6 0 1"),
+        new Board("8/8/4P3/8/8/8/8/8 b - - 0 1"),
+        new Move('P', 1UL << 29, 1UL << 20)
+    );
+    // En passant Black
+    successCount += apply_move_validMove_ApplyIt(
+        24,
+        new Board("8/8/8/8/2pP4/8/8/8 b - d3 0 1"),
+        new Board("8/8/8/8/8/3p4/8/8 w - - 0 2"),
+        new Move('p', 1UL << 34, 1UL << 43)
+    );
+
+    // Reset the half turn rule when a piece is captured
+    successCount += apply_move_validMove_ApplyIt(
+        26,
+        new Board("8/8/4r3/8/8/8/4B3/8 b - - 5 1"),
+        new Board("8/8/8/8/8/8/4r3/8 w - - 0 2"),
+        new Move('r', 1UL << 20, 1UL << 52)
+    );
+
+    // White captures a piece
+    successCount += apply_move_validMove_ApplyIt(
+        27,
+        new Board("8/8/8/6r1/8/4B3/8/8 w - - 5 1"),
+        new Board("8/8/8/6B1/8/8/8/8 b - - 0 1"),
+        new Move('B', 1UL << 44, 1UL << 30)
+    );
+    // Black captures a piece
+    successCount += apply_move_validMove_ApplyIt(
+        28,
+        new Board("8/8/8/6b1/8/4R3/8/8 b - - 5 1"),
+        new Board("8/8/8/8/8/4b3/8/8 w - - 0 2"),
+        new Move('b', 1UL << 30, 1UL << 44)
+    );
+
+    // White promotes to Queen while capturing a piece
+    successCount += apply_move_validMove_ApplyIt(
+        29,
+        new Board("4q3/3P4/8/8/8/8/8/8 w - - 5 1"),
+        new Board("4Q3/8/8/8/8/8/8/8 b - - 0 1"),
+        new Move('P', 1UL << 11, 1UL << 4, 'Q')
+    );
+    // Black promotes to Queen while capturing a piece
+    successCount += apply_move_validMove_ApplyIt(
+        30,
+        new Board("8/8/8/8/8/8/3p4/4Q3 b - - 5 1"),
+        new Board("8/8/8/8/8/8/8/4q3 w - - 0 2"),
+        new Move('p', 1UL << 51, 1UL << 60, 'q')
     );
 
     return successCount;
@@ -1787,22 +1841,26 @@ int clone_testLauncher()
 {
     int success_count = 0;
 
-    // Empty board
+    // Empty board - Chess960 rules
     success_count += clone_unittest(
         1,
         new Board("8/8/8/8/8/8/8/8 w - - 0 1", true)
     );
-
-    // Chess960 rules
+    // Empty board - Standard rules
     success_count += clone_unittest(
         2,
         new Board("8/8/8/8/8/8/8/8 w - - 0 1", false)
     );
 
-    // With pieces
+    // With pieces - Chess960 rules
     success_count += clone_unittest(
         3,
-        new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b AHah b2 10 100")
+        new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b AHah b2 10 100", true)
+    );
+    // With pieces - Standard rules
+    success_count += clone_unittest(
+        4,
+        new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b AHah b2 10 100", false)
     );
 
     return success_count;

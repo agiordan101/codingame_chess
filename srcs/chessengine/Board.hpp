@@ -50,11 +50,10 @@ class Board {
     // FEN data: Castling info
     uint64_t        white_castles;              // Positions where the castle is available
     uint64_t        black_castles;
-    uint64_t        white_king_start;           // Initial position of the kings
-    uint64_t        black_king_start;
     
     // FEN data: en passant and turns
     uint64_t        en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
+    uint64_t        next_turn_en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
     int             half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
     int             game_turn_max = 125;
 
@@ -108,10 +107,14 @@ class Board {
         void    _create_fen_for_standard_castling(char *fen, int *fen_i);
         void    _create_fen_for_chess960_castling(char *fen, int *fen_i);
 
-        void    _apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info);
-        // bool    _handle_standard_castle(int src_x, int src_y, int dst_x, int _);
-        // bool    _handle_chess960_castle(int src_x, int src_y, int dst_x, int dst_y);
-        // void    _apply_castle(int src_x, int src_y, int dst_x, int dst_y);
+        void    _apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void    _apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void    _move_white_pawn(uint64_t src, uint64_t dst, char promotion);
+        void    _move_black_pawn(uint64_t src, uint64_t dst, char promotion);
+        void    _move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
+        void    _move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
+        void    _capture_white_pieces(uint64_t dst);
+        void    _capture_black_pieces(uint64_t dst);
 
         void    _update_engine_data();
         void    _update_fen_history();

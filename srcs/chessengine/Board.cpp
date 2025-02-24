@@ -37,9 +37,7 @@ void Board::log() {
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
     cerr << "Board: White castling: " << endl << bitset<64>(white_castles) << endl;
     cerr << "Board: Black castling: " << endl << bitset<64>(black_castles) << endl;
-    cerr << "Board: White king initial columns: " << (white_king_start ? bitboard_to_algebraic(white_king_start) : "Unavailable") << endl;
-    cerr << "Board: Black king initial columns: " << (black_king_start ? bitboard_to_algebraic(black_king_start) : "Unavailable") << endl;
-    cerr << "Board: En passant: " << (en_passant ? bitboard_to_algebraic(en_passant) : "Unavailable") << endl;
+    cerr << "Board: En passant: " << (en_passant ? bitboard_to_algebraic(en_passant) : "N/A") << endl;
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
@@ -75,15 +73,52 @@ void Board::log_history(int turns) {
 
 void Board::apply_move(Move move)
 {
+    // TODO: Sort them by probability to optimize the if-else chain
     char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
-    _apply_move(piece, move.src, move.dst, move.promotion, move.castle_info);
+    if (piece == 'P')
+        _move_white_pawn(move.src, move.dst, move.promotion);
+    else if (piece == 'N')
+        _apply_regular_white_move(move.src, move.dst, &white_knights);
+    else if (piece == 'B')
+        _apply_regular_white_move(move.src, move.dst, &white_bishops);
+    else if (piece == 'R')
+    {
+        _apply_regular_white_move(move.src, move.dst, &white_rooks);
+
+        // Disable castling for this rook
+        white_castles &= ~move.src;
+    }
+    else if (piece == 'Q')
+        _apply_regular_white_move(move.src, move.dst, &white_queens);
+    else if (piece == 'K')
+        _move_white_king(move.src, move.dst, move.castle_info);
+    else if (piece == 'p')
+        _move_black_pawn(move.src, move.dst, move.promotion);
+    else if (piece == 'n')
+        _apply_regular_black_move(move.src, move.dst, &black_knights);
+    else if (piece == 'b')
+        _apply_regular_black_move(move.src, move.dst, &black_bishops);
+    else if (piece == 'r')
+    {
+        _apply_regular_black_move(move.src, move.dst, &black_rooks);
+
+        // Disable castling for this rook
+        black_castles &= ~move.src;
+    }
+    else if (piece == 'q')
+        _apply_regular_black_move(move.src, move.dst, &black_queens);
+    else if (piece == 'k')
+        _move_black_king(move.src, move.dst, move.castle_info);
+
+    en_passant = next_turn_en_passant;
+    next_turn_en_passant = 0UL;
+
+    half_turn_rule += 1;
 
     // Only increment game turn after black turn
     if (!white_turn)
         game_turn += 1;
-
     white_turn = !white_turn;
-    half_turn_rule += 1;
 
     _update_engine_data();
     _update_fen_history();
@@ -251,6 +286,7 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     white_turn = _color == "w";
     _parse_castling(_castling);
     en_passant = _en_passant != "-" ? algebraic_to_bitboard(_en_passant) : 0;
+    next_turn_en_passant = 0UL;
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
@@ -278,8 +314,6 @@ void Board::_initialize_bitboards() {
 
     white_castles = 0UL;
     black_castles = 0UL;
-    white_king_start = 0UL;
-    black_king_start = 0UL;
     en_passant = 0UL;
 
     uncheck_mask = 0xFFFFFFFFFFFFFFFF;
@@ -320,10 +354,8 @@ void Board::_parse_board(string fen_board) {
     }
 }
 
-void Board::_parse_castling(string castling_fen) {
-
-    // TODO: Init longs at 0 ?
-
+void Board::_parse_castling(string castling_fen)
+{
     // '-' means that no castling are available
     if (castling_fen == "-")
         return ;
@@ -346,10 +378,6 @@ void Board::_parse_castling(string castling_fen) {
                 black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL;
         }
     }
-
-    // Save kings initial column indexes
-    white_king_start = white_king;
-    black_king_start = black_king;
 }
 
 char Board::_get_cell(uint64_t mask)
@@ -434,91 +462,162 @@ void    Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
     }
 }
 
-void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info)
+void    Board::_apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
 {
-    //TODO: Rename this function to _move_piece() ?
+    _capture_black_pieces(dst);
 
-    // Detect castling depending on the chosen rules
-    if ((src & white_king) && (dst & white_rooks))
+    // Remove the piece from its actual cell, and add the piece to the destination cell
+    *piece_mask &= ~src;
+    *piece_mask |= dst;
+}
+
+void    Board::_apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
+{
+    _capture_white_pieces(dst);
+
+    // Remove the piece from its actual cell, and add the piece to the destination cell
+    *piece_mask &= ~src;
+    *piece_mask |= dst;
+}
+
+void    Board::_move_white_pawn(uint64_t src, uint64_t dst, char promotion)
+{
+    // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
+    half_turn_rule = -1;
+
+    // If the pawn move is an en passant, capture the opponent pawn
+    if (dst == en_passant)
+        black_pawns &= (~en_passant) << 8;
+
+    // If the pawn moves 2 squares, we generate an en-passant
+    if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
+        next_turn_en_passant = src >> 8;
+
+    _capture_black_pieces(dst);
+
+    // Remove the piece from its actual cell
+    white_pawns &= ~src;
+    
+    // TODO: Sort them by probability to optimize the if-else chain
+    // Add the piece to the destination cell
+    char final_piece = promotion ? toupper(promotion) : 'P';
+    if (final_piece == 'P')
+        white_pawns |= dst;
+    else if (final_piece == 'N')
+        white_knights |= dst;
+    else if (final_piece == 'B')
+        white_bishops |= dst;
+    else if (final_piece == 'R')
+        white_rooks |= dst;
+    else if (final_piece == 'Q')
+        white_queens |= dst;
+}
+
+void    Board::_move_black_pawn(uint64_t src, uint64_t dst, char promotion)
+{
+    // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
+    half_turn_rule = -1;
+
+    // If the pawn move is an en passant, capture the opponent pawn
+    if (dst == en_passant)
+       white_pawns &= (~en_passant) >> 8;
+    
+    // If the pawn moves 2 squares, we generate an en-passant
+    if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
+        next_turn_en_passant = src << 8;
+
+    _capture_white_pieces(dst);
+
+    // Remove the piece from its actual cell
+    black_pawns &= ~src;
+
+    // TODO: Sort them by probability to optimize the if-else chain
+    // Add the piece to the destination cell
+    char final_piece = promotion ? promotion : 'p';
+    if (final_piece == 'p')
+        black_pawns |= dst;
+    else if (final_piece == 'n')
+        black_knights |= dst;
+    else if (final_piece == 'b')
+        black_bishops |= dst;
+    else if (final_piece == 'r')
+        black_rooks |= dst;
+    else if (final_piece == 'q')
+        black_queens |= dst;
+}
+
+void    Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
+{
+    if (castle_info == NOINFO)
     {
-        // Remove the rook from its initial position
+        if ((src & white_king) && (dst & white_rooks))
+        {
+            castle_info = dst < src ? WHITELEFT : WHITERIGHT;
+        }
+        else
+            castle_info = NOTCASTLE;
+    }
+
+    if (castle_info == NOTCASTLE)
+    {
+        _capture_black_pieces(dst);
+
+        // Remove the piece from its actual cell, and add the piece to the destination cell
+        white_king = dst;
+    }
+    else if (castle_info == WHITELEFT)
+    {
         white_rooks &= ~dst;
+        white_king = 0x0400000000000000;
+        white_rooks |= 0x0800000000000000;
+    }
+    else if (castle_info == WHITERIGHT)
+    {
+        white_rooks &= ~dst;
+        white_king = 0x4000000000000000;
+        white_rooks |= 0x2000000000000000;
+    }
 
-        // Find if the king is moving to the right or to the left
-        if (dst < src)
+    white_castles = 0UL;
+}
+
+void    Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
+{
+    if (castle_info == NOINFO)
+    {
+        if ((src & black_king) && (dst & black_rooks))
         {
-            // Hardcode their final positions
-            white_king = 0x0400000000000000;
-            white_rooks |= 0x0800000000000000;
+            castle_info = dst < src ? BLACKLEFT : BLACKRIGHT;
         }
         else
-        {
-            // Hardcode their final positions
-            white_king = 0x4000000000000000;
-            white_rooks |= 0x2000000000000000;
-        }
-
-        this->white_castles = 0UL;
-        return ;
+           castle_info = NOTCASTLE;
     }
-    else if ((src & black_king) && (dst & black_rooks))
+
+    if (castle_info == NOTCASTLE)
     {
-        // Remove the rook from its initial position
+        _capture_white_pieces(dst);
+
+        // Remove the piece from its actual cell, and add the piece to the destination cell
+        black_king = dst;
+    }
+    else if (castle_info == BLACKLEFT)
+    {
         black_rooks &= ~dst;
-
-        // Find if the king is moving to the right or to the left
-        if (dst < src)
-        {
-            // Hardcode their final positions
-            black_king = 0x04;
-            black_rooks |= 0x08;
-        }
-        else
-        {
-            // Hardcode their final positions
-            black_king = 0x40;
-            black_rooks |= 0x20;
-        }
-
-        this->black_castles = 0UL;
-        return ;
+        black_king = 0x04;
+        black_rooks |= 0x08;
     }
-
-    uint64_t save_en_passant = en_passant;
-    en_passant = 0UL;
-    // Detect if a pawn moves
-    if (src & (white_pawns | black_pawns))
+    else if (castle_info == BLACKRIGHT)
     {
-        // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
-        half_turn_rule = -1;
-        
-        // If the pawn move is a promotion, the final piece is the promotion piece, not the original one
-        if (promotion)
-            piece = white_turn ? toupper(promotion) : promotion;
-
-        // If the pawn move is an en passant, handle the capture
-        if (dst == save_en_passant)
-        {
-            white_pawns &= (~save_en_passant) >> 8;
-            black_pawns &= (~save_en_passant) << 8;
-        }
-
-        // If the pawn moves 2 squares, we generate an en-passant
-        if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
-            en_passant = src >> 8;
-        if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
-            en_passant = src << 8;
+        black_rooks &= ~dst;
+        black_king = 0x40;
+        black_rooks |= 0x20;
     }
-    // If the piece is a king or a rook, we have to update the castling rights
-    else if (src & white_king)
-        white_castles = 0UL;
-    else if (src & white_rooks)
-        white_castles &= ~src;
-    else if (src & black_king)
-        black_castles = 0UL;
-    else if (src & black_rooks)
-        black_castles &= ~src;
 
+    black_castles = 0UL;
+}
+
+void    Board::_capture_white_pieces(uint64_t dst)
+{
     // Detect if a piece is captured
     if (pieces_mask & dst)
     {
@@ -532,59 +631,215 @@ void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char promotio
         white_bishops &= not_dst_mask;
         white_rooks &= not_dst_mask;
         white_queens &= not_dst_mask;
-        white_king &= not_dst_mask;
+    }
+}
+
+void    Board::_capture_black_pieces(uint64_t dst)
+{
+    // Detect if a piece is captured
+    if (pieces_mask & dst)
+    {
+        // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
+        half_turn_rule = -1;
+
+        // Remove the captured piece
+        uint64_t not_dst_mask = ~dst;
         black_pawns &= not_dst_mask;
         black_knights &= not_dst_mask;
         black_bishops &= not_dst_mask;
         black_rooks &= not_dst_mask;
         black_queens &= not_dst_mask;
-        black_king &= not_dst_mask;
     }
-
-    // Remove the piece from its actual cell
-    uint64_t not_src_mask = ~src;
-    white_pawns &= not_src_mask;
-    white_knights &= not_src_mask;
-    white_bishops &= not_src_mask;
-    white_rooks &= not_src_mask;
-    white_queens &= not_src_mask;
-    white_king &= not_src_mask;
-    black_pawns &= not_src_mask;
-    black_knights &= not_src_mask;
-    black_bishops &= not_src_mask;
-    black_rooks &= not_src_mask;
-    black_queens &= not_src_mask;
-    black_king &= not_src_mask;
-
-    // Add the piece to the destination cell
-    if (piece == 'P')
-        white_pawns |= dst;
-    else if (piece == 'N')
-        white_knights |= dst;
-    else if (piece == 'B')
-        white_bishops |= dst;
-    else if (piece == 'R')
-        white_rooks |= dst;
-    else if (piece == 'Q')
-        white_queens |= dst;
-    else if (piece == 'K')
-        white_king |= dst;
-    else if (piece == 'p')
-        black_pawns |= dst;
-    else if (piece == 'n')
-        black_knights |= dst;
-    else if (piece == 'b')
-        black_bishops |= dst;
-    else if (piece == 'r')
-        black_rooks |= dst;
-    else if (piece == 'q')
-        black_queens |= dst;
-    else if (piece == 'k')
-        black_king |= dst;
 }
+
+
+// void    Board::_apply_castling_move_if_detected(uint64_t src, uint64_t dst)
+// {
+//     // Detect castling depending on the chosen rules
+//     if ((src & white_king) && (dst & white_rooks))
+//     {
+//         // Remove the rook from its initial position
+//         white_rooks &= ~dst;
+
+//         // Find if the king is moving to the right or to the left
+//         if (dst < src)
+//         {
+//             // Hardcode their final positions
+//             white_king = 0x0400000000000000;
+//             white_rooks |= 0x0800000000000000;
+//         }
+//         else
+//         {
+//             // Hardcode their final positions
+//             white_king = 0x4000000000000000;
+//             white_rooks |= 0x2000000000000000;
+//         }
+
+//         white_castles = 0UL;
+//         return ;
+//     }
+//     else if ((src & black_king) && (dst & black_rooks))
+//     {
+//         // Remove the rook from its initial position
+//         black_rooks &= ~dst;
+
+//         // Find if the king is moving to the right or to the left
+//         if (dst < src)
+//         {
+//             // Hardcode their final positions
+//             black_king = 0x04;
+//             black_rooks |= 0x08;
+//         }
+//         else
+//         {
+//             // Hardcode their final positions
+//             black_king = 0x40;
+//             black_rooks |= 0x20;
+//         }
+
+//         this->black_castles = 0UL;
+//         return ;
+//     }
+// }
+
+// void    Board::_apply_castling_move(uint64_t src, uint64_t dst, castle_info_e castle_info)
+// {
+//     if (castle_info == WHITELEFT)
+//     {
+//         white_rooks &= ~dst;
+//         white_king = 0x0400000000000000;
+//         white_rooks |= 0x0800000000000000;
+//         white_castles = 0UL;
+//     }
+//     else if (castle_info == WHITERIGHT)
+//     {
+//         white_rooks &= ~dst;
+//         white_king = 0x4000000000000000;
+//         white_rooks |= 0x2000000000000000;
+//         white_castles = 0UL;
+//     }
+//     else if (castle_info == BLACKLEFT)
+//     {
+//         black_rooks &= ~dst;
+//         black_king = 0x04;
+//         black_rooks |= 0x08;
+//         this->black_castles = 0UL;
+//     }
+//     else
+//     {
+//         black_rooks &= ~dst;
+//         black_king = 0x40;
+//         black_rooks |= 0x20;
+//         this->black_castles = 0UL;
+//     }
+// }
+
+// void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info)
+// {
+//     //TODO: Rename this function to _move_piece() ?
+
+//     uint64_t save_en_passant = en_passant;
+//     en_passant = 0UL;
+//     // Detect if a pawn moves
+//     if (src & (white_pawns | black_pawns))
+//     {
+//         // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
+//         half_turn_rule = -1;
+        
+//         // If the pawn move is a promotion, the final piece is the promotion piece, not the original one
+//         if (promotion)
+//             piece = white_turn ? toupper(promotion) : promotion;
+
+//         // If the pawn move is an en passant, handle the capture
+//         if (dst == save_en_passant)
+//         {
+//             white_pawns &= (~save_en_passant) >> 8;
+//             black_pawns &= (~save_en_passant) << 8;
+//         }
+
+//         // If the pawn moves 2 squares, we generate an en-passant
+//         if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
+//             en_passant = src >> 8;
+//         if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
+//             en_passant = src << 8;
+//     }
+//     // If the piece is a king or a rook, we have to update the castling rights
+//     else if (src & white_king)
+//         white_castles = 0UL;
+//     else if (src & white_rooks)
+//         white_castles &= ~src;
+//     else if (src & black_king)
+//         black_castles = 0UL;
+//     else if (src & black_rooks)
+//         black_castles &= ~src;
+
+//     // Detect if a piece is captured
+//     if (pieces_mask & dst)
+//     {
+//         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
+//         half_turn_rule = -1;
+
+//         // Remove the captured piece
+//         uint64_t not_dst_mask = ~dst;
+//         white_pawns &= not_dst_mask;
+//         white_knights &= not_dst_mask;
+//         white_bishops &= not_dst_mask;
+//         white_rooks &= not_dst_mask;
+//         white_queens &= not_dst_mask;
+//         white_king &= not_dst_mask;
+//         black_pawns &= not_dst_mask;
+//         black_knights &= not_dst_mask;
+//         black_bishops &= not_dst_mask;
+//         black_rooks &= not_dst_mask;
+//         black_queens &= not_dst_mask;
+//     }
+
+//     // Remove the piece from its actual cell
+//     uint64_t not_src_mask = ~src;
+//     white_pawns &= not_src_mask;
+//     white_knights &= not_src_mask;
+//     white_bishops &= not_src_mask;
+//     white_rooks &= not_src_mask;
+//     white_queens &= not_src_mask;
+//     white_king &= not_src_mask;
+//     black_pawns &= not_src_mask;
+//     black_knights &= not_src_mask;
+//     black_bishops &= not_src_mask;
+//     black_rooks &= not_src_mask;
+//     black_queens &= not_src_mask;
+//     black_king &= not_src_mask;
+
+//     // TODO: Sort them by probability to optimize the if-else chain
+//     // Add the piece to the destination cell
+//     if (piece == 'P')
+//         white_pawns |= dst;
+//     else if (piece == 'N')
+//         white_knights |= dst;
+//     else if (piece == 'B')
+//         white_bishops |= dst;
+//     else if (piece == 'R')
+//         white_rooks |= dst;
+//     else if (piece == 'Q')
+//         white_queens |= dst;
+//     else if (piece == 'K')
+//         white_king |= dst;
+//     else if (piece == 'p')
+//         black_pawns |= dst;
+//     else if (piece == 'n')
+//         black_knights |= dst;
+//     else if (piece == 'b')
+//         black_bishops |= dst;
+//     else if (piece == 'r')
+//         black_rooks |= dst;
+//     else if (piece == 'q')
+//         black_queens |= dst;
+//     else if (piece == 'k')
+//         black_king |= dst;
+// }
 
 void Board::_update_engine_data()
 {
+    // Optimization related data
     pieces_mask = white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
     // uncheck_mask = 1UL;
     // attacked_squares = 0UL;

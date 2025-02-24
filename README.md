@@ -179,7 +179,7 @@ Board optimization :
     - (DONE) Do not optimize Board methods ! Don't break anything
     - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
     - (DONE) Probably need to create more inline getter/Setter
-    - (IN PROGRESS) Create BitBoard, inherit from AbtractBoard. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
+    - (IN PROGRESS) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
     - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
     - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
         - Simulate N games and create an average time for all methods ?
@@ -187,19 +187,18 @@ Board optimization :
 
 - Next steps :
 
-    * Convert Board.apply_move() tests to bitboard
-
-    * Think about removing the rule boolean from the implemenation, and switch some code at compile time depending on a global variable.
+    * Switch some function pointer at engine start depending on the rule ?
         - It will speed up the engine
         - We won't use boards with different rules in the same executable
 
     * Regroup all .test. files into a tests folder
 
-    * clone_testLauncher(): Add another test with info and rule = false
     * Create test counting all possible moves in the future (N+1, N+2, ...) and compare the result number to several online sources
 
     * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
     * Reword win ratio so it takes draws into count
+
+    * BotPlayer : from vector to *vector
 
     * Create GameEngineIntTests.cpp :
         - Assert given fen is identical as the current one
@@ -225,8 +224,6 @@ Board optimization :
             make test
         On push:
             make format
-
-    * BotPlayer : from vector to *vector
 
     * Modify Board::Board(): Randomize the board generation
 

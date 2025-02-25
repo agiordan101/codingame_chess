@@ -148,30 +148,15 @@ int Board::get_castling_rights() {
     return 0;
 }
 
-vector<Move> Board::get_available_moves() {
-    // https://www.codeproject.com/Articles/5313417/Worlds-Fastest-board-Chess-Movegenerator
-    //  - We Define a checkmask
-    //  - We Define a pinmask
-    // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
+vector<Move> Board::get_available_moves()
+{
+    if (!this->moves_computed)
+    {
+        _find_moves();
+        this->moves_computed = true;
+    }
 
-    // Update check mask
-    // Update pin mask
-
-    // Generate pawn moves
-    //  - iterate over all pawns
-    //    -> (pawn position << 9) & ~ColumnA & enemy_pieces & check_mask & pin_mask
-    //    -> (pawn position << 7) & ~ColumnH & enemy_pieces & check_mask & pin_mask
-    
-    // Generate knight moves
-    //  - iterate over all knights
-    //    Pourquoi les knights ont un " & ~(pinHV | pinD12)" tilde ?
-    //   Pour savoir si il sont pin ? Mais on fais des operations pour avoir les moves possible
-    //  donc on agis sur la position finale pas sur celle de base ..
-
-    // pin_mask = 0 si la piece n'est pas pin,
-    // donc (pin_mask_diags | pin_mask_lines) = les moves legal par la piece pin 
-
-    return vector<Move>();
+    return this->available_moves;
 }
 
 string Board::create_fen(bool with_turns) {
@@ -273,6 +258,8 @@ Board *Board::clone()
 }
 
 // --- PRIVATE METHODS ---
+
+// - Parsing -
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
 {
@@ -380,6 +367,8 @@ void Board::_parse_castling(string castling_fen)
     }
 }
 
+// - Accessibility -
+
 char Board::_get_cell(uint64_t mask)
 {
     if (white_pawns & mask)
@@ -461,6 +450,8 @@ void    Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
         black_mask <<= 1;
     }
 }
+
+// - Move application -
 
 void    Board::_apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
 {
@@ -652,195 +643,17 @@ void    Board::_capture_black_pieces(uint64_t dst)
     }
 }
 
-
-// void    Board::_apply_castling_move_if_detected(uint64_t src, uint64_t dst)
-// {
-//     // Detect castling depending on the chosen rules
-//     if ((src & white_king) && (dst & white_rooks))
-//     {
-//         // Remove the rook from its initial position
-//         white_rooks &= ~dst;
-
-//         // Find if the king is moving to the right or to the left
-//         if (dst < src)
-//         {
-//             // Hardcode their final positions
-//             white_king = 0x0400000000000000;
-//             white_rooks |= 0x0800000000000000;
-//         }
-//         else
-//         {
-//             // Hardcode their final positions
-//             white_king = 0x4000000000000000;
-//             white_rooks |= 0x2000000000000000;
-//         }
-
-//         white_castles = 0UL;
-//         return ;
-//     }
-//     else if ((src & black_king) && (dst & black_rooks))
-//     {
-//         // Remove the rook from its initial position
-//         black_rooks &= ~dst;
-
-//         // Find if the king is moving to the right or to the left
-//         if (dst < src)
-//         {
-//             // Hardcode their final positions
-//             black_king = 0x04;
-//             black_rooks |= 0x08;
-//         }
-//         else
-//         {
-//             // Hardcode their final positions
-//             black_king = 0x40;
-//             black_rooks |= 0x20;
-//         }
-
-//         this->black_castles = 0UL;
-//         return ;
-//     }
-// }
-
-// void    Board::_apply_castling_move(uint64_t src, uint64_t dst, castle_info_e castle_info)
-// {
-//     if (castle_info == WHITELEFT)
-//     {
-//         white_rooks &= ~dst;
-//         white_king = 0x0400000000000000;
-//         white_rooks |= 0x0800000000000000;
-//         white_castles = 0UL;
-//     }
-//     else if (castle_info == WHITERIGHT)
-//     {
-//         white_rooks &= ~dst;
-//         white_king = 0x4000000000000000;
-//         white_rooks |= 0x2000000000000000;
-//         white_castles = 0UL;
-//     }
-//     else if (castle_info == BLACKLEFT)
-//     {
-//         black_rooks &= ~dst;
-//         black_king = 0x04;
-//         black_rooks |= 0x08;
-//         this->black_castles = 0UL;
-//     }
-//     else
-//     {
-//         black_rooks &= ~dst;
-//         black_king = 0x40;
-//         black_rooks |= 0x20;
-//         this->black_castles = 0UL;
-//     }
-// }
-
-// void    Board::_apply_move(char piece, uint64_t src, uint64_t dst, char promotion, castle_info_e castle_info)
-// {
-//     //TODO: Rename this function to _move_piece() ?
-
-//     uint64_t save_en_passant = en_passant;
-//     en_passant = 0UL;
-//     // Detect if a pawn moves
-//     if (src & (white_pawns | black_pawns))
-//     {
-//         // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be incremented at the end of the turn)
-//         half_turn_rule = -1;
-        
-//         // If the pawn move is a promotion, the final piece is the promotion piece, not the original one
-//         if (promotion)
-//             piece = white_turn ? toupper(promotion) : promotion;
-
-//         // If the pawn move is an en passant, handle the capture
-//         if (dst == save_en_passant)
-//         {
-//             white_pawns &= (~save_en_passant) >> 8;
-//             black_pawns &= (~save_en_passant) << 8;
-//         }
-
-//         // If the pawn moves 2 squares, we generate an en-passant
-//         if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
-//             en_passant = src >> 8;
-//         if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
-//             en_passant = src << 8;
-//     }
-//     // If the piece is a king or a rook, we have to update the castling rights
-//     else if (src & white_king)
-//         white_castles = 0UL;
-//     else if (src & white_rooks)
-//         white_castles &= ~src;
-//     else if (src & black_king)
-//         black_castles = 0UL;
-//     else if (src & black_rooks)
-//         black_castles &= ~src;
-
-//     // Detect if a piece is captured
-//     if (pieces_mask & dst)
-//     {
-//         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
-//         half_turn_rule = -1;
-
-//         // Remove the captured piece
-//         uint64_t not_dst_mask = ~dst;
-//         white_pawns &= not_dst_mask;
-//         white_knights &= not_dst_mask;
-//         white_bishops &= not_dst_mask;
-//         white_rooks &= not_dst_mask;
-//         white_queens &= not_dst_mask;
-//         white_king &= not_dst_mask;
-//         black_pawns &= not_dst_mask;
-//         black_knights &= not_dst_mask;
-//         black_bishops &= not_dst_mask;
-//         black_rooks &= not_dst_mask;
-//         black_queens &= not_dst_mask;
-//     }
-
-//     // Remove the piece from its actual cell
-//     uint64_t not_src_mask = ~src;
-//     white_pawns &= not_src_mask;
-//     white_knights &= not_src_mask;
-//     white_bishops &= not_src_mask;
-//     white_rooks &= not_src_mask;
-//     white_queens &= not_src_mask;
-//     white_king &= not_src_mask;
-//     black_pawns &= not_src_mask;
-//     black_knights &= not_src_mask;
-//     black_bishops &= not_src_mask;
-//     black_rooks &= not_src_mask;
-//     black_queens &= not_src_mask;
-//     black_king &= not_src_mask;
-
-//     // TODO: Sort them by probability to optimize the if-else chain
-//     // Add the piece to the destination cell
-//     if (piece == 'P')
-//         white_pawns |= dst;
-//     else if (piece == 'N')
-//         white_knights |= dst;
-//     else if (piece == 'B')
-//         white_bishops |= dst;
-//     else if (piece == 'R')
-//         white_rooks |= dst;
-//     else if (piece == 'Q')
-//         white_queens |= dst;
-//     else if (piece == 'K')
-//         white_king |= dst;
-//     else if (piece == 'p')
-//         black_pawns |= dst;
-//     else if (piece == 'n')
-//         black_knights |= dst;
-//     else if (piece == 'b')
-//         black_bishops |= dst;
-//     else if (piece == 'r')
-//         black_rooks |= dst;
-//     else if (piece == 'q')
-//         black_queens |= dst;
-//     else if (piece == 'k')
-//         black_king |= dst;
-// }
+// - Engine specific -
 
 void Board::_update_engine_data()
 {
-    // Optimization related data
-    pieces_mask = white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
+    moves_computed = false;
+    check_computed = false;
+    game_state_computed = false;
+
+    white_pieces_mask = white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king;
+    black_pieces_mask = black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
+    pieces_mask = white_pieces_mask | black_pieces_mask;
     // uncheck_mask = 1UL;
     // attacked_squares = 0UL;
 }
@@ -857,15 +670,97 @@ void Board::_update_fen_history()
     fen_history[fen_history_index++] = fen;
 }
 
-void Board::_find_moves_castle(int x, int y, int castle_index)
+// - Move creation -
+
+void    Board::_find_moves() {
+    // https://www.codeproject.com/Articles/5313417/Worlds-Fastest-board-Chess-Movegenerator
+    //  - We Define a checkmask
+    //  - We Define a pinmask
+    // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
+
+    // Update check mask
+    // Update pin mask
+
+    // Generate knight moves
+    //  - iterate over all knights
+    //    Pourquoi les knights ont un " & ~(pinHV | pinD12)" tilde ?
+    //   Pour savoir si il sont pin ? Mais on fais des operations pour avoir les moves possible
+    //  donc on agis sur la position finale pas sur celle de base ..
+
+    // pin_mask = 0 si la piece n'est pas pin,
+    // donc (pin_mask_diags | pin_mask_lines) = les moves legal par la piece pin 
+    this->available_moves = vector<Move>();
+
+    // TODO: Iterate over all masks using LSB ?
+    uint64_t pos_mask = 1UL;
+    for (int i = 0; i < 64; i++)
+    {
+        if (white_pawns)
+        {
+            if (white_pawns & pos_mask)
+                _find_white_pawns_moves(pos_mask);
+        }
+
+        pos_mask <<= 1;
+    }
+}
+
+void Board::_find_white_pawns_moves(uint64_t src)
 {
-    // For castling. we have to know if the squares the king is passing through are attacked :
+    // Generate pawn moves
+    //    -> (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
 
-    // Pawns -> Just slide them
-    // Knights -> Just slide them
-    // King -> Just slide it
+    // TODO: Take care of checks and pins
+    uint64_t legal_moves = pawn_lookup[src][0] & ~white_pieces_mask;
 
-    // Sliders -> Loop over them, resolve x-rays using lookup tables
+    // Find all individual bits in legal_moves
+    uint64_t dst = get_least_significant_bit(legal_moves);
+    while (dst)
+    {
+        _add_regular_move_or_promotion('P', src, dst);
+
+        // Remove the actual bit from legal_moves, so we can find the next one
+        legal_moves ^= dst;
+        dst = get_least_significant_bit(legal_moves);
+    }
+}
+
+void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
+{
+    if (dst & 0xFF000000000000FFUL)
+    {
+        // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
+        this->available_moves.push_back(Move(piece, src, dst, 'N'));
+        this->available_moves.push_back(Move(piece, src, dst, 'B'));
+        this->available_moves.push_back(Move(piece, src, dst, 'R'));
+        this->available_moves.push_back(Move(piece, src, dst, 'Q'));
+    }
+    else
+        this->available_moves.push_back(Move(piece, src, dst));
+}
+
+// void Board::_find_moves_castle(int x, int y, int castle_index)
+// {
+//     // For castling. we have to know if the squares the king is passing through are attacked :
+
+//     // Pawns -> Just slide them
+//     // Knights -> Just slide them
+//     // King -> Just slide it
+
+//     // Sliders -> Loop over them, resolve x-rays using lookup tables
+// }
+
+uint64_t Board::get_least_significant_bit(uint64_t bitboard)
+{
+    // This work because of the two's complement representation of negative numbers :
+    // Negating a number x is equivalent to inverting all its bits and adding 1.
+    //  and this reveals the least significant bit of x.
+    // For example :
+    //             x = 10100
+    // Invert x = x' = 01011
+    //       x' + 1  = 01100
+    //  x & (x' + 1) = 00100
+    return bitboard & -bitboard;
 }
 
 // --- OPERATORS ---
@@ -901,25 +796,42 @@ void Board::_create_lookup_tables()
 
 void Board::_create_pawn_lookup_table(int y, int x, uint64_t position)
 {
-    uint64_t pawn_mask = 0UL;
-    if (y > 0)
-    {
-        if (x > 0)
-            pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
-        if (x < 7)
-            pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
-    }
-    pawn_lookup[position][0] = pawn_mask;
-    
-    pawn_mask = 0UL;
     if (0 < y && y < 7)
     {
+        // - White pawns -
+        uint64_t pawn_mask = 0UL;
+
+        // Left capture
+        if (x > 0)
+            pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+        // Right capture
+        if (x < 7)
+            pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+        // Move forward
+        pawn_mask |= 1UL << ((y - 1) * 8 + x);
+        // Double move forward
+        if (y == 6)
+          pawn_mask |= 1UL << ((y - 2) * 8 + x);
+
+        pawn_lookup[position][0] = pawn_mask;
+
+        // - Black pawns -
+        pawn_mask = 0UL;
+
+        // Left capture
         if (x > 0)
             pawn_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+        // Right capture
         if (x < 7)
             pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+        // Move forward
+        pawn_mask |= 1UL << ((y + 1) * 8 + x);
+        // Double move forward
+        if (y == 1)
+           pawn_mask |= 1UL << ((y + 2) * 8 + x);
+
+        pawn_lookup[position][1] = pawn_mask;
     }
-    pawn_lookup[position][1] = pawn_mask;
 }
 
 void Board::_create_knight_lookup_table(int y, int x, uint64_t position)

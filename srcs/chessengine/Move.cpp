@@ -14,7 +14,7 @@ Move::Move(string _uci)
     this->src = algebraic_to_bitboard(_uci.substr(0, 2));
     this->dst = algebraic_to_bitboard(_uci.substr(2, 2));
     
-    // A fifth character represent the promotion  
+    // A fifth character represent the promotion (Always lowercase)
     this->promotion = _uci.length() > 4 ? _uci[4] : 0;
 
     // Initialize internal data
@@ -27,7 +27,7 @@ Move::Move(char _piece, uint64_t _src, uint64_t _dst, char _promotion, castle_in
     this->piece = _piece;
     this->src = _src;
     this->dst = _dst;
-    this->promotion = tolower(_promotion); // Promotion is always lowercase, because its UCI representation is lowercase
+    this->promotion = _promotion;
 
     // Initialize internal data
     this->uci = "";
@@ -77,7 +77,8 @@ string Move::to_uci(bool chess960_rules, bool castling)
 
     // Promotion:               e7e8q
     if (this->promotion)
-        uci += string(1, this->promotion);
+        // UCI representation of promotions is lowercase
+        uci += string(1, tolower(this->promotion));
 
     this->uci = uci;
     return uci;

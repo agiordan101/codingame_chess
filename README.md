@@ -187,6 +187,8 @@ Board optimization :
 
 - Next steps :
 
+    * Hardcode glabal mask in ChessEngine.hpp representing columns and lines
+
     * Switch some function pointer at engine start depending on the rule ?
         - It will speed up the engine
         - We won't use boards with different rules in the same executable

@@ -81,12 +81,18 @@ class Board {
         bool            operator ==(Board *test_board);
 
     private:
-        // uint64_t    *all_pieces[12] = {&white_pawns, &white_knights, &white_bishops, &white_rooks, &white_queens, &white_king, &black_pawns, &black_knights, &black_bishops, &black_rooks, &black_queens, &black_king};
-        // char    all_pieces_letters[12] = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+        vector<Move>    available_moves;
+        bool            moves_computed;
+        bool            check;
+        bool            check_computed;
+        float           game_state;
+        bool            game_state_computed;
 
         // Engine variables 
         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
         uint64_t   attacked_squares; // Squares attacked by the opponent
+        uint64_t   white_pieces_mask; // All white pieces on the board
+        uint64_t   black_pieces_mask; // All black pieces on the board
         uint64_t   pieces_mask; // All pieces on the board
 
         // FEN history is used to check the Threefold Repetition rule
@@ -123,22 +129,27 @@ class Board {
         // bool    _threefold_repetition_rule();
         // bool    _insufficient_material_rule();
 
-        vector<Move>    _find_moves();
-        // void            _find_moves_pawns(int x, int y);
-        // void            _add_regular_move_or_promotion(int x, int y, int dx, int dy);
-        // void            _find_moves_knights(int x, int y);
-        // void            _find_moves_bishops(int x, int y);
-        // void            _find_moves_rooks(int x, int y);
-        // void            _find_moves_queens(int x, int y);
-        // void            _find_moves_king(int x, int y);
-        void            _find_moves_castle(int x, int y, int castle_index);
+        void    _find_moves();
+        void    _find_white_pawns_moves(uint64_t src);
+        void    _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
+
+        // void _find_white_knights_moves(int x, int y);
+        // void _find_white_bishops_moves(int x, int y);
+        // void _find_white_rooks_moves(int x, int y);
+        // void _find_white_queens_moves(int x, int y);
+        // void _find_white_king_moves(int x, int y);
+        // void _find_moves_castle(int x, int y, int castle_index);
         // bool            _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
+
+        void            _generate_attacked_squares();
+        void            _generate_pin_masks();
 
         // void    _filter_non_legal_moves();
         // bool    _is_check();
         // bool    _is_check(int x, int y);
 
         // LOOKUP TABLES
+        static uint64_t Board::get_least_significant_bit(uint64_t bitboard);
 
         uint64_t pawn_lookup[64][2]; // 0: white, 1: black
         uint64_t knight_lookup[64];

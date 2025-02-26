@@ -53,7 +53,7 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         5,
         "a7a8r",
-        new Move('P', 1UL << 8, 1UL << 0, 'R')
+        new Move('P', 1UL << 8, 1UL << 0, 'r')
     );
     success_count += Move_unittest(
         6,
@@ -121,7 +121,7 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         5,
         "a7a8r",
-        new Move(0, 1, 0, 0, 'R')
+        new Move(0, 1, 0, 0, 'r')
     );
     success_count += Move_unittest(
         6,
@@ -225,7 +225,7 @@ int to_uci_unittestLauncher()
     );
     success_count += to_uci_unittest(
         6,
-        new Move('P', 1UL << 14, 1UL << 6, 'N', castle_info_e::NOTCASTLE),
+        new Move('P', 1UL << 14, 1UL << 6, 'n', castle_info_e::NOTCASTLE),
         true,
         false,
         "g7g8n"
@@ -369,7 +369,7 @@ int to_uci_unittestLauncher()
     );
     success_count += to_uci_unittest(
         6,
-        new Move(6, 1, 6, 0, 'N'),
+        new Move(6, 1, 6, 0, 'n'),
         false,
         "g7g8n"
     );
@@ -508,14 +508,14 @@ int equaloperator_unittestLauncher()
     // Promotions
     success_count += equaloperator_unittest(
         5,
-        new Move('P', 1UL << 8, 1UL << 0, 'R'),
-        new Move('P', 1UL << 8, 1UL << 0, 'R'),
+        new Move('P', 1UL << 8, 1UL << 0, 'r'),
+        new Move('P', 1UL << 8, 1UL << 0, 'r'),
         true
     );
     success_count += equaloperator_unittest(
         6,
-        new Move('P', 1UL << 8, 1UL << 0, 'R'),
-        new Move('P', 1UL << 8, 1UL << 0, 'Q'),
+        new Move('P', 1UL << 8, 1UL << 0, 'r'),
+        new Move('P', 1UL << 8, 1UL << 0, 'q'),
         false
     );
 
@@ -558,8 +558,8 @@ int equaloperator_unittestLauncher()
     // Promotions
     success_count += equaloperator_unittest(
         3,
-        new Move(0, 1, 0, 0, 'R'),
-        new Move(0, 1, 0, 0, 'R'),
+        new Move(0, 1, 0, 0, 'r'),
+        new Move(0, 1, 0, 0, 'r'),
         true
     );
     success_count += equaloperator_unittest(
@@ -639,7 +639,7 @@ int compare_move_vector_unittestLauncher()
             Move(6, 1, 6, 0, 'b'),
         },
         vector<Move>{
-            Move(6, 1, 6, 0, 'B'),
+            Move(6, 1, 6, 0, 'b'),
         },
         true
     );

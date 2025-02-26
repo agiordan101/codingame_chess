@@ -29,6 +29,8 @@ enum castle_info_e
     BLACKRIGHT
 };
 
+// enum for sliding pieces rays direction
+enum ray_dir_e {NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST};
 
 /* NOTATION FUNCTIONS */
 

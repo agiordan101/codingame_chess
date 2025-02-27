@@ -708,7 +708,33 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
 
 int find_pawn_moves_testLauncher()
 {
-    return 0;
+    int success_count = 0;
+    Move *requested_moves[15];
+
+    // Advances 0 and 1 and 2 - White
+    requested_moves[0] = new Move('P', 1UL << 54, 1UL << 45); // Capture left
+    requested_moves[1] = new Move('P', 1UL << 54, 1UL << 46); // Advance 1 but not 2
+    requested_moves[2] = new Move('P', 1UL << 55, 1UL << 47); // Advance 1
+    requested_moves[3] = new Move('P', 1UL << 55, 1UL << 39); // Advance 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        0,
+        new Board("8/8/8/8/6q1/5q2/5PPP/8 w - - 0 1"),
+        requested_moves,
+        3
+    );
+    // Advances 0 and 1 and 2 - Black
+    requested_moves[0] = new Move('p', 1UL << 9, 1UL << 16); // Capture left
+    requested_moves[1] = new Move('p', 1UL << 9, 1UL << 17); // Advance 1 but not 2
+    requested_moves[2] = new Move('p', 1UL << 10, 1UL << 18); // Advance 1
+    requested_moves[3] = new Move('p', 1UL << 10, 1UL << 26); // Advance 2
+    success_count += find_moves_RegularCases_FindAllMoves(
+        1,
+        new Board("8/ppp5/Q7/1Q6/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        3
+    );
+
+    return success_count;
 }
 int find_knight_moves_testLauncher()
 {

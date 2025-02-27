@@ -170,6 +170,7 @@ class Board {
         void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
         uint64_t    _get_most_significant_bit(uint64_t bitboard);
         uint64_t    _get_least_significant_bit(uint64_t bitboard);
+        uint64_t    _count_trailing_zeros(uint64_t bitboard);
 
         // LOOKUP TABLES
 
@@ -179,10 +180,10 @@ class Board {
         uint64_t king_lookup[64];
 
         void    _create_lookup_tables();
-        void    _create_pawn_captures_lookup_table(int y, int x, uint64_t position);
-        void    _create_knight_lookup_table(int y, int x, uint64_t position);
-        void    _create_sliding_lookup_table(int y, int x, uint64_t position);
-        void    _create_king_lookup_table(int y, int x, uint64_t position);
+        void    _create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        void    _create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        void    _create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        void    _create_king_lookup_table(int y, int x, uint64_t position, int lkt_i);
 };
 
 # else

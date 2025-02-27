@@ -271,6 +271,7 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     chess960_rule = _chess960_rule;
 
     _initialize_bitboards();
+    _create_lookup_tables();
 
     // Parse FEN data
     _parse_board(_board);
@@ -284,6 +285,8 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     fen_history_index = 0;
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
         fen_history[i] = string();
+
+    _update_engine_data();
     _update_fen_history();
 }
 
@@ -376,7 +379,7 @@ void Board::_parse_castling(string castling_fen)
 
 // - Accessibility -
 
-char Board::_get_cell(uint64_t mask)
+char    Board::_get_cell(uint64_t mask)
 {
     if (white_pawns & mask)
         return 'P';
@@ -733,11 +736,26 @@ void Board::_find_moves()
     }
 }
 
+void    Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
+{
+    uint64_t piece;
+    while (bitboard)
+    {
+        piece = _get_least_significant_bit(bitboard);
+        func(piece);
+
+        // Remove the actual bit from bitboard, so we can find the next one
+        bitboard ^= piece;
+    }
+}
+
 void Board::_find_white_pawns_moves(uint64_t src)
 {
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t capture_moves = pawn_captures_lookup[src][0] & black_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    
+    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & black_pieces_mask;
     uint64_t advance_move = (src >> 8) & empty_cells_mask;
     uint64_t legal_moves = capture_moves | advance_move;
 
@@ -748,8 +766,9 @@ void Board::_find_white_pawns_moves(uint64_t src)
 
     // Find all individual bits in legal_moves
     uint64_t dst;
-    while (dst = _get_least_significant_bit(legal_moves))
+    while (legal_moves)
     {
+        dst = _get_least_significant_bit(legal_moves);
         _add_regular_move_or_promotion('P', src, dst);
 
         // Remove the actual bit from legal_moves, so we can find the next one
@@ -761,7 +780,9 @@ void Board::_find_white_knights_moves(uint64_t src)
 {
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = knight_lookup[src] & not_white_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+
+    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_white_pieces_mask;
 
     _create_piece_moves('N', src, legal_moves);
 }
@@ -769,6 +790,8 @@ void Board::_find_white_knights_moves(uint64_t src)
 void Board::_find_white_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_white_pieces_mask & _get_diagonal_rays(src);
 
     _create_piece_moves('B', src, legal_moves);
@@ -777,6 +800,8 @@ void Board::_find_white_bishops_moves(uint64_t src) {
 void Board::_find_white_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_white_pieces_mask & _get_line_rays(src);
 
     _create_piece_moves('R', src, legal_moves);
@@ -785,6 +810,8 @@ void Board::_find_white_rooks_moves(uint64_t src) {
 void Board::_find_white_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
     _create_piece_moves('Q', src, legal_moves);
@@ -793,7 +820,9 @@ void Board::_find_white_queens_moves(uint64_t src) {
 void Board::_find_white_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = king_lookup[white_king] & not_white_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(white_king);
+
+    uint64_t legal_moves = king_lookup[src_lkt_i] & not_white_pieces_mask;
 
     _create_piece_moves('K', white_king, legal_moves);
 }
@@ -812,7 +841,9 @@ void Board::_find_black_pawns_moves(uint64_t src)
 {
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t capture_moves = pawn_captures_lookup[src][1] & white_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+
+    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & white_pieces_mask;
     uint64_t advance_move = (src << 8) & empty_cells_mask;
     uint64_t legal_moves = capture_moves | advance_move;
 
@@ -823,8 +854,9 @@ void Board::_find_black_pawns_moves(uint64_t src)
 
     // Find all individual bits in legal_moves
     uint64_t dst;
-    while (dst = _get_least_significant_bit(legal_moves))
+    while (legal_moves)
     {
+        dst = _get_least_significant_bit(legal_moves);
         _add_regular_move_or_promotion('p', src, dst);
 
         // Remove the actual bit from legal_moves, so we can find the next one
@@ -836,7 +868,9 @@ void Board::_find_black_knights_moves(uint64_t src)
 {
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = knight_lookup[src] & not_black_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+
+    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_black_pieces_mask;
 
     _create_piece_moves('n', src, legal_moves);
 }
@@ -844,6 +878,8 @@ void Board::_find_black_knights_moves(uint64_t src)
 void Board::_find_black_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_black_pieces_mask & _get_diagonal_rays(src);
 
     _create_piece_moves('b', src, legal_moves);
@@ -852,6 +888,8 @@ void Board::_find_black_bishops_moves(uint64_t src) {
 void Board::_find_black_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_black_pieces_mask & _get_line_rays(src);
 
     _create_piece_moves('r', src, legal_moves);
@@ -860,6 +898,8 @@ void Board::_find_black_rooks_moves(uint64_t src) {
 void Board::_find_black_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
+    int src_lkt_i = _count_trailing_zeros(src);
+
     uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
     _create_piece_moves('q', src, legal_moves);
@@ -868,7 +908,9 @@ void Board::_find_black_queens_moves(uint64_t src) {
 void Board::_find_black_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = king_lookup[black_king] & not_black_pieces_mask;
+    int src_lkt_i = _count_trailing_zeros(black_king);
+
+    uint64_t legal_moves = king_lookup[src_lkt_i] & not_black_pieces_mask;
 
     _create_piece_moves('k', black_king, legal_moves);
 }
@@ -897,6 +939,20 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
         this->available_moves.push_back(Move(piece, src, dst));
 }
 
+void    Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
+{
+    uint64_t dst;
+    // Find all individual bits in legal_moves
+    while (legal_moves)
+    {
+        dst = _get_least_significant_bit(legal_moves);
+        this->available_moves.push_back(Move(piece, src, dst));
+
+        // Remove the actual bit from legal_moves, so we can find the next one
+        legal_moves ^= dst;
+    }
+}
+
 // - Bit operations -
 
 uint64_t    Board::_get_diagonal_rays(uint64_t src) {
@@ -917,16 +973,17 @@ uint64_t    Board::_get_line_rays(uint64_t src) {
 
 uint64_t Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir)
 {
-    uint64_t attacks = sliding_lookup[src][dir];
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
         // Find the first blocker in the ray (the one with the smallest index)
-        uint64_t blocker = _get_least_significant_bit(blockers);
+        int src_lkt_i = _count_trailing_zeros(blockers);
 
         // Remove all squares behind the blocker from the attacks
-        attacks ^= sliding_lookup[blocker][dir];
+        attacks ^= sliding_lookup[src_lkt_i][dir];
     }
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
@@ -935,58 +992,39 @@ uint64_t Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir)
 
 uint64_t Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir)
 {
-    uint64_t attacks = sliding_lookup[src][dir];
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
         // Find the first blocker in the ray (the one with the biggest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
+        int src_lkt_i = _count_trailing_zeros(blocker);
 
         // Remove all squares behind the blocker from the attacks
-        attacks ^= sliding_lookup[blocker][dir];
+        attacks ^= sliding_lookup[src_lkt_i][dir];
     }
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
 }
 
-void    Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
-{
-    uint64_t dst;
-    // Find all individual bits in legal_moves
-    while (dst = _get_least_significant_bit(legal_moves))
-    {
-        this->available_moves.push_back(Move(piece, src, dst));
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
-}
-
-void    Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
-{
-    uint64_t piece;
-    while (piece = _get_least_significant_bit(bitboard))
-    {
-        // Apply the function to the piece
-        func(piece);
-
-        // Remove the actual bit from bitboard, so we can find the next one
-        bitboard ^= piece;
-    }
-}
-
-uint64_t Board::_get_least_significant_bit(uint64_t bitboard)
-{
-    // __builtin_ctzll() returns the number of trailing zeros in the bitboard (Zeros on the right)
-    return 1UL << __builtin_ctzll(bitboard);
-}
-
 uint64_t Board::_get_most_significant_bit(uint64_t bitboard)
 {
     // __builtin_clzll() returns the number of leading zeros in the bitboard (Zeros on the left)
     return 1UL << (63 - __builtin_clzll(bitboard));
+}
+
+uint64_t Board::_get_least_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_trailing_zeros(bitboard);
+}
+
+uint64_t Board::_count_trailing_zeros(uint64_t bitboard)
+{
+    // __builtin_ctzll() returns the number of trailing zeros in the bitboard (Zeros on the right)
+    return __builtin_ctzll(bitboard);
 }
 
 // --- OPERATORS ---
@@ -1005,22 +1043,26 @@ void Board::_create_lookup_tables()
     memset(sliding_lookup, 0, sizeof(uint64_t) * 64 * 8);
     memset(king_lookup, 0, sizeof(uint64_t) * 64);
 
+    int lkt_i = 0;
     uint64_t pos_mask = 1UL;
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
         {
+            // cerr << "_create_lookup_tables pos: " << std::bitset<64>(pos_mask) << endl;
+
             // Create the lookup table for the current position
-            _create_pawn_captures_lookup_table(y, x, pos_mask);
-            _create_knight_lookup_table(y, x, pos_mask);
-            _create_sliding_lookup_table(y, x, pos_mask);
-            _create_king_lookup_table(y, x, pos_mask);
+            _create_pawn_captures_lookup_table(y, x, pos_mask, lkt_i);
+            _create_knight_lookup_table(y, x, pos_mask, lkt_i);
+            _create_sliding_lookup_table(y, x, pos_mask, lkt_i);
+            _create_king_lookup_table(y, x, pos_mask, lkt_i);
+            lkt_i++;
             pos_mask <<= 1;
         }
     }
 }
 
-void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position)
+void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
     if (0 < y && y < 7)
     {
@@ -1034,7 +1076,7 @@ void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position)
         if (x < 7)
             pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
 
-        pawn_captures_lookup[position][0] = pawn_mask;
+        pawn_captures_lookup[lkt_i][0] = pawn_mask;
 
         // - Black pawns -
         pawn_mask = 0UL;
@@ -1046,11 +1088,11 @@ void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position)
         if (x < 7)
             pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
 
-        pawn_captures_lookup[position][1] = pawn_mask;
+        pawn_captures_lookup[lkt_i][1] = pawn_mask;
     }
 }
 
-void Board::_create_knight_lookup_table(int y, int x, uint64_t position)
+void Board::_create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
     uint64_t knight_mask = 0UL;
     if (x > 0)
@@ -1090,16 +1132,16 @@ void Board::_create_knight_lookup_table(int y, int x, uint64_t position)
             knight_mask |= 1UL << ((y + 2) * 8 + (x + 1));
     }
 
-    knight_lookup[position] = knight_mask;
+    knight_lookup[lkt_i] = knight_mask;
 }
 
-void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
+void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
     // North
     uint64_t sliding_pos = position;
     for (int j = y; j >= 0; j--)
     {
-        sliding_lookup[position][NORTH] |= sliding_pos;
+        sliding_lookup[lkt_i][NORTH] |= sliding_pos;
         sliding_pos >>= 8;
     }
 
@@ -1107,7 +1149,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int j = y, i = x; j >= 0 && i < 8; j--, i++)
     {
-        sliding_lookup[position][NORTHEAST] |= sliding_pos;
+        sliding_lookup[lkt_i][NORTHEAST] |= sliding_pos;
         sliding_pos >>= 7;
     }
 
@@ -1115,7 +1157,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int i = x; i < 8; i++)
     {
-        sliding_lookup[position][EAST] |= sliding_pos;
+        sliding_lookup[lkt_i][EAST] |= sliding_pos;
         sliding_pos <<= 1;
     }
 
@@ -1123,7 +1165,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int j = y, i = x; j < 8 && i < 8; j++, i++)
     {
-        sliding_lookup[position][SOUTHEAST] |= sliding_pos;
+        sliding_lookup[lkt_i][SOUTHEAST] |= sliding_pos;
         sliding_pos <<= 9;
     }
 
@@ -1131,7 +1173,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int j = y; j < 8; j++)
     {
-        sliding_lookup[position][SOUTH] |= sliding_pos;
+        sliding_lookup[lkt_i][SOUTH] |= sliding_pos;
         sliding_pos <<= 8;
     }
 
@@ -1139,7 +1181,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int j = y, i = x; j < 8 && i >= 0; j++, i--)
     {
-        sliding_lookup[position][SOUTHWEST] |= sliding_pos;
+        sliding_lookup[lkt_i][SOUTHWEST] |= sliding_pos;
         sliding_pos <<= 7;
     }
     
@@ -1147,7 +1189,7 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int i = x; i >= 0; i--)
     {
-        sliding_lookup[position][WEST] |= sliding_pos;
+        sliding_lookup[lkt_i][WEST] |= sliding_pos;
         sliding_pos >>= 1;
     }
 
@@ -1155,12 +1197,12 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position)
     sliding_pos = position;
     for (int j = y, i = x; j >= 0 && i >= 0; j--, i--)
     {
-        sliding_lookup[position][NORTHWEST] |= sliding_pos;
+        sliding_lookup[lkt_i][NORTHWEST] |= sliding_pos;
         sliding_pos >>= 9;
     }
 }
 
-void Board::_create_king_lookup_table(int y, int x, uint64_t position)
+void Board::_create_king_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
     uint64_t king_mask = 0UL;
     if (x > 0)
@@ -1192,7 +1234,7 @@ void Board::_create_king_lookup_table(int y, int x, uint64_t position)
     if (y < 7)
         king_mask |= 1UL << ((y + 1) * 8 + x);
 
-    king_lookup[position] = king_mask;    
+    king_lookup[lkt_i] = king_mask;    
 }
 
 # else

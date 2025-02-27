@@ -11,6 +11,13 @@ using namespace std;
 
 # define EMPTY_CELL '.'
 
+// Bit masks representing chess board columns and lines, using UCI notation
+# define BITMASK_LINE_81    0xFF000000000000FFUL
+# define BITMASK_LINE_7     0x00FF000000000000UL
+# define BITMASK_LINE_65    0x0000FFFF00000000UL
+# define BITMASK_LINE_43    0x00000000FFFF0000UL
+# define BITMASK_LINE_2     0x000000000000FF00UL
+
 /* ENUMS */
 
 # define GAME_CONTINUE -2

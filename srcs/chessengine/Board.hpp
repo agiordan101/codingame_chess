@@ -89,11 +89,14 @@ class Board {
         bool            game_state_computed;
 
         // Engine variables 
-        uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
-        uint64_t   attacked_cells; // Squares attacked by the opponent
+        // uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
+        // uint64_t   attacked_cells_mask; // Squares attacked by the opponent
         uint64_t   white_pieces_mask; // All white pieces on the board
         uint64_t   black_pieces_mask; // All black pieces on the board
-        uint64_t   pieces_mask; // All pieces on the board
+        uint64_t   not_white_pieces_mask; // All cells that are not a white piece
+        uint64_t   not_black_pieces_mask; // All cells that are not a black piece
+        uint64_t   all_pieces_mask; // All pieces on the board
+        uint64_t   empty_cells_mask; // All empty cells on the board
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -170,13 +173,13 @@ class Board {
 
         // LOOKUP TABLES
 
-        uint64_t pawn_lookup[64][2]; // 0: white, 1: black
+        uint64_t pawn_captures_lookup[64][2]; // 0: white, 1: black
         uint64_t knight_lookup[64];
         uint64_t sliding_lookup[64][8]; // 0: N, 1: NE, 2: E, 3: SE, 4: S, 5: SW, 6: W, 7: NW
         uint64_t king_lookup[64];
 
         void    _create_lookup_tables();
-        void    _create_pawn_lookup_table(int y, int x, uint64_t position);
+        void    _create_pawn_captures_lookup_table(int y, int x, uint64_t position);
         void    _create_knight_lookup_table(int y, int x, uint64_t position);
         void    _create_sliding_lookup_table(int y, int x, uint64_t position);
         void    _create_king_lookup_table(int y, int x, uint64_t position);

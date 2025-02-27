@@ -120,7 +120,10 @@ void Board::apply_move(Move move)
         game_turn += 1;
     white_turn = !white_turn;
 
-    _update_engine_data();
+    // Update internal data
+    moves_computed = false;
+    check_computed = false;
+    game_state_computed = false;
     _update_fen_history();
 }
 
@@ -134,7 +137,7 @@ bool Board::get_check_state() {
     // either we look for the square to uncheck (What happen is there is checkmate ?)
     //  return uncheck_mask;
     // Either we detect if the kind is under attack
-    //  return attacked_cells & (white_turn ? white_king : black_king);
+    //  return attacked_cells_mask & (white_turn ? white_king : black_king);
 }
 
 char Board::get_cell(int x, int y) {
@@ -152,6 +155,7 @@ vector<Move> Board::get_available_moves()
 {
     if (!this->moves_computed)
     {
+        _update_engine_data();
         _find_moves();
         this->moves_computed = true;
     }
@@ -277,8 +281,6 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
-    _update_engine_data();
-
     fen_history_index = 0;
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
         fen_history[i] = string();
@@ -303,9 +305,14 @@ void Board::_initialize_bitboards() {
     black_castles = 0UL;
     en_passant = 0UL;
 
-    uncheck_mask = 0xFFFFFFFFFFFFFFFF;
-    attacked_cells = 0UL;
-    pieces_mask = 0UL;
+    // uncheck_mask = 0xFFFFFFFFFFFFFFFF;
+    // attacked_cells_mask = 0UL;
+    white_pieces_mask = 0UL;
+    black_pieces_mask = 0UL;
+    not_white_pieces_mask = 0UL;
+    not_black_pieces_mask = 0UL;
+    all_pieces_mask = 0UL;
+    empty_cells_mask = 0UL;
 }
 
 void Board::_parse_board(string fen_board) {
@@ -610,7 +617,7 @@ void    Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle
 void    Board::_capture_white_pieces(uint64_t dst)
 {
     // Detect if a piece is captured
-    if (pieces_mask & dst)
+    if (all_pieces_mask & dst)
     {
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
         half_turn_rule = -1;
@@ -628,7 +635,7 @@ void    Board::_capture_white_pieces(uint64_t dst)
 void    Board::_capture_black_pieces(uint64_t dst)
 {
     // Detect if a piece is captured
-    if (pieces_mask & dst)
+    if (all_pieces_mask & dst)
     {
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be incremented at the end of the turn)
         half_turn_rule = -1;
@@ -647,15 +654,14 @@ void    Board::_capture_black_pieces(uint64_t dst)
 
 void Board::_update_engine_data()
 {
-    moves_computed = false;
-    check_computed = false;
-    game_state_computed = false;
-
     white_pieces_mask = white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king;
     black_pieces_mask = black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
-    pieces_mask = white_pieces_mask | black_pieces_mask;
+    not_white_pieces_mask = ~white_pieces_mask;
+    not_black_pieces_mask = ~black_pieces_mask;
+    all_pieces_mask = white_pieces_mask | black_pieces_mask;
+    empty_cells_mask = ~all_pieces_mask;
     // uncheck_mask = 1UL;
-    // attacked_cells = 0UL;
+    // attacked_cells_mask = 0UL;
 }
 
 void Board::_update_fen_history()
@@ -731,7 +737,14 @@ void Board::_find_white_pawns_moves(uint64_t src)
 {
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = pawn_lookup[src][0] & ~white_pieces_mask;
+    uint64_t capture_moves = pawn_captures_lookup[src][0] & black_pieces_mask;
+    uint64_t advance_move = (src >> 8) & empty_cells_mask;
+    uint64_t legal_moves = capture_moves | advance_move;
+
+    // When pawn is on the 7th rank, it can move two squares forward
+    // We just need to check if the squares in front of it are empty
+    if (src & BITMASK_LINE_2 && all_pieces_mask & BITMASK_LINE_43 == 0)
+        legal_moves |= src >> 16;
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -748,22 +761,15 @@ void Board::_find_white_knights_moves(uint64_t src)
 {
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = knight_lookup[src] & ~white_pieces_mask;
+    uint64_t legal_moves = knight_lookup[src] & not_white_pieces_mask;
 
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (dst = _get_least_significant_bit(legal_moves)) {
-        this->available_moves.push_back(Move('N', src, dst));
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
+    _create_piece_moves('N', src, legal_moves);
 }
 
 void Board::_find_white_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~white_pieces_mask & _get_diagonal_rays(src);
+    uint64_t legal_moves = not_white_pieces_mask & _get_diagonal_rays(src);
 
     _create_piece_moves('B', src, legal_moves);
 }
@@ -771,7 +777,7 @@ void Board::_find_white_bishops_moves(uint64_t src) {
 void Board::_find_white_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~white_pieces_mask & _get_line_rays(src);
+    uint64_t legal_moves = not_white_pieces_mask & _get_line_rays(src);
 
     _create_piece_moves('R', src, legal_moves);
 }
@@ -779,7 +785,7 @@ void Board::_find_white_rooks_moves(uint64_t src) {
 void Board::_find_white_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
+    uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
     _create_piece_moves('Q', src, legal_moves);
 }
@@ -787,7 +793,7 @@ void Board::_find_white_queens_moves(uint64_t src) {
 void Board::_find_white_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = king_lookup[white_king] & ~white_pieces_mask;
+    uint64_t legal_moves = king_lookup[white_king] & not_white_pieces_mask;
 
     _create_piece_moves('K', white_king, legal_moves);
 }
@@ -806,13 +812,20 @@ void Board::_find_black_pawns_moves(uint64_t src)
 {
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = pawn_lookup[src][0] & ~black_pieces_mask;
+    uint64_t capture_moves = pawn_captures_lookup[src][1] & white_pieces_mask;
+    uint64_t advance_move = (src << 8) & empty_cells_mask;
+    uint64_t legal_moves = capture_moves | advance_move;
+
+    // When pawn is on the 7th rank, it can move two squares forward
+    // We just need to check if the squares in front of it are empty
+    if (src & BITMASK_LINE_7 && all_pieces_mask & BITMASK_LINE_65 == 0)
+        legal_moves |= src << 16;
 
     // Find all individual bits in legal_moves
     uint64_t dst;
     while (dst = _get_least_significant_bit(legal_moves))
     {
-        _add_regular_move_or_promotion('P', src, dst);
+        _add_regular_move_or_promotion('p', src, dst);
 
         // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
@@ -823,48 +836,41 @@ void Board::_find_black_knights_moves(uint64_t src)
 {
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = knight_lookup[src] & ~black_pieces_mask;
+    uint64_t legal_moves = knight_lookup[src] & not_black_pieces_mask;
 
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (dst = _get_least_significant_bit(legal_moves)) {
-        this->available_moves.push_back(Move('N', src, dst));
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
+    _create_piece_moves('n', src, legal_moves);
 }
 
 void Board::_find_black_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~black_pieces_mask & _get_diagonal_rays(src);
+    uint64_t legal_moves = not_black_pieces_mask & _get_diagonal_rays(src);
 
-    _create_piece_moves('B', src, legal_moves);
+    _create_piece_moves('b', src, legal_moves);
 }
 
 void Board::_find_black_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~black_pieces_mask & _get_line_rays(src);
+    uint64_t legal_moves = not_black_pieces_mask & _get_line_rays(src);
 
-    _create_piece_moves('R', src, legal_moves);
+    _create_piece_moves('r', src, legal_moves);
 }
 
 void Board::_find_black_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = ~black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
+    uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
-    _create_piece_moves('Q', src, legal_moves);
+    _create_piece_moves('q', src, legal_moves);
 }
 
 void Board::_find_black_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = king_lookup[black_king] & ~black_pieces_mask;
+    uint64_t legal_moves = king_lookup[black_king] & not_black_pieces_mask;
 
-    _create_piece_moves('K', black_king, legal_moves);
+    _create_piece_moves('k', black_king, legal_moves);
 }
 
 void Board::_find_black_castle_moves(uint64_t dst) {
@@ -874,12 +880,12 @@ void Board::_find_black_castle_moves(uint64_t dst) {
     // Knights -> Just slide them
     // King -> Just slide it
     // Sliders -> Loop over them, resolve x-rays using lookup tables
-    _create_piece_moves('K', black_king, dst);
+    _create_piece_moves('k', black_king, dst);
 }
 
 void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
 {
-    if (dst & 0xFF000000000000FFUL)
+    if (dst & BITMASK_LINE_81)
     {
         // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
         this->available_moves.push_back(Move(piece, src, dst, 'n'));
@@ -914,7 +920,7 @@ uint64_t Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir)
     uint64_t attacks = sliding_lookup[src][dir];
 
     // Find all pieces in the ray
-    uint64_t blockers = attacks & pieces_mask;
+    uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
         // Find the first blocker in the ray (the one with the smallest index)
         uint64_t blocker = _get_least_significant_bit(blockers);
@@ -932,7 +938,7 @@ uint64_t Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir)
     uint64_t attacks = sliding_lookup[src][dir];
 
     // Find all pieces in the ray
-    uint64_t blockers = attacks & pieces_mask;
+    uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
         // Find the first blocker in the ray (the one with the biggest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
@@ -994,7 +1000,7 @@ bool Board::operator==(Board *test_board_abstracted) {
 
 void Board::_create_lookup_tables()
 {
-    memset(pawn_lookup, 0, sizeof(uint64_t) * 64 * 2);
+    memset(pawn_captures_lookup, 0, sizeof(uint64_t) * 64 * 2);
     memset(knight_lookup, 0, sizeof(uint64_t) * 64);
     memset(sliding_lookup, 0, sizeof(uint64_t) * 64 * 8);
     memset(king_lookup, 0, sizeof(uint64_t) * 64);
@@ -1005,7 +1011,7 @@ void Board::_create_lookup_tables()
         for (int x = 0; x < 8; x++)
         {
             // Create the lookup table for the current position
-            _create_pawn_lookup_table(y, x, pos_mask);
+            _create_pawn_captures_lookup_table(y, x, pos_mask);
             _create_knight_lookup_table(y, x, pos_mask);
             _create_sliding_lookup_table(y, x, pos_mask);
             _create_king_lookup_table(y, x, pos_mask);
@@ -1014,7 +1020,7 @@ void Board::_create_lookup_tables()
     }
 }
 
-void Board::_create_pawn_lookup_table(int y, int x, uint64_t position)
+void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position)
 {
     if (0 < y && y < 7)
     {
@@ -1027,13 +1033,8 @@ void Board::_create_pawn_lookup_table(int y, int x, uint64_t position)
         // Right capture
         if (x < 7)
             pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
-        // Move forward
-        pawn_mask |= 1UL << ((y - 1) * 8 + x);
-        // Double move forward
-        if (y == 6)
-          pawn_mask |= 1UL << ((y - 2) * 8 + x);
 
-        pawn_lookup[position][0] = pawn_mask;
+        pawn_captures_lookup[position][0] = pawn_mask;
 
         // - Black pawns -
         pawn_mask = 0UL;
@@ -1044,13 +1045,8 @@ void Board::_create_pawn_lookup_table(int y, int x, uint64_t position)
         // Right capture
         if (x < 7)
             pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
-        // Move forward
-        pawn_mask |= 1UL << ((y + 1) * 8 + x);
-        // Double move forward
-        if (y == 1)
-           pawn_mask |= 1UL << ((y + 2) * 8 + x);
 
-        pawn_lookup[position][1] = pawn_mask;
+        pawn_captures_lookup[position][1] = pawn_mask;
     }
 }
 

@@ -6,12 +6,9 @@
 
 # pragma region Board
 
-# include "Move.hpp"
 # include "ChessEngine.hpp"
-# include <stdio.h>
-# include <string.h>
-# include <vector>
-# include <bits/stdc++.h>
+# include "VisualBoard.hpp"
+# include "Move.hpp"
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
@@ -81,6 +78,8 @@ class Board {
         bool            operator ==(Board *test_board);
 
     private:
+        VisualBoard visual_board;
+
         vector<Move>    available_moves;
         bool            moves_computed;
         bool            check;
@@ -170,9 +169,6 @@ class Board {
 
         void        _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
         void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
-        uint64_t    _get_most_significant_bit(uint64_t bitboard);
-        uint64_t    _get_least_significant_bit(uint64_t bitboard);
-        uint64_t    _count_trailing_zeros(uint64_t bitboard);
 
         // LOOKUP TABLES
 

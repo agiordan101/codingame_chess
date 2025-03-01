@@ -1,5 +1,4 @@
 #include "Board.hpp"
-#include <locale>
 
 # if BITBOARD_IMPLEMENTATION == 1
 
@@ -30,42 +29,57 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
 }
 
 void Board::log() {
-    std::locale::global(std::locale("C.UTF-8"));
-    std::wcout.imbue(std::locale("C.UTF-8"));
+
+    uint64_t rook;
+
+    // Find all individual rooks in white_castles
+    string white_castles_pos[2] = { "N/A", "N/A" };
+    int white_castles_pos_i = 0;
+    uint64_t castle_tmp = white_castles;
+    while (castle_tmp)
+    {
+        rook = _get_least_significant_bit(castle_tmp);
+        white_castles_pos[white_castles_pos_i++] = bitboard_to_algebraic(rook);
+
+        // Remove the actual rook from castle_tmp, so we can find the next one
+        castle_tmp ^= rook;
+    }
+    
+    // Find all individual rooks in black_castles
+    string black_castles_pos[2] = { "N/A", "N/A" };
+    int black_castles_pos_i = 0;
+    castle_tmp = black_castles;
+    while (castle_tmp)
+    {
+        rook = _get_least_significant_bit(castle_tmp);
+        black_castles_pos[black_castles_pos_i++] = bitboard_to_algebraic(rook);
+
+        // Remove the actual rook from castle_tmp, so we can find the next one
+        castle_tmp ^= rook;
+    }
 
     cerr << "Board: FEN: " << create_fen() << endl;
     cerr << "Board: Turn: " << (white_turn ? "White" : "Black") << endl;
-    cerr << "Board: White castling: " << endl << bitset<64>(white_castles) << endl;
-    cerr << "Board: Black castling: " << endl << bitset<64>(black_castles) << endl;
+    cerr << "Board: White castling: " << white_castles_pos[0] << " " << white_castles_pos[1] << endl;
+    cerr << "Board: Black castling: " << black_castles_pos[0] << " " << black_castles_pos[1] << endl;
     cerr << "Board: En passant: " << (en_passant ? bitboard_to_algebraic(en_passant) : "N/A") << endl;
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
-    cerr << "----+----------------" << endl;
-    cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
-    cerr << " uci| A B C D E F G H" << endl;
-    cerr << "----+----------------" << endl;
-    for (int y = 0; y < 8; y++)
-    {
-        wcout << y << " " << line_index_to_number(y) << " |";
-        for (int x = 0; x < 8; x++)
-            wcout << " " << convert_piece_to_unicode(get_cell(x, y));
-        wcout << endl;
-    }
-    wcout << "----+----------------" << endl;
-
-    // cerr << " White pawns :  " << bitset<64>(white_pawns) << endl;
-    // cerr << " White knights: " << bitset<64>(white_knights) << endl;
-    // cerr << " White bishops: " << bitset<64>(white_bishops) << endl;
-    // cerr << " White rooks :  " << bitset<64>(white_rooks) << endl;
-    // cerr << " White queens : " << bitset<64>(white_queens) << endl;
-    // cerr << " White king :   " << bitset<64>(white_king) << endl;
-    // cerr << " Black pawns :  " << bitset<64>(black_pawns) << endl;
-    // cerr << " Black knights: " << bitset<64>(black_knights) << endl;
-    // cerr << " Black bishops: " << bitset<64>(black_bishops) << endl;
-    // cerr << " Black rooks :  " << bitset<64>(black_rooks) << endl;
-    // cerr << " Black queens : " << bitset<64>(black_queens) << endl;
-    // cerr << " Black king :   " << bitset<64>(black_king) << endl;
+    this->visual_board.resetBoard();
+    this->visual_board.updateBoard('P', white_pawns);
+    this->visual_board.updateBoard('N', white_knights);
+    this->visual_board.updateBoard('B', white_bishops);
+    this->visual_board.updateBoard('R', white_rooks);
+    this->visual_board.updateBoard('Q', white_queens);
+    this->visual_board.updateBoard('K', white_king);
+    this->visual_board.updateBoard('p', black_pawns);
+    this->visual_board.updateBoard('n', black_knights);
+    this->visual_board.updateBoard('b', black_bishops);
+    this->visual_board.updateBoard('r', black_rooks);
+    this->visual_board.updateBoard('q', black_queens);
+    this->visual_board.updateBoard('k', black_king);
+    this->visual_board.printBoard();
 }
 
 void Board::log_history(int turns) {
@@ -267,6 +281,8 @@ Board *Board::clone()
 
 void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
 {
+    this->visual_board = VisualBoard();
+
     // Initialize private variables
     chess960_rule = _chess960_rule;
 
@@ -693,6 +709,20 @@ void Board::_find_moves()
     //  - We Define a pinmask
     // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
 
+    this->visual_board.resetBoard();
+    this->visual_board.updateBoard('P', white_pawns);
+    this->visual_board.updateBoard('N', white_knights);
+    this->visual_board.updateBoard('B', white_bishops);
+    this->visual_board.updateBoard('R', white_rooks);
+    this->visual_board.updateBoard('Q', white_queens);
+    this->visual_board.updateBoard('K', white_king);
+    this->visual_board.updateBoard('p', black_pawns);
+    this->visual_board.updateBoard('n', black_knights);
+    this->visual_board.updateBoard('b', black_bishops);
+    this->visual_board.updateBoard('r', black_rooks);
+    this->visual_board.updateBoard('q', black_queens);
+    this->visual_board.updateBoard('k', black_king);
+
     // Update check mask
     // Update pin mask
     if (white_turn)
@@ -739,6 +769,8 @@ void Board::_find_moves()
             _find_black_castle_moves(param);
         });
     }
+
+    this->visual_board.printBoard();
 }
 
 void    Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
@@ -916,6 +948,8 @@ void Board::_find_black_castle_moves(uint64_t dst) {
 
 void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
 {
+    this->visual_board.updateBoard('o', dst);
+
     if (dst & BITMASK_LINE_81)
     {
         // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
@@ -930,6 +964,8 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
+    this->visual_board.updateBoard('o', legal_moves);
+
     uint64_t dst;
     // Find all individual bits in legal_moves
     while (legal_moves)
@@ -965,15 +1001,28 @@ uint64_t Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir)
     int src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
+    // VisualBoard vb = this->visual_board.clone();
+    // vb.updateBoard('*', sliding_lookup[src_lkt_i][dir]);
+    // vb.printBoard();
+
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
         // Find the first blocker in the ray (the one with the smallest index)
         int src_lkt_i = _count_trailing_zeros(blockers);
 
+        // vb = this->visual_board.clone();
+        // vb.updateBoard('#', blockers);
+        // vb.updateBoard('X', sliding_lookup[src_lkt_i][dir]);
+        // vb.printBoard();
+
         // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
+
+    // vb = this->visual_board.clone();
+    // vb.updateBoard('X', attacks);
+    // vb.printBoard();
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
@@ -984,6 +1033,10 @@ uint64_t Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir)
     int src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
+    // VisualBoard vb = this->visual_board.clone();
+    // vb.updateBoard('*', sliding_lookup[src_lkt_i][dir]);
+    // vb.printBoard();
+
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers) {
@@ -991,29 +1044,21 @@ uint64_t Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir)
         uint64_t blocker = _get_most_significant_bit(blockers);
         int src_lkt_i = _count_trailing_zeros(blocker);
 
+        // vb = this->visual_board.clone();
+        // vb.updateBoard('#', blockers);
+        // vb.updateBoard('X', sliding_lookup[src_lkt_i][dir]);
+        // vb.printBoard();
+
         // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
 
+    // vb = this->visual_board.clone();
+    // vb.updateBoard('X', attacks);
+    // vb.printBoard();
+
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
-}
-
-uint64_t Board::_get_most_significant_bit(uint64_t bitboard)
-{
-    // __builtin_clzll() returns the number of leading zeros in the bitboard (Zeros on the left)
-    return 1UL << (63 - __builtin_clzll(bitboard));
-}
-
-uint64_t Board::_get_least_significant_bit(uint64_t bitboard)
-{
-    return 1UL << _count_trailing_zeros(bitboard);
-}
-
-uint64_t Board::_count_trailing_zeros(uint64_t bitboard)
-{
-    // __builtin_ctzll() returns the number of trailing zeros in the bitboard (Zeros on the right)
-    return __builtin_ctzll(bitboard);
 }
 
 // --- OPERATORS ---

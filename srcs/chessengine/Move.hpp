@@ -2,8 +2,6 @@
 # define MOVE_HPP
 
 # include "ChessEngine.hpp"
-# include <iostream>
-# include <vector>
 
 using namespace std;
 

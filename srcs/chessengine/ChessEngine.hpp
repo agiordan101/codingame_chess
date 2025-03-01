@@ -5,11 +5,16 @@
 using namespace std;
 
 # include <iostream>
+# include <locale>
+# include <vector>
+# include <bits/stdc++.h>
+# include <stdio.h>
+# include <string.h>
 
 # define BITBOARD_IMPLEMENTATION 1
 # define CHESS960_RULES 1
 
-# define EMPTY_CELL '.'
+# define EMPTY_CELL '-'
 
 // Bit masks representing chess board columns and lines, using UCI notation
 # define BITMASK_LINE_81    0xFF000000000000FFUL
@@ -38,6 +43,62 @@ enum castle_info_e
 
 // enum for sliding pieces rays direction
 enum ray_dir_e {NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST};
+
+/* PIECES FUNCTIONS */
+
+inline float get_piece_value(char piece)
+{
+    switch (tolower(piece))
+    {
+        case 'p':
+            return 1;
+        case 'n':
+            return 3;
+        case 'b':
+            return 3.2;
+        case 'r':
+            return 5;
+        case 'q':
+            return 9;
+        // case 'k':
+        //     return 100;
+        default:
+            return 0;
+    }
+}
+
+inline wchar_t convert_piece_to_unicode(char piece)
+{
+    switch (piece)
+    {
+        case 'P':
+            return L'♟';
+        case 'N':
+            return L'♞';
+        case 'B':
+            return L'♝';
+        case 'R':
+            return L'♜';
+        case 'Q':
+            return L'♛';
+        case 'K':
+            return L'♚';
+        case 'p':
+            return L'♙';
+        case 'n':
+            return L'♘';
+        case 'b':
+            return L'♗';
+        case 'r':
+            return L'♖';
+        case 'q':
+            return L'♕';
+        case 'k':
+            return L'♔';
+        default:
+            return piece;
+    }
+}
 
 /* NOTATION FUNCTIONS */
 
@@ -111,60 +172,23 @@ inline string bitboard_to_algebraic(uint64_t bitboard)
     return coord_to_algebraic(x, y);
 }
 
-/* PIECES FUNCTIONS */
+/* BITWISE OPERATIONS */
 
-inline float get_piece_value(char piece)
+inline uint64_t _count_trailing_zeros(uint64_t bitboard)
 {
-    switch (tolower(piece))
-    {
-        case 'p':
-            return 1;
-        case 'n':
-            return 3;
-        case 'b':
-            return 3.2;
-        case 'r':
-            return 5;
-        case 'q':
-            return 9;
-        // case 'k':
-        //     return 100;
-        default:
-            return 0;
-    }
+    // __builtin_ctzll() returns the number of trailing zeros in the bitboard (Zeros on the right)
+    return __builtin_ctzll(bitboard);
 }
 
-inline wchar_t convert_piece_to_unicode(char piece)
+inline uint64_t _get_most_significant_bit(uint64_t bitboard)
 {
-    switch (piece)
-    {
-        case 'P':
-            return L'♟';
-        case 'N':
-            return L'♞';
-        case 'B':
-            return L'♝';
-        case 'R':
-            return L'♜';
-        case 'Q':
-            return L'♛';
-        case 'K':
-            return L'♚';
-        case 'p':
-            return L'♙';
-        case 'n':
-            return L'♘';
-        case 'b':
-            return L'♗';
-        case 'r':
-            return L'♖';
-        case 'q':
-            return L'♕';
-        case 'k':
-            return L'♔';
-        default:
-            return piece;
-    }
+    // __builtin_clzll() returns the number of leading zeros in the bitboard (Zeros on the left)
+    return 1UL << (63 - __builtin_clzll(bitboard));
+}
+
+inline uint64_t _get_least_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_trailing_zeros(bitboard);
 }
 
 #endif

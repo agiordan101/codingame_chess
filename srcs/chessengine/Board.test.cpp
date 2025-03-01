@@ -865,7 +865,7 @@ int find_bishop_moves_testLauncher()
         8,
         new Board("6P1/8/8/3B4/8/1p6/8/8 w - - 0 1"),
         requested_moves,
-        10
+        11
     );
 
     return success_count;

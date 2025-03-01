@@ -731,7 +731,7 @@ int find_pawn_moves_testLauncher()
     requested_moves[16] = new Move('P', 1UL << 20, 1UL << 12); // Advance 1
     requested_moves[17] = new Move('P', 1UL << 22, 1UL << 14); // Advance 1
     success_count += find_moves_RegularCases_FindAllMoves(
-        2,
+        1,
         new Board("8/P7/4PpP1/8/3q3P/2q3P1/1PPP1PPP/4q3 w - f7 0 1"),
         requested_moves,
         18
@@ -767,11 +767,108 @@ int find_pawn_moves_testLauncher()
 }
 int find_knight_moves_testLauncher()
 {
-    return 0;
+    int success_count = 0;
+    Move *requested_moves[20];
+
+    // Left up corner
+    requested_moves[0] = new Move('N', 1UL, 1UL << 10);
+    requested_moves[1] = new Move('N', 1UL, 1UL << 17);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        3,
+        new Board("N7/8/8/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        2
+    );
+
+    // Right up corner
+    requested_moves[0] = new Move('N', 1UL << 7, 1UL << 13);
+    requested_moves[1] = new Move('N', 1UL << 7, 1UL << 22);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        4,
+        new Board("7N/8/8/8/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        2
+    );
+
+    // Left down corner
+    requested_moves[0] = new Move('n', 1UL << 56, 1UL << 41);
+    requested_moves[1] = new Move('n', 1UL << 56, 1UL << 50);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        5,
+        new Board("8/8/8/8/8/8/8/n7 b - - 0 1"),
+        requested_moves,
+        2
+    );
+
+    // Right down corner
+    requested_moves[0] = new Move('n', 1UL << 63, 1UL << 46);
+    requested_moves[1] = new Move('n', 1UL << 63, 1UL << 53);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        6,
+        new Board("8/8/8/8/8/8/8/7n b - - 0 1"),
+        requested_moves,
+        2
+    );
+
+    // White - All move types
+    requested_moves[0] = new Move('N', 1UL << 27, 1UL << 10); // Up left
+    requested_moves[1] = new Move('N', 1UL << 27, 1UL << 12); // Up right
+    requested_moves[2] = new Move('N', 1UL << 27, 1UL << 17); // Left up
+    requested_moves[3] = new Move('N', 1UL << 27, 1UL << 21); // Right up
+    requested_moves[4] = new Move('N', 1UL << 27, 1UL << 33); // Left down
+    requested_moves[5] = new Move('N', 1UL << 27, 1UL << 37); // Right down
+    requested_moves[6] = new Move('N', 1UL << 27, 1UL << 42); // Down left (Capture)
+    requested_moves[7] = new Move('P', 1UL << 44, 1UL << 36); // Pawn blocker move
+    success_count += find_moves_RegularCases_FindAllMoves(
+        6,
+        new Board("8/8/8/3N4/8/2q1P3/8/8 w - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    // Black - All move types
+    requested_moves[0] = new Move('n', 1UL << 27, 1UL << 10); // Up left
+    requested_moves[1] = new Move('n', 1UL << 27, 1UL << 12); // Up right
+    requested_moves[2] = new Move('n', 1UL << 27, 1UL << 17); // Left up
+    requested_moves[3] = new Move('n', 1UL << 27, 1UL << 21); // Right up
+    requested_moves[4] = new Move('n', 1UL << 27, 1UL << 33); // Left down
+    requested_moves[5] = new Move('n', 1UL << 27, 1UL << 37); // Right down
+    requested_moves[6] = new Move('n', 1UL << 27, 1UL << 42); // Down left (Capture)
+    requested_moves[7] = new Move('p', 1UL << 44, 1UL << 52); // Pawn blocker move
+    success_count += find_moves_RegularCases_FindAllMoves(
+        7,
+        new Board("8/8/8/3n4/8/2Q1p3/8/8 b - - 0 1"),
+        requested_moves,
+        8
+    );
+
+    return success_count;
 }
 int find_bishop_moves_testLauncher()
 {
-    return 0;
+    int success_count = 0;
+    Move *requested_moves[20];
+
+    // White - Left up corner
+    requested_moves[0] = new Move('B', 1UL << 27, 1UL << 18);
+    requested_moves[1] = new Move('B', 1UL << 27, 1UL << 9);
+    requested_moves[2] = new Move('B', 1UL << 27, 1UL << 0);
+    requested_moves[3] = new Move('B', 1UL << 27, 1UL << 20);
+    requested_moves[4] = new Move('B', 1UL << 27, 1UL << 13); // Following cell is blocked by ally pawn
+    requested_moves[5] = new Move('B', 1UL << 27, 1UL << 36);
+    requested_moves[6] = new Move('B', 1UL << 27, 1UL << 45);
+    requested_moves[7] = new Move('B', 1UL << 27, 1UL << 54);
+    requested_moves[8] = new Move('B', 1UL << 27, 1UL << 63);
+    requested_moves[9] = new Move('B', 1UL << 27, 1UL << 34);
+    requested_moves[10] = new Move('B', 1UL << 27, 1UL << 41); // Capture enemy pawn
+    success_count += find_moves_RegularCases_FindAllMoves(
+        8,
+        new Board("6P1/8/8/3B4/8/1p6/8/8 w - - 0 1"),
+        requested_moves,
+        10
+    );
+
+    return success_count;
 }
 int find_rook_moves_testLauncher()
 {

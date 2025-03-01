@@ -786,7 +786,6 @@ void Board::_find_white_knights_moves(uint64_t src)
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = knight_lookup[src_lkt_i] & not_white_pieces_mask;
 
     _create_piece_moves('N', src, legal_moves);
@@ -795,8 +794,6 @@ void Board::_find_white_knights_moves(uint64_t src)
 void Board::_find_white_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_white_pieces_mask & _get_diagonal_rays(src);
 
     _create_piece_moves('B', src, legal_moves);
@@ -805,8 +802,6 @@ void Board::_find_white_bishops_moves(uint64_t src) {
 void Board::_find_white_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_white_pieces_mask & _get_line_rays(src);
 
     _create_piece_moves('R', src, legal_moves);
@@ -815,8 +810,6 @@ void Board::_find_white_rooks_moves(uint64_t src) {
 void Board::_find_white_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
     _create_piece_moves('Q', src, legal_moves);
@@ -826,7 +819,6 @@ void Board::_find_white_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(white_king);
-
     uint64_t legal_moves = king_lookup[src_lkt_i] & not_white_pieces_mask;
 
     _create_piece_moves('K', white_king, legal_moves);
@@ -874,7 +866,6 @@ void Board::_find_black_knights_moves(uint64_t src)
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = knight_lookup[src_lkt_i] & not_black_pieces_mask;
 
     _create_piece_moves('n', src, legal_moves);
@@ -883,8 +874,6 @@ void Board::_find_black_knights_moves(uint64_t src)
 void Board::_find_black_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_black_pieces_mask & _get_diagonal_rays(src);
 
     _create_piece_moves('b', src, legal_moves);
@@ -893,8 +882,6 @@ void Board::_find_black_bishops_moves(uint64_t src) {
 void Board::_find_black_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_black_pieces_mask & _get_line_rays(src);
 
     _create_piece_moves('r', src, legal_moves);
@@ -903,8 +890,6 @@ void Board::_find_black_rooks_moves(uint64_t src) {
 void Board::_find_black_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    int src_lkt_i = _count_trailing_zeros(src);
-
     uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src));
 
     _create_piece_moves('q', src, legal_moves);
@@ -914,7 +899,6 @@ void Board::_find_black_king_moves() {
     // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(black_king);
-
     uint64_t legal_moves = king_lookup[src_lkt_i] & not_black_pieces_mask;
 
     _create_piece_moves('k', black_king, legal_moves);
@@ -962,17 +946,17 @@ void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 
 uint64_t    Board::_get_diagonal_rays(uint64_t src) {
     return\
-        _compute_sliding_piece_positive_ray(src, SOUTHEAST) &\
-        _compute_sliding_piece_positive_ray(src, SOUTHWEST) &\
-        _compute_sliding_piece_negative_ray(src, NORTHWEST) &\
+        _compute_sliding_piece_positive_ray(src, SOUTHEAST) |\
+        _compute_sliding_piece_positive_ray(src, SOUTHWEST) |\
+        _compute_sliding_piece_negative_ray(src, NORTHWEST) |\
         _compute_sliding_piece_negative_ray(src, NORTHEAST);
 }
 
 uint64_t    Board::_get_line_rays(uint64_t src) {
     return\
-       _compute_sliding_piece_positive_ray(src, EAST) &\
-       _compute_sliding_piece_positive_ray(src, SOUTH) &\
-       _compute_sliding_piece_negative_ray(src, WEST) &\
+       _compute_sliding_piece_positive_ray(src, EAST) |\
+       _compute_sliding_piece_positive_ray(src, SOUTH) |\
+       _compute_sliding_piece_negative_ray(src, WEST) |\
        _compute_sliding_piece_negative_ray(src, NORTH);
 }
 
@@ -1144,66 +1128,66 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
 {
     // North
     uint64_t sliding_pos = position;
-    for (int j = y; j >= 0; j--)
+    for (int j = y - 1; j >= 0; j--)
     {
-        sliding_lookup[lkt_i][NORTH] |= sliding_pos;
         sliding_pos >>= 8;
+        sliding_lookup[lkt_i][NORTH] |= sliding_pos;
     }
 
     // North-East
     sliding_pos = position;
-    for (int j = y, i = x; j >= 0 && i < 8; j--, i++)
+    for (int j = y - 1, i = x + 1; j >= 0 && i < 8; j--, i++)
     {
-        sliding_lookup[lkt_i][NORTHEAST] |= sliding_pos;
         sliding_pos >>= 7;
+        sliding_lookup[lkt_i][NORTHEAST] |= sliding_pos;
     }
 
     // East
     sliding_pos = position;
-    for (int i = x; i < 8; i++)
+    for (int i = x + 1; i < 8; i++)
     {
-        sliding_lookup[lkt_i][EAST] |= sliding_pos;
         sliding_pos <<= 1;
+        sliding_lookup[lkt_i][EAST] |= sliding_pos;
     }
 
     // South-East
     sliding_pos = position;
-    for (int j = y, i = x; j < 8 && i < 8; j++, i++)
+    for (int j = y + 1, i = x + 1; j < 8 && i < 8; j++, i++)
     {
-        sliding_lookup[lkt_i][SOUTHEAST] |= sliding_pos;
         sliding_pos <<= 9;
+        sliding_lookup[lkt_i][SOUTHEAST] |= sliding_pos;
     }
 
     // South
     sliding_pos = position;
-    for (int j = y; j < 8; j++)
+    for (int j = y + 1; j < 8; j++)
     {
-        sliding_lookup[lkt_i][SOUTH] |= sliding_pos;
         sliding_pos <<= 8;
+        sliding_lookup[lkt_i][SOUTH] |= sliding_pos;
     }
 
     // South-West
     sliding_pos = position;
-    for (int j = y, i = x; j < 8 && i >= 0; j++, i--)
+    for (int j = y + 1, i = x - 1; j < 8 && i >= 0; j++, i--)
     {
-        sliding_lookup[lkt_i][SOUTHWEST] |= sliding_pos;
         sliding_pos <<= 7;
+        sliding_lookup[lkt_i][SOUTHWEST] |= sliding_pos;
     }
-    
+
     // West
     sliding_pos = position;
-    for (int i = x; i >= 0; i--)
+    for (int i = x - 1; i >= 0; i--)
     {
-        sliding_lookup[lkt_i][WEST] |= sliding_pos;
         sliding_pos >>= 1;
+        sliding_lookup[lkt_i][WEST] |= sliding_pos;
     }
 
     // North-West
     sliding_pos = position;
-    for (int j = y, i = x; j >= 0 && i >= 0; j--, i--)
+    for (int j = y - 1, i = x - 1; j >= 0 && i >= 0; j--, i--)
     {
-        sliding_lookup[lkt_i][NORTHWEST] |= sliding_pos;
         sliding_pos >>= 9;
+        sliding_lookup[lkt_i][NORTHWEST] |= sliding_pos;
     }
 }
 

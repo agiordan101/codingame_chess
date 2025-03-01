@@ -93,7 +93,7 @@ bool Move::operator==(Move *other)
         (this->piece == other->piece || this->piece == EMPTY_CELL || other->piece == EMPTY_CELL) &&
         this->src == other->src &&
         this->dst == other->dst &&
-        this->promotion == other->promotion &&
+        tolower(this->promotion) == tolower(other->promotion) &&
         this->castle_info == other->castle_info
     ;
 }

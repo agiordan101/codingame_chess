@@ -661,8 +661,13 @@ void Board::_update_engine_data()
     black_pieces_mask = black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
     not_white_pieces_mask = ~white_pieces_mask;
     not_black_pieces_mask = ~black_pieces_mask;
+
     all_pieces_mask = white_pieces_mask | black_pieces_mask;
     empty_cells_mask = ~all_pieces_mask;
+    
+    capturable_by_white_pawns_mask = black_pieces_mask | en_passant;
+    capturable_by_black_pawns_mask = white_pieces_mask | en_passant;
+
     // uncheck_mask = 1UL;
     // attacked_cells_mask = 0UL;
 }
@@ -755,14 +760,14 @@ void Board::_find_white_pawns_moves(uint64_t src)
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
     
-    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & black_pieces_mask;
+    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & capturable_by_white_pawns_mask;
     uint64_t advance_move = (src >> 8) & empty_cells_mask;
     uint64_t legal_moves = capture_moves | advance_move;
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
-    if (src & BITMASK_LINE_2 && all_pieces_mask & BITMASK_LINE_43 == 0)
-        legal_moves |= src >> 16;
+    if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
+        legal_moves |= (src >> 16) & empty_cells_mask;
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -843,14 +848,14 @@ void Board::_find_black_pawns_moves(uint64_t src)
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
 
-    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & white_pieces_mask;
+    uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & capturable_by_black_pawns_mask;
     uint64_t advance_move = (src << 8) & empty_cells_mask;
     uint64_t legal_moves = capture_moves | advance_move;
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
-    if (src & BITMASK_LINE_7 && all_pieces_mask & BITMASK_LINE_65 == 0)
-        legal_moves |= src << 16;
+    if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
+        legal_moves |= (src << 16) & empty_cells_mask;
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -939,7 +944,7 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
         this->available_moves.push_back(Move(piece, src, dst));
 }
 
-void    Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
+void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
     uint64_t dst;
     // Find all individual bits in legal_moves

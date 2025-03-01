@@ -97,6 +97,8 @@ class Board {
         uint64_t   not_black_pieces_mask; // All cells that are not a black piece
         uint64_t   all_pieces_mask; // All pieces on the board
         uint64_t   empty_cells_mask; // All empty cells on the board
+        uint64_t   capturable_by_white_pawns_mask;
+        uint64_t   capturable_by_black_pawns_mask;
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move

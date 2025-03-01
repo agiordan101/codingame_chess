@@ -709,29 +709,58 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
 int find_pawn_moves_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[15];
+    Move *requested_moves[20];
 
-    // Advances 0 and 1 and 2 - White
-    requested_moves[0] = new Move('P', 1UL << 54, 1UL << 45); // Capture left
-    requested_moves[1] = new Move('P', 1UL << 54, 1UL << 46); // Advance 1 but not 2
-    requested_moves[2] = new Move('P', 1UL << 55, 1UL << 47); // Advance 1
-    requested_moves[3] = new Move('P', 1UL << 55, 1UL << 39); // Advance 2
+    // All White possible moves
+    requested_moves[0] = new Move('P', 1UL << 49, 1UL << 41); // Advance 1 (Against enemy)
+    requested_moves[1] = new Move('P', 1UL << 49, 1UL << 33); // Advance 2 (Against enemy)
+    requested_moves[2] = new Move('P', 1UL << 49, 1UL << 42); // Capture right
+    requested_moves[3] = new Move('P', 1UL << 51, 1UL << 42); // Capture left
+    requested_moves[4] = new Move('P', 1UL << 51, 1UL << 43); // Advance 1 (Against enemy)
+    requested_moves[5] = new Move('P', 1UL << 53, 1UL << 45); // Advance 1 (Against ally)
+    requested_moves[6] = new Move('P', 1UL << 53, 1UL << 37); // Advance 2 (Against ally)
+    requested_moves[7] = new Move('P', 1UL << 46, 1UL << 38); // Advance 1 (By the 1st blocker)
+    requested_moves[8] = new Move('P', 1UL << 55, 1UL << 47); // Advance 1 (Against ally)
+    requested_moves[9] = new Move('P', 1UL << 39, 1UL << 31); // Advance 1 (By the 2nd blocker)
+    requested_moves[10] = new Move('P', 1UL << 8, 1UL, 'N'); // Promotion
+    requested_moves[11] = new Move('P', 1UL << 8, 1UL, 'B'); // Promotion
+    requested_moves[12] = new Move('P', 1UL << 8, 1UL, 'R'); // Promotion
+    requested_moves[13] = new Move('P', 1UL << 8, 1UL, 'Q'); // Promotion
+    requested_moves[14] = new Move('P', 1UL << 20, 1UL << 13); // En passant right
+    requested_moves[15] = new Move('P', 1UL << 22, 1UL << 13); // En passant left
+    requested_moves[16] = new Move('P', 1UL << 20, 1UL << 12); // Advance 1
+    requested_moves[17] = new Move('P', 1UL << 22, 1UL << 14); // Advance 1
     success_count += find_moves_RegularCases_FindAllMoves(
-        0,
-        new Board("8/8/8/8/6q1/5q2/5PPP/8 w - - 0 1"),
+        2,
+        new Board("8/P7/4PpP1/8/3q3P/2q3P1/1PPP1PPP/4q3 w - f7 0 1"),
         requested_moves,
-        3
+        18
     );
-    // Advances 0 and 1 and 2 - Black
-    requested_moves[0] = new Move('p', 1UL << 9, 1UL << 16); // Capture left
-    requested_moves[1] = new Move('p', 1UL << 9, 1UL << 17); // Advance 1 but not 2
-    requested_moves[2] = new Move('p', 1UL << 10, 1UL << 18); // Advance 1
-    requested_moves[3] = new Move('p', 1UL << 10, 1UL << 26); // Advance 2
+
+    // All Black possible moves
+    requested_moves[0] = new Move('p', 1UL << 9, 1UL << 17); // Advance 1 (Against enemy)
+    requested_moves[1] = new Move('p', 1UL << 9, 1UL << 25); // Advance 2 (Against enemy)
+    requested_moves[2] = new Move('p', 1UL << 9, 1UL << 18); // Capture right
+    requested_moves[3] = new Move('p', 1UL << 11, 1UL << 18); // Capture left
+    requested_moves[4] = new Move('p', 1UL << 11, 1UL << 19); // Advance 1 (Against enemy)
+    requested_moves[5] = new Move('p', 1UL << 13, 1UL << 21); // Advance 1 (Against ally)
+    requested_moves[6] = new Move('p', 1UL << 13, 1UL << 29); // Advance 2 (Against ally)
+    requested_moves[7] = new Move('p', 1UL << 22, 1UL << 30); // Advance 1 (By the 1st blocker)
+    requested_moves[8] = new Move('p', 1UL << 15, 1UL << 23); // Advance 1 (Against ally)
+    requested_moves[9] = new Move('p', 1UL << 31, 1UL << 39); // Advance 1 (By the 2nd blocker)
+    requested_moves[10] = new Move('p', 1UL << 48, 1UL << 56, 'N'); // Promotion
+    requested_moves[11] = new Move('p', 1UL << 48, 1UL << 56, 'B'); // Promotion
+    requested_moves[12] = new Move('p', 1UL << 48, 1UL << 56, 'R'); // Promotion
+    requested_moves[13] = new Move('p', 1UL << 48, 1UL << 56, 'Q'); // Promotion
+    requested_moves[14] = new Move('p', 1UL << 44, 1UL << 53); // En passant right
+    requested_moves[15] = new Move('p', 1UL << 46, 1UL << 53); // En passant left
+    requested_moves[16] = new Move('p', 1UL << 44, 1UL << 52); // Advance 1
+    requested_moves[17] = new Move('p', 1UL << 46, 1UL << 54); // Advance 1
     success_count += find_moves_RegularCases_FindAllMoves(
-        1,
-        new Board("8/ppp5/Q7/1Q6/8/8/8/8 b - - 0 1"),
+        2,
+        new Board("4Q3/1ppp1ppp/2Q3p1/3Q3p/8/4pPp1/p7/8 b - f2 0 1"),
         requested_moves,
-        3
+        18
     );
 
     return success_count;

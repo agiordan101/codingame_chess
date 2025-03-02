@@ -849,7 +849,7 @@ int find_bishop_moves_testLauncher()
     int success_count = 0;
     Move *requested_moves[20];
 
-    // White - Left up corner
+    // White - All move types
     requested_moves[0] = new Move('B', 1UL << 27, 1UL << 18);
     requested_moves[1] = new Move('B', 1UL << 27, 1UL << 9);
     requested_moves[2] = new Move('B', 1UL << 27, 1UL << 0);
@@ -868,11 +868,141 @@ int find_bishop_moves_testLauncher()
         11
     );
 
+    // Black - All move types
+    requested_moves[0] = new Move('b', 1UL << 27, 1UL << 18);
+    requested_moves[1] = new Move('b', 1UL << 27, 1UL << 9);
+    requested_moves[2] = new Move('b', 1UL << 27, 1UL << 0);
+    requested_moves[3] = new Move('b', 1UL << 27, 1UL << 20);
+    requested_moves[4] = new Move('b', 1UL << 27, 1UL << 13); // Following cell is blocked by ally pawn
+    requested_moves[5] = new Move('b', 1UL << 27, 1UL << 36);
+    requested_moves[6] = new Move('b', 1UL << 27, 1UL << 45);
+    requested_moves[7] = new Move('b', 1UL << 27, 1UL << 54);
+    requested_moves[8] = new Move('b', 1UL << 27, 1UL << 63);
+    requested_moves[9] = new Move('b', 1UL << 27, 1UL << 34);
+    requested_moves[10] = new Move('b', 1UL << 27, 1UL << 41); // Capture enemy pawn
+    requested_moves[11] = new Move('p', 1UL << 6, 1UL << 14); // Blocker pawn move
+    success_count += find_moves_RegularCases_FindAllMoves(
+        9,
+        new Board("6p1/8/8/3b4/8/1P6/8/8 b - - 0 1"),
+        requested_moves,
+        12
+    );
+
     return success_count;
 }
 int find_rook_moves_testLauncher()
 {
-    return 0;
+    int success_count = 0;
+    Move *requested_moves[20];
+
+    // White - All move types
+    requested_moves[0] = new Move('R', 1UL << 27, 1UL << 11);
+    requested_moves[1] = new Move('R', 1UL << 27, 1UL << 19);
+    requested_moves[2] = new Move('R', 1UL << 27, 1UL << 24);
+    requested_moves[3] = new Move('R', 1UL << 27, 1UL << 25);
+    requested_moves[4] = new Move('R', 1UL << 27, 1UL << 26);
+    requested_moves[5] = new Move('R', 1UL << 27, 1UL << 28);
+    requested_moves[6] = new Move('R', 1UL << 27, 1UL << 29);
+    requested_moves[7] = new Move('R', 1UL << 27, 1UL << 30); // Capture enemy pawn
+    requested_moves[8] = new Move('R', 1UL << 27, 1UL << 35);
+    requested_moves[9] = new Move('R', 1UL << 27, 1UL << 43);
+    requested_moves[10] = new Move('R', 1UL << 27, 1UL << 51);
+    requested_moves[11] = new Move('R', 1UL << 27, 1UL << 59);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        10,
+        new Board("3P4/8/8/3R2p1/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        12
+    );
+
+    // Black - All move types
+    requested_moves[0] = new Move('r', 1UL << 27, 1UL << 11);
+    requested_moves[1] = new Move('r', 1UL << 27, 1UL << 19);
+    requested_moves[2] = new Move('r', 1UL << 27, 1UL << 24);
+    requested_moves[3] = new Move('r', 1UL << 27, 1UL << 25);
+    requested_moves[4] = new Move('r', 1UL << 27, 1UL << 26);
+    requested_moves[5] = new Move('r', 1UL << 27, 1UL << 28);
+    requested_moves[6] = new Move('r', 1UL << 27, 1UL << 29);
+    requested_moves[7] = new Move('r', 1UL << 27, 1UL << 30); // Capture enemy pawn
+    requested_moves[8] = new Move('r', 1UL << 27, 1UL << 35);
+    requested_moves[9] = new Move('r', 1UL << 27, 1UL << 43);
+    requested_moves[10] = new Move('r', 1UL << 27, 1UL << 51);
+    requested_moves[11] = new Move('r', 1UL << 27, 1UL << 59);
+    requested_moves[12] = new Move('p', 1UL << 3, 1UL << 11); // Pawn blocker move advance
+    success_count += find_moves_RegularCases_FindAllMoves(
+        10,
+        new Board("3p4/8/8/3r2P1/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        13
+    );
+
+    return success_count;
+}
+int find_queen_moves_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[25];
+
+    // White - All move types
+    requested_moves[0] = new Move('Q', 1UL << 25, 1UL << 17);
+    requested_moves[1] = new Move('Q', 1UL << 25, 1UL << 9); // Next cell is blocked
+    requested_moves[2] = new Move('Q', 1UL << 25, 1UL << 18);
+    requested_moves[3] = new Move('Q', 1UL << 25, 1UL << 11);
+    requested_moves[4] = new Move('Q', 1UL << 25, 1UL << 4);
+    requested_moves[5] = new Move('Q', 1UL << 25, 1UL << 26);
+    requested_moves[6] = new Move('Q', 1UL << 25, 1UL << 27);
+    requested_moves[7] = new Move('Q', 1UL << 25, 1UL << 28);
+    requested_moves[8] = new Move('Q', 1UL << 25, 1UL << 29);
+    requested_moves[9] = new Move('Q', 1UL << 25, 1UL << 30); // Capture enemy pawn
+    requested_moves[10] = new Move('Q', 1UL << 25, 1UL << 34);
+    requested_moves[11] = new Move('Q', 1UL << 25, 1UL << 43);
+    requested_moves[12] = new Move('Q', 1UL << 25, 1UL << 52);
+    requested_moves[13] = new Move('Q', 1UL << 25, 1UL << 61);
+    requested_moves[14] = new Move('Q', 1UL << 25, 1UL << 33);
+    requested_moves[15] = new Move('Q', 1UL << 25, 1UL << 41);
+    requested_moves[16] = new Move('Q', 1UL << 25, 1UL << 49);
+    requested_moves[17] = new Move('Q', 1UL << 25, 1UL << 57);
+    requested_moves[18] = new Move('Q', 1UL << 25, 1UL << 32);
+    requested_moves[19] = new Move('Q', 1UL << 25, 1UL << 24);
+    requested_moves[20] = new Move('Q', 1UL << 25, 1UL << 16);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        10,
+        new Board("1P6/8/8/1Q4p1/8/8/8/8 w - - 0 1"),
+        requested_moves,
+        21
+    );
+
+    // Black - All move types
+    requested_moves[0] = new Move('q', 1UL << 25, 1UL << 17);
+    requested_moves[1] = new Move('q', 1UL << 25, 1UL << 9); // Next cell is blocked
+    requested_moves[2] = new Move('q', 1UL << 25, 1UL << 18);
+    requested_moves[3] = new Move('q', 1UL << 25, 1UL << 11);
+    requested_moves[4] = new Move('q', 1UL << 25, 1UL << 4);
+    requested_moves[5] = new Move('q', 1UL << 25, 1UL << 26);
+    requested_moves[6] = new Move('q', 1UL << 25, 1UL << 27);
+    requested_moves[7] = new Move('q', 1UL << 25, 1UL << 28);
+    requested_moves[8] = new Move('q', 1UL << 25, 1UL << 29);
+    requested_moves[9] = new Move('q', 1UL << 25, 1UL << 30); // Capture enemy pawn
+    requested_moves[10] = new Move('q', 1UL << 25, 1UL << 34);
+    requested_moves[11] = new Move('q', 1UL << 25, 1UL << 43);
+    requested_moves[12] = new Move('q', 1UL << 25, 1UL << 52);
+    requested_moves[13] = new Move('q', 1UL << 25, 1UL << 61);
+    requested_moves[14] = new Move('q', 1UL << 25, 1UL << 33);
+    requested_moves[15] = new Move('q', 1UL << 25, 1UL << 41);
+    requested_moves[16] = new Move('q', 1UL << 25, 1UL << 49);
+    requested_moves[17] = new Move('q', 1UL << 25, 1UL << 57);
+    requested_moves[18] = new Move('q', 1UL << 25, 1UL << 32);
+    requested_moves[19] = new Move('q', 1UL << 25, 1UL << 24);
+    requested_moves[20] = new Move('q', 1UL << 25, 1UL << 16);
+    requested_moves[21] = new Move('p', 1UL << 1, 1UL << 9);
+    success_count += find_moves_RegularCases_FindAllMoves(
+        10,
+        new Board("1p6/8/8/1q4P1/8/8/8/8 b - - 0 1"),
+        requested_moves,
+        22
+    );
+
+    return success_count;
 }
 int find_king_moves_testLauncher()
 {
@@ -1299,6 +1429,11 @@ int find_rook_moves_testLauncher()
     );
 
     return success_count;    
+}
+
+int find_queen_moves_testLauncher()
+{
+    return 0;
 }
 
 int find_king_moves_testLauncher()
@@ -2037,6 +2172,7 @@ int mainTestBoard()
     successCount += find_knight_moves_testLauncher();
     successCount += find_bishop_moves_testLauncher();
     successCount += find_rook_moves_testLauncher();
+    successCount += find_queen_moves_testLauncher();
     successCount += find_king_moves_testLauncher();
     successCount += find_moves_not_illegal_ones_testLauncher();
 

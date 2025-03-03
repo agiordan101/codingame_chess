@@ -80,6 +80,7 @@ class Board {
     private:
         VisualBoard visual_board;
 
+        // Getters data
         vector<Move>    available_moves;
         bool            moves_computed;
         bool            check;
@@ -88,16 +89,32 @@ class Board {
         bool            game_state_computed;
 
         // Engine variables 
-        // uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
-        // uint64_t   attacked_cells_mask; // Squares attacked by the opponent
         uint64_t   white_pieces_mask; // All white pieces on the board
         uint64_t   black_pieces_mask; // All black pieces on the board
         uint64_t   not_white_pieces_mask; // All cells that are not a white piece
         uint64_t   not_black_pieces_mask; // All cells that are not a black piece
+        
         uint64_t   all_pieces_mask; // All pieces on the board
         uint64_t   empty_cells_mask; // All empty cells on the board
+        
+        uint64_t   ally_king;
+        uint64_t   ally_pieces;
+    
+        uint64_t   enemy_pawns;
+        uint64_t   enemy_knights;
+        uint64_t   enemy_bishops;
+        uint64_t   enemy_rooks;
+        uint64_t   enemy_queens;
+        uint64_t   enemy_king;
+        uint64_t   enemy_pieces;
+        uint64_t   enemy_pieces_sliding_diag; // Queens and Bishops
+        uint64_t   enemy_pieces_sliding_line; // Queens and Rooks
+
         uint64_t   capturable_by_white_pawns_mask;
         uint64_t   capturable_by_black_pawns_mask;
+        
+        uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
+        // uint64_t   attacked_cells_mask; // Squares attacked by the opponent
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -154,6 +171,9 @@ class Board {
         // bool    _is_check(uint64_t src);
 
         void    _update_engine_data();
+        void    _update_uncheck_mask();
+        void    _compute_diag_attacks(uint64_t king_pos, uint64_t enemy_attackers);
+
         void    _update_fen_history();
 
         // float   _find_game_state();
@@ -166,6 +186,8 @@ class Board {
         uint64_t    _get_line_rays(uint64_t src);
         uint64_t    _compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir);
         uint64_t    _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir);
+        void        _compute_sliding_piece_positive_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
+        void        _compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
 
         void        _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
         void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);

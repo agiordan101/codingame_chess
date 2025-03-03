@@ -324,7 +324,7 @@ void Board::_initialize_bitboards() {
     black_castles = 0UL;
     en_passant = 0UL;
 
-    // uncheck_mask = 0xFFFFFFFFFFFFFFFF;
+    uncheck_mask = 0xFFFFFFFFFFFFFFFF;
     // attacked_cells_mask = 0UL;
     white_pieces_mask = 0UL;
     black_pieces_mask = 0UL;
@@ -681,11 +681,82 @@ void Board::_update_engine_data()
     all_pieces_mask = white_pieces_mask | black_pieces_mask;
     empty_cells_mask = ~all_pieces_mask;
     
+    if (white_turn)
+    {
+        ally_king = white_king;
+        ally_pieces = white_pieces_mask;
+
+        enemy_pawns = black_pawns;
+        enemy_knights = black_knights;
+        enemy_bishops = black_bishops;
+        enemy_rooks = black_rooks;
+        enemy_queens = black_queens;
+    }
+    else
+    {
+        ally_king = black_king;
+        ally_pieces = black_pieces_mask;
+
+        enemy_pawns = white_pawns;
+        enemy_knights = white_knights;
+        enemy_bishops = white_bishops;
+        enemy_rooks = white_rooks;
+        enemy_queens = white_queens;
+    }
+    enemy_pieces_sliding_diag = enemy_bishops | enemy_queens;
+    enemy_pieces_sliding_line = enemy_rooks | enemy_queens;
+
     capturable_by_white_pawns_mask = black_pieces_mask | en_passant;
     capturable_by_black_pawns_mask = white_pieces_mask | en_passant;
 
-    // uncheck_mask = 1UL;
+    _update_uncheck_mask();
     // attacked_cells_mask = 0UL;
+}
+
+void Board::_update_uncheck_mask()
+{
+    uncheck_mask = 0UL;
+
+    int lkt_color;
+    if (white_turn)
+    {
+        lkt_color = 0;
+    }
+    else
+    {
+        lkt_color = 1;
+    }
+
+    // Compute pawn attacks
+    int king_lkt_i = _count_trailing_zeros(ally_king);
+    uint64_t pawn_attacks = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
+    if (pawn_attacks)
+    {
+        uncheck_mask |= pawn_attacks;
+    }
+
+    // Compute knight attacks
+    uint64_t knight_attacks = knight_lookup[king_lkt_i] & enemy_knights;
+    if (knight_attacks)
+    {
+        uncheck_mask |= knight_attacks;
+    }
+
+    // Compute diagonale attacks
+    _compute_sliding_piece_negative_ray_checks_and_pins(ally_king, NORTHEAST, enemy_pieces_sliding_diag);
+    _compute_sliding_piece_positive_ray_checks_and_pins(ally_king, SOUTHEAST, enemy_pieces_sliding_diag);
+    _compute_sliding_piece_positive_ray_checks_and_pins(ally_king, SOUTHWEST, enemy_pieces_sliding_diag);
+    _compute_sliding_piece_negative_ray_checks_and_pins(ally_king, NORTHWEST, enemy_pieces_sliding_diag);
+
+    // Compute line attacks
+    _compute_sliding_piece_negative_ray_checks_and_pins(ally_king, NORTH, enemy_pieces_sliding_line);
+    _compute_sliding_piece_positive_ray_checks_and_pins(ally_king, EAST, enemy_pieces_sliding_line);
+    _compute_sliding_piece_positive_ray_checks_and_pins(ally_king, SOUTH, enemy_pieces_sliding_line);
+    _compute_sliding_piece_negative_ray_checks_and_pins(ally_king, WEST, enemy_pieces_sliding_line);
+
+    // If no checks found, then there are no move restrictions
+    if (uncheck_mask == 0UL)
+        uncheck_mask = 0xFFFFFFFFFFFFFFFF;
 }
 
 void Board::_update_fen_history()
@@ -1059,6 +1130,104 @@ uint64_t Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir)
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
+}
+
+void        Board::_compute_sliding_piece_positive_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker)
+{
+    int king_lkt_i = _count_trailing_zeros(king_pos);
+    uint64_t attacks = sliding_lookup[king_lkt_i][dir];
+
+    // VisualBoard vb = this->visual_board.clone();
+    // vb.updateBoard('*', sliding_lookup[king_lkt_i][dir]);
+    // vb.printBoard();
+
+    // Find all pieces in the ray
+    uint64_t blockers = attacks & all_pieces_mask;
+    if (blockers)
+    {
+        // Find the first blocker in the ray (the one with the smallest index)
+        uint64_t blocker = _get_least_significant_bit(blockers);
+        int blocker_lkt_i = _count_trailing_zeros(blocker);
+
+        // If the blocker is a potential attacker, there is a check
+        if (blocker & potential_attacker)
+        {
+            // Remove all squares behind the blocker
+            uncheck_mask |= attacks ^= sliding_lookup[blocker_lkt_i][dir];
+        }
+
+        // If the blocker is an ally, it might be pinned
+        if (blocker & ally_pieces)
+        {
+            // Remove this blocker from the mask, and look for further pieces in the ray
+            blockers ^= blocker;
+            if (blockers)
+            {
+                blocker = _get_least_significant_bit(blockers);
+
+                // If the new blocker is a potential attacker, there is a pin
+                if (blocker & potential_attacker)
+                {
+                    // Remove all squares behind the blocker
+                    int blocker_lkt_i = _count_trailing_zeros(blocker);
+                    uint64_t pin_ray = attacks ^ sliding_lookup[blocker_lkt_i][dir];
+
+                    // TODO: Save the pinned piece and the total path of the pin
+                    // How ?
+                    // Buffer of tuples (piece_mask, pin_ray)
+                }
+            }
+        }
+    }
+}
+
+void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker)
+{
+    int king_lkt_i = _count_trailing_zeros(king_pos);
+    uint64_t attacks = sliding_lookup[king_lkt_i][dir];
+
+    // VisualBoard vb = this->visual_board.clone();
+    // vb.updateBoard('*', sliding_lookup[king_lkt_i][dir]);
+    // vb.printBoard();
+
+    // Find all pieces in the ray
+    uint64_t blockers = attacks & all_pieces_mask;
+    if (blockers)
+    {
+        // Find the first blocker in the ray (the one with the smallest index)
+        uint64_t blocker = _get_most_significant_bit(blockers);
+        int blocker_lkt_i = _count_trailing_zeros(blocker);
+
+        // If the blocker is a potential attacker, there is a check
+        if (blocker & potential_attacker)
+        {
+            // Remove all squares behind the blocker
+            uncheck_mask |= attacks ^= sliding_lookup[blocker_lkt_i][dir];
+        }
+
+        // If the blocker is an ally, it might be pinned
+        if (blocker & ally_pieces)
+        {
+            // Remove this blocker from the mask, and look for further pieces in the ray
+            blockers ^= blocker;
+            if (blockers)
+            {
+                blocker = _get_most_significant_bit(blockers);
+
+                // If the new blocker is a potential attacker, there is a pin
+                if (blocker & potential_attacker)
+                {
+                    // Remove all squares behind the blocker
+                    int blocker_lkt_i = _count_trailing_zeros(blocker);
+                    uint64_t pin_ray = attacks ^ sliding_lookup[blocker_lkt_i][dir];
+
+                    // TODO: Save the pinned piece and the total path of the pin
+                    // How ?
+                    // Buffer of tuples (piece_mask, pin_ray)
+                }
+            }
+        }
+    }
 }
 
 // --- OPERATORS ---

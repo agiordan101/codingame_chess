@@ -180,15 +180,20 @@ inline uint64_t _count_trailing_zeros(uint64_t bitboard)
     return __builtin_ctzll(bitboard);
 }
 
-inline uint64_t _get_most_significant_bit(uint64_t bitboard)
+inline uint64_t _count_leading_zeros(uint64_t bitboard)
 {
     // __builtin_clzll() returns the number of leading zeros in the bitboard (Zeros on the left)
-    return 1UL << (63 - __builtin_clzll(bitboard));
+    return 63 - __builtin_clzll(bitboard);
 }
 
 inline uint64_t _get_least_significant_bit(uint64_t bitboard)
 {
     return 1UL << _count_trailing_zeros(bitboard);
+}
+
+inline uint64_t _get_most_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_leading_zeros(bitboard);
 }
 
 #endif

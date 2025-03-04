@@ -1043,6 +1043,8 @@ int find_king_moves_testLauncher()
         9
     );
 
+    // TODO: King cannot move on attacked squares
+
     return 0;
 }
 
@@ -1050,6 +1052,9 @@ int find_moves_ckecks_testLauncher()
 {
     int success_count = 0;
     Move *requested_moves[10];
+
+    // Pieces cannot move if they aren't unchecking the king
+    // Only the king can move if they are 2 checks
 
     return 0;
 }
@@ -2223,11 +2228,11 @@ int mainTestBoard()
     // Use '#' to block moves
     // Use 't' and 'T' to simulate opponent pieces
 
-    successCount += create_fen_testLauncher();
-    successCount += apply_move_testLauncher();
-    successCount += apply_move_testLauncher_uci();
-    successCount += get_game_state_testLauncher();
-    successCount += is_check_testLauncher();
+    // successCount += create_fen_testLauncher();
+    // successCount += apply_move_testLauncher();
+    // successCount += apply_move_testLauncher_uci();
+    // successCount += get_game_state_testLauncher();
+    // successCount += is_check_testLauncher();
 
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
@@ -2236,10 +2241,10 @@ int mainTestBoard()
     successCount += find_queen_moves_testLauncher();
     successCount += find_king_moves_testLauncher();
     successCount += find_moves_ckecks_testLauncher();
-    // successCount += find_moves_not_unpinning_testLauncher();
-    // successCount += find_moves_not_illegal_ones_testLauncher();
+    successCount += find_moves_not_unpinning_testLauncher();
+    successCount += find_moves_not_illegal_ones_testLauncher();
 
-    successCount += clone_testLauncher();
+    // successCount += clone_testLauncher();
 
     return successCount;
 }

@@ -81,10 +81,11 @@ class Board {
         VisualBoard visual_board;
 
         // Getters data
+        bool            check_state;
+        bool            double_check;
+        bool            engine_data_updated;
         vector<Move>    available_moves;
         bool            moves_computed;
-        bool            check;
-        bool            check_computed;
         float           game_state;
         bool            game_state_computed;
 
@@ -143,23 +144,23 @@ class Board {
         void    _capture_white_pieces(uint64_t dst);
         void    _capture_black_pieces(uint64_t dst);
         
-        void        _find_moves();
-        void        _find_white_pawns_moves(uint64_t src);
-        void        _find_white_knights_moves(uint64_t src);
-        void        _find_white_bishops_moves(uint64_t src);
-        void        _find_white_rooks_moves(uint64_t src);
-        void        _find_white_queens_moves(uint64_t src);
-        void        _find_white_king_moves();
-        void        _find_white_castle_moves(uint64_t dst);
-        void        _find_black_pawns_moves(uint64_t src);
-        void        _find_black_knights_moves(uint64_t src);
-        void        _find_black_bishops_moves(uint64_t src);
-        void        _find_black_rooks_moves(uint64_t src);
-        void        _find_black_queens_moves(uint64_t src);
-        void        _find_black_king_moves();
-        void        _find_black_castle_moves(uint64_t dst);
-        
-        void        _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
+        void    _find_moves();
+        void    _find_white_pawns_moves(uint64_t src);
+        void    _find_white_knights_moves(uint64_t src);
+        void    _find_white_bishops_moves(uint64_t src);
+        void    _find_white_rooks_moves(uint64_t src);
+        void    _find_white_queens_moves(uint64_t src);
+        void    _find_white_king_moves();
+        void    _find_white_castle_moves(uint64_t dst);
+        void    _find_black_pawns_moves(uint64_t src);
+        void    _find_black_knights_moves(uint64_t src);
+        void    _find_black_bishops_moves(uint64_t src);
+        void    _find_black_rooks_moves(uint64_t src);
+        void    _find_black_queens_moves(uint64_t src);
+        void    _find_black_king_moves();
+        void    _find_black_castle_moves(uint64_t dst);
+
+        void    _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
 
         // void    _generate_attacked_cells();
         // void    _generate_pin_masks();
@@ -170,8 +171,10 @@ class Board {
         // bool    _is_check();
         // bool    _is_check(uint64_t src);
 
+        void    _update_engine_at_turn_end();
+        void    _update_engine_at_turn_start();
         void    _update_engine_data();
-        void    _update_uncheck_mask();
+        void    _update_check_and_pins();
         void    _compute_diag_attacks(uint64_t king_pos, uint64_t enemy_attackers);
 
         void    _update_fen_history();

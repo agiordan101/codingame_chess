@@ -47,7 +47,10 @@ void VisualBoard::printBoard() {
     cerr << "----+----------------" << endl;
 }
 
-void VisualBoard::printSpecificBoard(char piece, uint64_t bitboard) {
+void VisualBoard::printSpecificBoard(char piece, uint64_t bitboard, string title)
+{
+    if (title != "")
+        cerr << "VisualBoard title : " << title << endl;
 
     VisualBoard board = VisualBoard();
     board.updateBoard(piece, bitboard);

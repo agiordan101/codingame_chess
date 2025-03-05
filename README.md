@@ -257,6 +257,32 @@ Board optimization :
             - Create move in order of piece values
          
 
+## Versionning
+
+An unique bot is defined by 4 properties:
+
+    * Chess engine
+    * Algorithm
+    * Heuristic
+    * Thinking time in ms
+
+These properties combinations are represented in 3 different ways:
+
+    * A short name for executable name (PascalCase) : {chess_engine}{algorithm}{heuristic}{thinking_time}
+    * A long name for logging name     (snake_case) : {chess_engine}_{algorithm}[{thinking_time}]_{heuristic}
+    * A version number for git tags (Num. with dots): {chess_engine_version}.{algorithm_version}.{heuristic_version}
+
+Examples:
+
+    * Mm2P / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
+    * BbMmP50 / bitboard_minimax[50]_piecevalues / 1.1.1
+    * BbMmttP50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
+
+Git tag should be created when bot is stable and a next version begin to be developed.
+All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
+Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix, so benchmarks can conclude the fix has really improved the new bot version.
+
+
 ## Tests
 
 sf500 100ms  vs mm3         -> 97% win / 42 games

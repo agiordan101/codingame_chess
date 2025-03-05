@@ -15,7 +15,7 @@ class VisualBoard {
         void    updateBoard(char piece, uint64_t bitboard);
         void    printBoard();
 
-        void    printSpecificBoard(char piece, uint64_t bitboard);
+        void    printSpecificBoard(char piece, uint64_t bitboard, string title = "");
 
         VisualBoard clone();
 };

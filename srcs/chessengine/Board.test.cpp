@@ -1013,34 +1013,32 @@ int find_king_moves_testLauncher()
     requested_moves[0] = new Move('K', 1UL << 51, 1UL << 43); // N
     requested_moves[1] = new Move('K', 1UL << 51, 1UL << 44); // NE
     requested_moves[2] = new Move('K', 1UL << 51, 1UL << 60); // SE
-    requested_moves[3] = new Move('K', 1UL << 51, 1UL << 59); // S
-    requested_moves[4] = new Move('K', 1UL << 51, 1UL << 58); // SW
-    requested_moves[5] = new Move('K', 1UL << 51, 1UL << 50); // W
-    requested_moves[6] = new Move('K', 1UL << 51, 1UL << 42); // NW
-    requested_moves[7] = new Move('P', 1UL << 52, 1UL << 44); // Pawn move
-    requested_moves[8] = new Move('P', 1UL << 52, 1UL << 36); // Pawn move
+    requested_moves[3] = new Move('K', 1UL << 51, 1UL << 58); // SW
+    requested_moves[4] = new Move('K', 1UL << 51, 1UL << 50); // W
+    requested_moves[5] = new Move('K', 1UL << 51, 1UL << 42); // NW
+    requested_moves[6] = new Move('P', 1UL << 52, 1UL << 44); // Pawn move
+    requested_moves[7] = new Move('P', 1UL << 52, 1UL << 36); // Pawn move
     success_count += find_moves_RegularCases_FindAllMoves(
         11,
         new Board("8/8/8/8/8/8/2pKP3/8 w - - 0 1"),
         requested_moves,
-        9
+        8
     );
 
     // Black - All move types
-    requested_moves[0] = new Move('k', 1UL << 9, 1UL << 1); // N
-    requested_moves[1] = new Move('k', 1UL << 9, 1UL << 2); // NE
-    requested_moves[2] = new Move('k', 1UL << 9, 1UL << 10); // E
-    requested_moves[3] = new Move('k', 1UL << 9, 1UL << 18); // SE
-    requested_moves[4] = new Move('k', 1UL << 9, 1UL << 17); // S
-    requested_moves[5] = new Move('k', 1UL << 9, 1UL << 16); // SW
-    requested_moves[6] = new Move('k', 1UL << 9, 1UL << 0); // NW
-    requested_moves[7] = new Move('p', 1UL << 8, 1UL << 16); // Pawn move
-    requested_moves[8] = new Move('p', 1UL << 8, 1UL << 24); // Pawn move
+    requested_moves[0] = new Move('k', 1UL << 9, 1UL << 2); // NE
+    requested_moves[1] = new Move('k', 1UL << 9, 1UL << 10); // E
+    requested_moves[2] = new Move('k', 1UL << 9, 1UL << 18); // SE
+    requested_moves[3] = new Move('k', 1UL << 9, 1UL << 17); // S
+    requested_moves[4] = new Move('k', 1UL << 9, 1UL << 16); // SW
+    requested_moves[5] = new Move('k', 1UL << 9, 1UL << 0); // NW
+    requested_moves[6] = new Move('p', 1UL << 8, 1UL << 16); // Pawn move
+    requested_moves[7] = new Move('p', 1UL << 8, 1UL << 24); // Pawn move
     success_count += find_moves_RegularCases_FindAllMoves(
         12,
         new Board("8/pkP5/8/8/8/8/8/8 b - - 0 1"),
         requested_moves,
-        9
+        8
     );
 
     // TODO: King cannot move on attacked squares
@@ -1051,9 +1049,29 @@ int find_king_moves_testLauncher()
 int find_moves_ckecks_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[10];
+    Move *requested_moves[15];
 
     // Pieces cannot move if they aren't unchecking the king
+
+    // White
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 8); // King NW
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 26); // King SE
+    requested_moves[2] = new Move('K', 1UL << 17, 1UL << 25); // King S
+    requested_moves[3] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[4] = new Move('N', 1UL << 9, 1UL << 19); // Knight block
+    requested_moves[5] = new Move('Q', 1UL << 5, 1UL << 19); // Queen block
+    requested_moves[6] = new Move('Q', 1UL << 5, 1UL << 21); // Queen block 2
+    requested_moves[7] = new Move('B', 1UL << 27, 1UL << 18); // Bishop block
+    requested_moves[8] = new Move('B', 1UL << 27, 1UL << 20); // Bishop block
+    requested_moves[9] = new Move('P', 1UL << 29, 1UL << 21); // Pawn block
+    requested_moves[10] = new Move('P', 1UL << 29, 1UL << 22); // Pawn capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        11,
+        new Board("5Q2/1N4r1/1K4r1/3B1Pr1/7R/8/8/8 w - - 0 1"),
+        requested_moves,
+        11
+    );
+
     // Only the king can move if they are 2 checks
 
     return 0;

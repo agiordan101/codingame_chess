@@ -115,7 +115,7 @@ class Board {
         uint64_t   capturable_by_black_pawns_mask;
         
         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
-        // uint64_t   attacked_cells_mask; // Squares attacked by the opponent
+        uint64_t   attacked_cells_mask; // Squares attacked by the opponent
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -125,16 +125,18 @@ class Board {
         // // Function pointer to apply castle depending on the chess960 rule
         // bool    (Board::*_handle_castle)(int, int, int, int);
 
+        // - Parsing -
         void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule);
         void    _initialize_bitboards();
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
         
+        // - Accessibility / Getters -
         char    _get_cell(uint64_t mask);
-
         void    _create_fen_for_standard_castling(char *fen, int *fen_i);
         void    _create_fen_for_chess960_castling(char *fen, int *fen_i);
 
+        // - Move application -
         void    _apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
         void    _apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
         void    _move_white_pawn(uint64_t src, uint64_t dst, char promotion);
@@ -144,6 +146,28 @@ class Board {
         void    _capture_white_pieces(uint64_t dst);
         void    _capture_black_pieces(uint64_t dst);
         
+        // - Engine specific -
+        void    _update_engine_at_turn_end();
+        void    _update_engine_at_turn_start();
+        void    _update_check_and_pins();
+        void    _update_attacked_cells_mask();
+        void    _update_fen_history();
+
+        // - Piece attacks -
+        void    _find_white_pawns_attacks(uint64_t src);
+        void    _find_white_knights_attacks(uint64_t src);
+        void    _find_white_bishops_attacks(uint64_t src);
+        void    _find_white_rooks_attacks(uint64_t src);
+        void    _find_white_queens_attacks(uint64_t src);
+        void    _find_white_king_attacks();
+        void    _find_black_pawns_attacks(uint64_t src);
+        void    _find_black_knights_attacks(uint64_t src);
+        void    _find_black_bishops_attacks(uint64_t src);
+        void    _find_black_rooks_attacks(uint64_t src);
+        void    _find_black_queens_attacks(uint64_t src);
+        void    _find_black_king_attacks();
+
+        // - Move creation -
         void    _find_moves();
         void    _find_white_pawns_moves(uint64_t src);
         void    _find_white_knights_moves(uint64_t src);
@@ -161,39 +185,18 @@ class Board {
         void    _find_black_castle_moves(uint64_t dst);
 
         void    _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
+        void    _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
 
-        // void    _generate_attacked_cells();
-        // void    _generate_pin_masks();
-        
-        // void     _find_moves_castle(uint64_t src, int castle_index);
-        // bool     _is_castle_legal(int src_x, int src_y, int dst_x, int trajectory_dx);
-        // void    _filter_non_legal_moves();
-        // bool    _is_check();
-        // bool    _is_check(uint64_t src);
-
-        void    _update_engine_at_turn_end();
-        void    _update_engine_at_turn_start();
-        void    _update_engine_data();
-        void    _update_check_and_pins();
-        void    _compute_diag_attacks(uint64_t king_pos, uint64_t enemy_attackers);
-
-        void    _update_fen_history();
-
-        // float   _find_game_state();
-        // bool    _threefold_repetition_rule();
-        // bool    _insufficient_material_rule();
-        
         // BIT OPERATIONS
 
-        uint64_t    _get_diagonal_rays(uint64_t src);
-        uint64_t    _get_line_rays(uint64_t src);
-        uint64_t    _compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir);
-        uint64_t    _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir);
+        void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
+        uint64_t    _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
+        uint64_t    _get_line_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
+        uint64_t    _compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
+        uint64_t    _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
         void        _compute_sliding_piece_positive_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
         void        _compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
 
-        void        _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
-        void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
 
         // LOOKUP TABLES
 

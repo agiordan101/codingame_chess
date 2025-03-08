@@ -335,8 +335,8 @@ void Board::_initialize_bitboards() {
     
     check_state = false;
     double_check = false;
-    uncheck_mask = 0xFFFFFFFFFFFFFFFF;
-    attacked_cells_mask = 0xFFFFFFFFFFFFFFFF;
+    uncheck_mask = BITMASK_ALL_CELLS;
+    attacked_cells_mask = BITMASK_ALL_CELLS;
 }
 
 void Board::_parse_board(string fen_board) {
@@ -744,6 +744,7 @@ void Board::_update_check_and_pins()
         return;
 
     uncheck_mask = 0UL;
+    memset(pin_masks, 0xFF, 512);
 
     int king_lkt_i = _count_trailing_zeros(ally_king);
     int lkt_color = white_turn ? 0 : 1;
@@ -780,7 +781,7 @@ void Board::_update_check_and_pins()
     if (uncheck_mask == 0UL)
     {
         check_state = false;
-        uncheck_mask = 0xFFFFFFFFFFFFFFFF;
+        uncheck_mask = BITMASK_ALL_CELLS;
     }
 
     this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
@@ -833,7 +834,7 @@ void Board::_update_attacked_cells_mask()
     }
 
     if (attacked_cells_mask == 0UL)
-        attacked_cells_mask = 0xFFFFFFFFFFFFFFFF;
+        attacked_cells_mask = BITMASK_ALL_CELLS;
 
     this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
 }
@@ -1004,12 +1005,12 @@ void Board::_find_white_pawns_moves(uint64_t src)
     
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & capturable_by_white_pawns_mask;
     uint64_t advance_move = (src >> 8) & empty_cells_mask;
-    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask;
+    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask & pin_masks[src_lkt_i];
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
-        legal_moves |= (src >> 16) & empty_cells_mask;
+        legal_moves |= (src >> 16) & empty_cells_mask & uncheck_mask & pin_masks[src_lkt_i];
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -1028,7 +1029,7 @@ void Board::_find_white_knights_moves(uint64_t src)
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
-    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_white_pieces_mask & uncheck_mask;
+    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_white_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('N', src, legal_moves);
 }
@@ -1036,7 +1037,8 @@ void Board::_find_white_knights_moves(uint64_t src)
 void Board::_find_white_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_white_pieces_mask & _get_diagonal_rays(src) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_white_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('B', src, legal_moves);
 }
@@ -1044,7 +1046,8 @@ void Board::_find_white_bishops_moves(uint64_t src) {
 void Board::_find_white_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_white_pieces_mask & _get_line_rays(src) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_white_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('R', src, legal_moves);
 }
@@ -1052,7 +1055,8 @@ void Board::_find_white_rooks_moves(uint64_t src) {
 void Board::_find_white_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('Q', src, legal_moves);
 }
@@ -1087,12 +1091,12 @@ void Board::_find_black_pawns_moves(uint64_t src)
 
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & capturable_by_black_pawns_mask;
     uint64_t advance_move = (src << 8) & empty_cells_mask;
-    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask;
+    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask & pin_masks[src_lkt_i];
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
-        legal_moves |= (src << 16) & empty_cells_mask;
+        legal_moves |= (src << 16) & empty_cells_mask & uncheck_mask & pin_masks[src_lkt_i];
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -1111,7 +1115,7 @@ void Board::_find_black_knights_moves(uint64_t src)
     // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
-    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_black_pieces_mask & uncheck_mask;
+    uint64_t legal_moves = knight_lookup[src_lkt_i] & not_black_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('n', src, legal_moves);
 }
@@ -1119,7 +1123,8 @@ void Board::_find_black_knights_moves(uint64_t src)
 void Board::_find_black_bishops_moves(uint64_t src) {
     // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_black_pieces_mask & _get_diagonal_rays(src) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_black_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('b', src, legal_moves);
 }
@@ -1127,7 +1132,8 @@ void Board::_find_black_bishops_moves(uint64_t src) {
 void Board::_find_black_rooks_moves(uint64_t src) {
     // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_black_pieces_mask & _get_line_rays(src) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_black_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('r', src, legal_moves);
 }
@@ -1135,7 +1141,8 @@ void Board::_find_black_rooks_moves(uint64_t src) {
 void Board::_find_black_queens_moves(uint64_t src) {
     // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
-    uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) & uncheck_mask;
+    int src_lkt_i = _count_trailing_zeros(src);
+    uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) & uncheck_mask & pin_masks[src_lkt_i];
 
     _create_piece_moves('q', src, legal_moves);
 }
@@ -1147,7 +1154,7 @@ void Board::_find_black_king_moves() {
     {
         int src_lkt_i = _count_trailing_zeros(black_king);
         uint64_t legal_moves = king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_cells_mask;
-        
+
         _create_piece_moves('k', black_king, legal_moves);
     }
 }
@@ -1345,7 +1352,7 @@ void        Board::_compute_sliding_piece_positive_ray_checks_and_pins(uint64_t 
         }
 
         // If the blocker is an ally, it might be pinned
-        if (blocker & ally_pieces)
+        else if (blocker & ally_pieces)
         {
             // Remove this blocker from the mask, and look for further pieces in the ray
             blockers ^= blocker;
@@ -1357,12 +1364,12 @@ void        Board::_compute_sliding_piece_positive_ray_checks_and_pins(uint64_t 
                 if (blocker & potential_attacker)
                 {
                     // Remove all squares behind the blocker
-                    int blocker_lkt_i = _count_trailing_zeros(blocker);
-                    uint64_t pin_ray = attacks ^ sliding_lookup[blocker_lkt_i][dir];
+                    int second_blocker_lkt_i = _count_trailing_zeros(blocker);
+                    uint64_t pin_ray = attacks ^ sliding_lookup[second_blocker_lkt_i][dir];
 
-                    // TODO: Save the pinned piece and the total path of the pin
-                    // How ?
-                    // Buffer of tuples (piece_mask, pin_ray)
+                    // Save this pin ray on the ally blocker cell
+                    pin_masks[blocker_lkt_i] = pin_ray;
+                    this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "_compute_sliding_piece_negative_ray_checks_and_pins: PIN FOUND");
                 }
             }
         }
@@ -1399,7 +1406,7 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
         }
 
         // If the blocker is an ally, it might be pinned
-        if (blocker & ally_pieces)
+        else if (blocker & ally_pieces)
         {
             // Remove this blocker from the mask, and look for further pieces in the ray
             blockers ^= blocker;
@@ -1411,12 +1418,12 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
                 if (blocker & potential_attacker)
                 {
                     // Remove all squares behind the blocker
-                    int blocker_lkt_i = _count_trailing_zeros(blocker);
-                    uint64_t pin_ray = attacks ^ sliding_lookup[blocker_lkt_i][dir];
+                    int second_blocker_lkt_i = _count_trailing_zeros(blocker);
+                    uint64_t pin_ray = attacks ^ sliding_lookup[second_blocker_lkt_i][dir];
 
-                    // TODO: Save the pinned piece and the total path of the pin
-                    // How ?
-                    // Buffer of tuples (piece_mask, pin_ray)
+                    // Save this pin ray on the ally blocker cell
+                    pin_masks[blocker_lkt_i] = pin_ray;
+                    this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "_compute_sliding_piece_negative_ray_checks_and_pins: PIN FOUND");
                 }
             }
         }

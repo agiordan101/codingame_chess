@@ -116,6 +116,7 @@ class Board {
         
         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
         uint64_t   attacked_cells_mask; // Squares attacked by the opponent
+        uint64_t   pin_masks[64]; // Each cell can have a pinned mask
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -130,7 +131,7 @@ class Board {
         void    _initialize_bitboards();
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
-        
+         
         // - Accessibility / Getters -
         char    _get_cell(uint64_t mask);
         void    _create_fen_for_standard_castling(char *fen, int *fen_i);

@@ -659,7 +659,7 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
             }
 
             cerr << "- This requested move wasn't found by the engine : " << endl;
-            requested_moves[i]->log();
+            // requested_moves[i]->log();
             success = false;
         }
     }
@@ -676,7 +676,7 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
             }
 
             cerr << "- This move found by the engine isn't requested : " << endl;
-            moves_found[i].log();
+            // moves_found[i].log();
             success = false;
         }
     }
@@ -692,11 +692,11 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
 
         cerr << "- Moves found by the engine : " << endl;
         for (int i = 0; i < moves_found.size(); i++)
-            moves_found[i].log();
+            // moves_found[i].log();
 
         cerr << "- Requested moves : " << endl;
         for (int i = 0; i < requested_moves_count; i++)
-            requested_moves[i]->log();
+            // requested_moves[i]->log();
 
         success = false;
     }
@@ -1009,7 +1009,7 @@ int find_king_moves_testLauncher()
     int success_count = 0;
     Move *requested_moves[10];
 
-    // White - All move types
+    // White - All move types (King cannot move on attacked squares)
     requested_moves[0] = new Move('K', 1UL << 51, 1UL << 43); // N
     requested_moves[1] = new Move('K', 1UL << 51, 1UL << 44); // NE
     requested_moves[2] = new Move('K', 1UL << 51, 1UL << 60); // SE
@@ -1025,7 +1025,7 @@ int find_king_moves_testLauncher()
         8
     );
 
-    // Black - All move types
+    // Black - All move types (King cannot move on attacked squares)
     requested_moves[0] = new Move('k', 1UL << 9, 1UL << 2); // NE
     requested_moves[1] = new Move('k', 1UL << 9, 1UL << 10); // E
     requested_moves[2] = new Move('k', 1UL << 9, 1UL << 18); // SE
@@ -1041,9 +1041,7 @@ int find_king_moves_testLauncher()
         8
     );
 
-    // TODO: King cannot move on attacked squares
-
-    return 0;
+    return success_count;
 }
 
 int find_moves_ckecks_testLauncher()
@@ -1051,9 +1049,7 @@ int find_moves_ckecks_testLauncher()
     int success_count = 0;
     Move *requested_moves[15];
 
-    // Pieces cannot move if they aren't unchecking the king
-
-    // White
+    // Pieces cannot move if they aren't unchecking the king - White
     requested_moves[0] = new Move('K', 1UL << 17, 1UL << 8); // King NW
     requested_moves[1] = new Move('K', 1UL << 17, 1UL << 26); // King SE
     requested_moves[2] = new Move('K', 1UL << 17, 1UL << 25); // King S
@@ -1066,20 +1062,87 @@ int find_moves_ckecks_testLauncher()
     requested_moves[9] = new Move('P', 1UL << 29, 1UL << 21); // Pawn block
     requested_moves[10] = new Move('P', 1UL << 29, 1UL << 22); // Pawn capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        11,
+        13,
         new Board("5Q2/1N4r1/1K4r1/3B1Pr1/7R/8/8/8 w - - 0 1"),
         requested_moves,
         11
     );
+    
+    // Pieces cannot move if they aren't unchecking the king - Black
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 8); // King NW
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 26); // King SE
+    requested_moves[2] = new Move('k', 1UL << 17, 1UL << 25); // King S
+    requested_moves[3] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[4] = new Move('n', 1UL << 9, 1UL << 19); // Knight block
+    requested_moves[5] = new Move('q', 1UL << 5, 1UL << 19); // Queen block
+    requested_moves[6] = new Move('q', 1UL << 5, 1UL << 21); // Queen block 2
+    requested_moves[7] = new Move('b', 1UL << 27, 1UL << 18); // Bishop block
+    requested_moves[8] = new Move('b', 1UL << 27, 1UL << 20); // Bishop block
+    requested_moves[9] = new Move('p', 1UL << 15, 1UL << 22); // Pawn capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        14,
+        new Board("5q2/1n4Rp/1k4R1/3b2R1/7r/8/8/8 b - - 0 1"),
+        requested_moves,
+        10
+    );
 
-    // Only the king can move if they are 2 checks
+    // Only the king can move if there are 2 checks - White
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 25); // King S
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    success_count += find_moves_RegularCases_FindAllMoves(
+        15,
+        new Board("5Q2/1N4r1/1K4r1/3B1Pr1/3b3R/8/8/8 w - - 0 1"),
+        requested_moves,
+        2
+    );
+    
+    // Only the king can move if there are 2 checks - Black
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 25); // King S
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    success_count += find_moves_RegularCases_FindAllMoves(
+        16,
+        new Board("5q2/1n4Rp/1k4R1/3b2R1/3B3r/8/8/8 b - - 0 1"),
+        requested_moves,
+        2
+    );
 
-    return 0;
+    return success_count;
 }
+
 int find_moves_not_unpinning_testLauncher()
 {
-    return 0;
+    int success_count = 0;
+    Move *requested_moves[15];
+
+    // Only the king can move if there are 2 checks - White
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 16); // King W
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[2] = new Move('B', 1UL << 10, 1UL << 3);  // Pinned bishop captures
+    requested_moves[3] = new Move('Q', 1UL << 26, 1UL << 35); // Pinned queen captures
+    requested_moves[4] = new Move('R', 1UL << 25, 1UL << 33); // Pinned rook captures
+    success_count += find_moves_RegularCases_FindAllMoves(
+        17,
+        new Board("1q1b4/1NB5/1kPr4/1RQ5/1r1b4/8/8/8 w - - 0 1"),
+        requested_moves,
+        5
+    );
+
+    // Only the king can move if there are 2 checks - Black
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 16); // King W
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[2] = new Move('b', 1UL << 10, 1UL << 3);  // Pinned bishop captures
+    requested_moves[3] = new Move('q', 1UL << 26, 1UL << 35); // Pinned queen captures
+    requested_moves[4] = new Move('r', 1UL << 25, 1UL << 33); // Pinned rook captures
+    success_count += find_moves_RegularCases_FindAllMoves(
+        18,
+        new Board("1Q1B4/1nb5/1kpR4/1rq5/1R1B4/8/8/8 b - - 0 1"),
+        requested_moves,
+        5
+    );
+
+    return success_count;
 }
+
 int find_moves_not_illegal_ones_testLauncher()
 {
     return 0;

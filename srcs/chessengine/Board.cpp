@@ -128,6 +128,9 @@ void Board::apply_move(Move move)
     this->visual_board.updateBoard('q', black_queens);
     this->visual_board.updateBoard('k', black_king);
 
+    if (PRINT_TURNS)
+        this->visual_board.printBoard();
+
     _update_engine_at_turn_end();
 }
 
@@ -728,8 +731,20 @@ void Board::_update_engine_at_turn_start()
     capturable_by_white_pawns_mask = black_pieces_mask | en_passant;
     capturable_by_black_pawns_mask = white_pieces_mask | en_passant;
 
+    check_state = false;
+    double_check = false;
+    uncheck_mask = 0UL;
+    std::fill(std::begin(pin_masks), std::end(pin_masks), BITMASK_ALL_CELLS);
+    attacked_cells_mask = 0UL;
+
     _update_check_and_pins();
     _update_attacked_cells_mask();
+
+    if (PRINT_ENGINE_UPDATES)
+    {
+        this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
+        this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
+    }
 
     engine_data_updated = true;
 }
@@ -740,11 +755,17 @@ void Board::_update_check_and_pins()
     //  - We Define a checkmask
     //  - We Define a pinmask
     // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
-    if (ally_king == 0UL)
-        return;
+    // memset(pin_masks, 0xFF, 512);
+    // for (int i = 0; i < 64; i++) {
+    //     pin_masks[i] = BITMASK_ALL_CELLS;
+    // }
 
-    uncheck_mask = 0UL;
-    memset(pin_masks, 0xFF, 512);
+    if (ally_king == 0UL)
+    {
+        check_state = false;
+        uncheck_mask = BITMASK_ALL_CELLS;
+        return;
+    }
 
     int king_lkt_i = _count_trailing_zeros(ally_king);
     int lkt_color = white_turn ? 0 : 1;
@@ -783,17 +804,10 @@ void Board::_update_check_and_pins()
         check_state = false;
         uncheck_mask = BITMASK_ALL_CELLS;
     }
-
-    this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
 }
 
 void Board::_update_attacked_cells_mask()
 {
-    if (enemy_king == 0UL)
-        return;
-
-    attacked_cells_mask = 0UL;
-
     if (white_turn)
     {
         _apply_function_on_all_pieces(black_pawns, [this](uint64_t param) {
@@ -832,18 +846,10 @@ void Board::_update_attacked_cells_mask()
         });
         _find_white_king_attacks();
     }
-
-    if (attacked_cells_mask == 0UL)
-        attacked_cells_mask = BITMASK_ALL_CELLS;
-
-    this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
 }
 
 void Board::_update_engine_at_turn_end()
 {
-    check_state = false;
-    double_check = false;
-
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
@@ -993,7 +999,9 @@ void Board::_find_moves()
         _find_black_king_moves();
     }
 
-    this->visual_board.printBoard();
+    if (PRINT_TURNS)
+        this->visual_board.printBoard();
+
     this->moves_computed = true;
 }
 
@@ -1369,7 +1377,9 @@ void        Board::_compute_sliding_piece_positive_ray_checks_and_pins(uint64_t 
 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
-                    this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "_compute_sliding_piece_negative_ray_checks_and_pins: PIN FOUND");
+
+                    if (PRINT_ENGINE_UPDATES)
+                        this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "PIN FOUND");
                 }
             }
         }
@@ -1423,7 +1433,9 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
-                    this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "_compute_sliding_piece_negative_ray_checks_and_pins: PIN FOUND");
+
+                    if (PRINT_ENGINE_UPDATES)
+                        this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "PIN FOUND");
                 }
             }
         }

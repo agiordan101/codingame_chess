@@ -13,6 +13,8 @@ using namespace std;
 
 # define BITBOARD_IMPLEMENTATION 1
 # define CHESS960_RULES 1
+# define PRINT_ENGINE_UPDATES 0
+# define PRINT_TURNS 0
 
 # define EMPTY_CELL '-'
 

@@ -1122,7 +1122,7 @@ int find_moves_not_unpinning_testLauncher()
     requested_moves[4] = new Move('R', 1UL << 25, 1UL << 33); // Pinned rook captures
     success_count += find_moves_RegularCases_FindAllMoves(
         17,
-        new Board("1q1b4/1NB5/1kPr4/1RQ5/1r1b4/8/8/8 w - - 0 1"),
+        new Board("1q1b4/1NB5/1KPr4/1RQ5/1r1b4/8/8/8 w - - 0 1"),
         requested_moves,
         5
     );

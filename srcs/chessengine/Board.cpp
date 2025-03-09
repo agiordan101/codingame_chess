@@ -622,6 +622,7 @@ void    Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle
 
 void    Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
 {
+    // When move is created from UCI, there is no castle information, so we need to compute it
     if (castle_info == NOINFO)
     {
         if ((src & black_king) && (dst & black_rooks))

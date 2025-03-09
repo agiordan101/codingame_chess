@@ -31,59 +31,59 @@ int Move_unittestLauncher()
     success_count += Move_unittest(
         1,
         "a8b7",
-        new Move('p', 1UL << 0, 1UL << 9)
+        new Move('p', 1UL << 0, 1UL << 9, 0, NOINFO)
     );
     success_count += Move_unittest(
         2,
         "c5d6",
-        new Move('p', 1UL << 26, 1UL << 19)
+        new Move('p', 1UL << 26, 1UL << 19, 0, NOINFO)
     );
     success_count += Move_unittest(
         3,
         "e4f3",
-        new Move('p', 1UL << 36, 1UL << 45)
+        new Move('p', 1UL << 36, 1UL << 45, 0, NOINFO)
     );
     success_count += Move_unittest(
         4,
         "g1h2",
-        new Move('p', 1UL << 62, 1UL << 55)
+        new Move('p', 1UL << 62, 1UL << 55, 0, NOINFO)
     );
 
     // Promotions
     success_count += Move_unittest(
         5,
         "a7a8r",
-        new Move('P', 1UL << 8, 1UL << 0, 'r')
+        new Move('P', 1UL << 8, 1UL << 0, 'r', NOINFO)
     );
     success_count += Move_unittest(
         6,
         "h7h8b",
-        new Move('p', 1UL << 15, 1UL << 7, 'b')
+        new Move('p', 1UL << 15, 1UL << 7, 'b', NOINFO)
     );
 
     // White castle - Left side
     success_count += Move_unittest(
         7,
         "e1a1",
-        new Move('K', 1UL << 60, 1UL << 56)
+        new Move('K', 1UL << 60, 1UL << 56, 0, NOINFO)
     );
     // White castle - Right side
     success_count += Move_unittest(
         8,
         "e1h1",
-        new Move('K', 1UL << 60, 1UL << 63)
+        new Move('K', 1UL << 60, 1UL << 63, 0, NOINFO)
     );
     // Black castle - Left side
     success_count += Move_unittest(
         9,
         "e8a8",
-        new Move('k', 1UL << 4, 1UL << 0)
+        new Move('k', 1UL << 4, 1UL << 0, 0, NOINFO)
     );
     // Black castle - Right side
     success_count += Move_unittest(
         10,
         "e8h8",
-        new Move('k', 1UL << 4, 1UL << 7)
+        new Move('k', 1UL << 4, 1UL << 7, 0, NOINFO)
     );
 
     return success_count;
@@ -188,28 +188,28 @@ int to_uci_unittestLauncher()
     // All columns and lines
     success_count += to_uci_unittest(
         1,
-        new Move('p', 1UL << 48, 1UL << 8, 0, castle_info_e::NOTCASTLE),
+        new Move('p', 1UL << 48, 1UL << 8, 0, NOTCASTLE),
         false,
         false,
         "a2a7"
     );
     success_count += to_uci_unittest(
         2,
-        new Move('p', 1UL << 17, 1UL << 46, 0, castle_info_e::NOTCASTLE),
+        new Move('p', 1UL << 17, 1UL << 46, 0, NOTCASTLE),
         false,
         false,
         "b6g3"
     );
     success_count += to_uci_unittest(
         3,
-        new Move('p', 1UL << 3, 1UL << 60, 0, castle_info_e::NOTCASTLE),
+        new Move('p', 1UL << 3, 1UL << 60, 0, NOTCASTLE),
         true,
         false,
         "d8e1"
     );
     success_count += to_uci_unittest(
         4,
-        new Move('p', 1UL << 34, 1UL << 29, 0, castle_info_e::NOTCASTLE),
+        new Move('p', 1UL << 34, 1UL << 29, 0, NOTCASTLE),
         true,
         false,
         "c4f5"
@@ -218,21 +218,21 @@ int to_uci_unittestLauncher()
     // Promotions
     success_count += to_uci_unittest(
         5,
-        new Move('p', 1UL << 14, 1UL << 6, 'q', castle_info_e::NOTCASTLE),
+        new Move('p', 1UL << 14, 1UL << 6, 'q', NOTCASTLE),
         false,
         false,
         "g7g8q"
     );
     success_count += to_uci_unittest(
         6,
-        new Move('P', 1UL << 14, 1UL << 6, 'n', castle_info_e::NOTCASTLE),
+        new Move('P', 1UL << 14, 1UL << 6, 'n', NOTCASTLE),
         true,
         false,
         "g7g8n"
     );
     
     //  - White castle - Right - Regular chess rule
-    Move *castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, castle_info_e::WHITERIGHT);
+    Move *castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT);
     success_count += to_uci_unittest(
         7,
         castling_move,
@@ -241,7 +241,7 @@ int to_uci_unittestLauncher()
         "e1g1"
     );
     //  - White castle - Right - Chess960 rule 
-    castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, castle_info_e::WHITERIGHT);
+    castling_move = new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT);
     success_count += to_uci_unittest(
         8,
         castling_move,
@@ -251,7 +251,7 @@ int to_uci_unittestLauncher()
     );
     
     //  - White castle - Left - Regular chess rule
-    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, castle_info_e::WHITELEFT);
+    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, WHITELEFT);
     success_count += to_uci_unittest(
         9,
         castling_move,
@@ -260,7 +260,7 @@ int to_uci_unittestLauncher()
         "e1c1"
     );
     //  - White castle - Left - Chess960 rule 
-    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, castle_info_e::WHITELEFT);
+    castling_move = new Move('K', 1UL << 60, 1UL << 56, 0, WHITELEFT);
     success_count += to_uci_unittest(
         10,
         castling_move,
@@ -270,7 +270,7 @@ int to_uci_unittestLauncher()
     );
 
     //  - Black castle - Right - Regular chess rule
-    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, castle_info_e::BLACKRIGHT);
+    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, BLACKRIGHT);
     success_count += to_uci_unittest(
         11,
         castling_move,
@@ -280,7 +280,7 @@ int to_uci_unittestLauncher()
     );
 
     //  - Black castle - Right - Chess960 rule
-    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, castle_info_e::BLACKRIGHT);
+    castling_move = new Move('k', 1UL << 4, 1UL << 7, 0, BLACKRIGHT);
     success_count += to_uci_unittest(
         12,
         castling_move,
@@ -290,7 +290,7 @@ int to_uci_unittestLauncher()
     );
 
     //  - Black castle - Left - Regular chess rule
-    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, castle_info_e::BLACKLEFT);
+    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT);
     success_count += to_uci_unittest(
         13,
         castling_move,
@@ -300,7 +300,7 @@ int to_uci_unittestLauncher()
     );
 
     //  - Black castle - Left - Chess960 rule
-    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, castle_info_e::BLACKLEFT);
+    castling_move = new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT);
     success_count += to_uci_unittest(
         14,
         castling_move,

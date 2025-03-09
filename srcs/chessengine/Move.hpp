@@ -22,7 +22,7 @@ class Move {
         castle_info_e   castle_info;   // Castle information, for optimization and UCI generation
 
         Move(string _uci);
-        Move(char _piece, uint64_t src, uint64_t dst, char _promotion = 0, castle_info_e _castle_info = NOINFO);
+        Move(char _piece, uint64_t src, uint64_t dst, char _promotion = 0, castle_info_e _castle_info = NOTCASTLE);
 
         void log();
         string to_uci();

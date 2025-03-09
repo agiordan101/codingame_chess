@@ -306,7 +306,7 @@ int apply_move_testLauncher()
         10,
         new Board("8/8/8/8/8/8/8/1Kr5 w - - 2 78"),
         new Board("8/8/8/8/8/8/8/2K5 b - - 0 78"),
-        new Move('K', 1UL << 57, 1UL << 58)
+        new Move('K', 1UL << 57, 1UL << 58, 0, NOTCASTLE)
     );
 
     // Black Standard Castle left
@@ -343,7 +343,7 @@ int apply_move_testLauncher()
         15,
         new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"),
         new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
-        new Move('K', 1UL << 60, 1UL << 52)
+        new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE)
     );
     // Castles rights test - Rook moves
     successCount += apply_move_validMove_ApplyIt(
@@ -1010,12 +1010,12 @@ int find_king_moves_testLauncher()
     Move *requested_moves[10];
 
     // White - All move types (King cannot move on attacked squares)
-    requested_moves[0] = new Move('K', 1UL << 51, 1UL << 43); // N
-    requested_moves[1] = new Move('K', 1UL << 51, 1UL << 44); // NE
-    requested_moves[2] = new Move('K', 1UL << 51, 1UL << 60); // SE
-    requested_moves[3] = new Move('K', 1UL << 51, 1UL << 58); // SW
-    requested_moves[4] = new Move('K', 1UL << 51, 1UL << 50); // W
-    requested_moves[5] = new Move('K', 1UL << 51, 1UL << 42); // NW
+    requested_moves[0] = new Move('K', 1UL << 51, 1UL << 43, 0, NOTCASTLE); // N
+    requested_moves[1] = new Move('K', 1UL << 51, 1UL << 44, 0, NOTCASTLE); // NE
+    requested_moves[2] = new Move('K', 1UL << 51, 1UL << 60, 0, NOTCASTLE); // SE
+    requested_moves[3] = new Move('K', 1UL << 51, 1UL << 58, 0, NOTCASTLE); // SW
+    requested_moves[4] = new Move('K', 1UL << 51, 1UL << 50, 0, NOTCASTLE); // W
+    requested_moves[5] = new Move('K', 1UL << 51, 1UL << 42, 0, NOTCASTLE); // NW
     requested_moves[6] = new Move('P', 1UL << 52, 1UL << 44); // Pawn move
     requested_moves[7] = new Move('P', 1UL << 52, 1UL << 36); // Pawn move
     success_count += find_moves_RegularCases_FindAllMoves(
@@ -1026,12 +1026,12 @@ int find_king_moves_testLauncher()
     );
 
     // Black - All move types (King cannot move on attacked squares)
-    requested_moves[0] = new Move('k', 1UL << 9, 1UL << 2); // NE
-    requested_moves[1] = new Move('k', 1UL << 9, 1UL << 10); // E
-    requested_moves[2] = new Move('k', 1UL << 9, 1UL << 18); // SE
-    requested_moves[3] = new Move('k', 1UL << 9, 1UL << 17); // S
-    requested_moves[4] = new Move('k', 1UL << 9, 1UL << 16); // SW
-    requested_moves[5] = new Move('k', 1UL << 9, 1UL << 0); // NW
+    requested_moves[0] = new Move('k', 1UL << 9, 1UL << 2, 0, NOTCASTLE); // NE
+    requested_moves[1] = new Move('k', 1UL << 9, 1UL << 10, 0, NOTCASTLE); // E
+    requested_moves[2] = new Move('k', 1UL << 9, 1UL << 18, 0, NOTCASTLE); // SE
+    requested_moves[3] = new Move('k', 1UL << 9, 1UL << 17, 0, NOTCASTLE); // S
+    requested_moves[4] = new Move('k', 1UL << 9, 1UL << 16, 0, NOTCASTLE); // SW
+    requested_moves[5] = new Move('k', 1UL << 9, 1UL << 0, 0, NOTCASTLE); // NW
     requested_moves[6] = new Move('p', 1UL << 8, 1UL << 16); // Pawn move
     requested_moves[7] = new Move('p', 1UL << 8, 1UL << 24); // Pawn move
     success_count += find_moves_RegularCases_FindAllMoves(
@@ -1050,10 +1050,10 @@ int find_moves_ckecks_testLauncher()
     Move *requested_moves[15];
 
     // Pieces cannot move if they aren't unchecking the king - White
-    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 8); // King NW
-    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 26); // King SE
-    requested_moves[2] = new Move('K', 1UL << 17, 1UL << 25); // King S
-    requested_moves[3] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 8, 0, NOTCASTLE); // King NW
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 26, 0, NOTCASTLE); // King SE
+    requested_moves[2] = new Move('K', 1UL << 17, 1UL << 25, 0, NOTCASTLE); // King S
+    requested_moves[3] = new Move('K', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     requested_moves[4] = new Move('N', 1UL << 9, 1UL << 19); // Knight block
     requested_moves[5] = new Move('Q', 1UL << 5, 1UL << 19); // Queen block
     requested_moves[6] = new Move('Q', 1UL << 5, 1UL << 21); // Queen block 2
@@ -1069,10 +1069,10 @@ int find_moves_ckecks_testLauncher()
     );
     
     // Pieces cannot move if they aren't unchecking the king - Black
-    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 8); // King NW
-    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 26); // King SE
-    requested_moves[2] = new Move('k', 1UL << 17, 1UL << 25); // King S
-    requested_moves[3] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 8, 0, NOTCASTLE); // King NW
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 26, 0, NOTCASTLE); // King SE
+    requested_moves[2] = new Move('k', 1UL << 17, 1UL << 25, 0, NOTCASTLE); // King S
+    requested_moves[3] = new Move('k', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     requested_moves[4] = new Move('n', 1UL << 9, 1UL << 19); // Knight block
     requested_moves[5] = new Move('q', 1UL << 5, 1UL << 19); // Queen block
     requested_moves[6] = new Move('q', 1UL << 5, 1UL << 21); // Queen block 2
@@ -1087,8 +1087,8 @@ int find_moves_ckecks_testLauncher()
     );
 
     // Only the king can move if there are 2 checks - White
-    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 25); // King S
-    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 25, 0, NOTCASTLE); // King S
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     success_count += find_moves_RegularCases_FindAllMoves(
         15,
         new Board("5Q2/1N4r1/1K4r1/3B1Pr1/3b3R/8/8/8 w - - 0 1"),
@@ -1097,8 +1097,8 @@ int find_moves_ckecks_testLauncher()
     );
     
     // Only the king can move if there are 2 checks - Black
-    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 25); // King S
-    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 25, 0, NOTCASTLE); // King S
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     success_count += find_moves_RegularCases_FindAllMoves(
         16,
         new Board("5q2/1n4Rp/1k4R1/3b2R1/3B3r/8/8/8 b - - 0 1"),
@@ -1115,8 +1115,8 @@ int find_moves_not_unpinning_testLauncher()
     Move *requested_moves[10];
 
     // Only the king can move if there are 2 checks - White
-    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 16); // King W
-    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('K', 1UL << 17, 1UL << 16, 0, NOTCASTLE); // King W
+    requested_moves[1] = new Move('K', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     requested_moves[2] = new Move('B', 1UL << 10, 1UL << 3);  // Pinned bishop captures
     requested_moves[3] = new Move('Q', 1UL << 26, 1UL << 35); // Pinned queen captures
     requested_moves[4] = new Move('R', 1UL << 25, 1UL << 33); // Pinned rook captures
@@ -1128,8 +1128,8 @@ int find_moves_not_unpinning_testLauncher()
     );
 
     // Only the king can move if there are 2 checks - Black
-    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 16); // King W
-    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24); // King SW
+    requested_moves[0] = new Move('k', 1UL << 17, 1UL << 16, 0, NOTCASTLE); // King W
+    requested_moves[1] = new Move('k', 1UL << 17, 1UL << 24, 0, NOTCASTLE); // King SW
     requested_moves[2] = new Move('b', 1UL << 10, 1UL << 3);  // Pinned bishop captures
     requested_moves[3] = new Move('q', 1UL << 26, 1UL << 35); // Pinned queen captures
     requested_moves[4] = new Move('r', 1UL << 25, 1UL << 33); // Pinned rook captures
@@ -1153,12 +1153,12 @@ int find_moves_castles_testLauncher()
     int success_count = 0;
     Move *requested_moves[20];
 
-    // Black Chess960 Castles
-    requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5); // King E
-    requested_moves[1] = new Move('k', 1UL << 4, 1UL << 13); // King SE
-    requested_moves[2] = new Move('k', 1UL << 4, 1UL << 12); // King S
-    requested_moves[3] = new Move('k', 1UL << 4, 1UL << 11); // King SW
-    requested_moves[4] = new Move('k', 1UL << 4, 1UL << 3); // King W
+    // Black
+    requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5, 0, NOTCASTLE); // King E
+    requested_moves[1] = new Move('k', 1UL << 4, 1UL << 13, 0, NOTCASTLE); // King SE
+    requested_moves[2] = new Move('k', 1UL << 4, 1UL << 12, 0, NOTCASTLE); // King S
+    requested_moves[3] = new Move('k', 1UL << 4, 1UL << 11, 0, NOTCASTLE); // King SW
+    requested_moves[4] = new Move('k', 1UL << 4, 1UL << 3, 0, NOTCASTLE); // King W
     requested_moves[5] = new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT);
     requested_moves[6] = new Move('r', 1UL << 0, 1UL << 1); // Rook 1
     requested_moves[7] = new Move('r', 1UL << 0, 1UL << 2); // Rook 2
@@ -1172,17 +1172,17 @@ int find_moves_castles_testLauncher()
     requested_moves[15] = new Move('r', 1UL << 7, 1UL << 23); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
         19,
-        new Board("r3k2r/8/P6P/8/8/8/8/8 b ah - 0 1"),
+        new Board("r3k2r/8/P6P/8/8/8/8/8 b ah - 0 1", true),
         requested_moves,
         16
     );
 
-    // White Chess960 Castles
-    requested_moves[0] = new Move('K', 1UL << 60, 1UL << 61); // King E
-    requested_moves[1] = new Move('K', 1UL << 60, 1UL << 59); // King W
-    requested_moves[2] = new Move('K', 1UL << 60, 1UL << 51); // King NW
-    requested_moves[3] = new Move('K', 1UL << 60, 1UL << 52); // King N
-    requested_moves[4] = new Move('K', 1UL << 60, 1UL << 53); // King NE
+    // White
+    requested_moves[0] = new Move('K', 1UL << 60, 1UL << 61, 0, NOTCASTLE); // King E
+    requested_moves[1] = new Move('K', 1UL << 60, 1UL << 59, 0, NOTCASTLE); // King W
+    requested_moves[2] = new Move('K', 1UL << 60, 1UL << 51, 0, NOTCASTLE); // King NW
+    requested_moves[3] = new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE); // King N
+    requested_moves[4] = new Move('K', 1UL << 60, 1UL << 53, 0, NOTCASTLE); // King NE
     requested_moves[5] = new Move('K', 1UL << 60, 1UL << 56, 0, WHITELEFT);
     requested_moves[6] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
     requested_moves[7] = new Move('R', 1UL << 56, 1UL << 58); // Rook 2
@@ -1196,7 +1196,7 @@ int find_moves_castles_testLauncher()
     requested_moves[15] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
         20,
-        new Board("8/8/8/8/8/p6p/8/R3K2R w AH - 0 1"),
+        new Board("8/8/8/8/8/p6p/8/R3K2R w AH - 0 1", true),
         requested_moves,
         16
     );

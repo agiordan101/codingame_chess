@@ -1082,13 +1082,43 @@ void Board::_find_white_king_moves() {
 }
 
 void Board::_find_white_castle_moves(uint64_t dst) {
-    // TODO: Take care of checks and pins
-    // For castling. we need to know if the squares the king is passing through are attacked :
-    // Pawns -> Just slide them
-    // Knights -> Just slide them
-    // King -> Just slide it
-    // Sliders -> Loop over them, resolve x-rays using lookup tables
-    _create_piece_moves('K', white_king, dst);
+
+    if (PRINT_ENGINE_UPDATES)
+    {
+        cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
+        cerr << "Dst: " << endl << std::bitset<64>(dst) << endl;
+        cerr << "Check state: " << check_state << endl;
+    }
+
+    if (white_king && !check_state)
+    {
+        uint64_t castle_ray;
+        castle_info_e castle_info;
+        if (dst < white_king)
+        {
+            castle_ray = _compute_castling_negative_ray(white_king, dst);
+            castle_info = WHITELEFT;
+        }
+        else
+        {
+            castle_ray = _compute_castling_positive_ray(white_king, dst);
+            castle_info = WHITERIGHT;
+        }
+
+        if (PRINT_ENGINE_UPDATES) {
+            cerr << "Castle ray: " << endl << std::bitset<64>(castle_ray) << endl;
+            cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
+            cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
+            cerr << "Castle ray & all pieces mask: " << endl << std::bitset<64>(castle_ray & all_pieces_mask) << endl;
+            cerr << "(castle_ray | dst) & attacked_cells_mask: " << endl << std::bitset<64>((castle_ray | dst) & attacked_cells_mask) << endl;
+        }
+        // If no pieces are blocking the castle ray, and no cells are attacked, castle is legal
+        if ((castle_ray & all_pieces_mask) == 0UL && ((castle_ray | dst) & attacked_cells_mask) == 0UL)
+        {
+            this->available_moves.push_back(Move('K', white_king, dst, 0, castle_info));
+            this->visual_board.updateBoard('o', dst);
+        }
+    }
 }
 
 void Board::_find_black_pawns_moves(uint64_t src)
@@ -1168,13 +1198,44 @@ void Board::_find_black_king_moves() {
 }
 
 void Board::_find_black_castle_moves(uint64_t dst) {
-    // TODO: Take care of checks and pins
-    // For castling. we need to know if the squares the king is passing through are attacked :
-    // Pawns -> Just slide them
-    // Knights -> Just slide them
-    // King -> Just slide it
-    // Sliders -> Loop over them, resolve x-rays using lookup tables
-    _create_piece_moves('k', black_king, dst);
+
+    if (PRINT_ENGINE_UPDATES)
+    {
+        cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
+        cerr << "Dst: " << endl << std::bitset<64>(dst) << endl;
+        cerr << "Check state: " << check_state << endl;
+    }
+
+    if (black_king && !check_state)
+    {
+        uint64_t castle_ray;
+        castle_info_e castle_info;
+        if (dst < black_king)
+        {
+            castle_ray = _compute_castling_negative_ray(black_king, dst);
+            castle_info = BLACKLEFT;
+        }
+        else
+        {
+            castle_ray = _compute_castling_positive_ray(black_king, dst);
+            castle_info = BLACKRIGHT;
+        }
+
+        if (PRINT_ENGINE_UPDATES) {
+            cerr << "Castle ray: " << endl << std::bitset<64>(castle_ray) << endl;
+            cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
+            cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
+            cerr << "Castle ray & all pieces mask: " << endl << std::bitset<64>(castle_ray & all_pieces_mask) << endl;
+            cerr << "(castle_ray | dst) & attacked_cells_mask: " << endl << std::bitset<64>((castle_ray | dst) & attacked_cells_mask) << endl;
+        }
+ 
+        // If no pieces are blocking the castle ray, and no cells are attacked, castle is legal
+        if ((castle_ray & all_pieces_mask) == 0UL && ((castle_ray | dst) & attacked_cells_mask) == 0UL)
+        {
+            this->available_moves.push_back(Move('k', black_king, dst, 0, castle_info));
+            this->visual_board.updateBoard('o', dst);
+        }
+    }
 }
 
 void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
@@ -1440,6 +1501,22 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
             }
         }
     }
+}
+
+uint64_t    Board::_compute_castling_positive_ray(uint64_t king, uint64_t rook)
+{
+    int king_lkt_i = _count_trailing_zeros(king);
+    int rook_lkt_i = _count_trailing_zeros(rook);
+
+    return sliding_lookup[king_lkt_i][EAST] ^ sliding_lookup[rook_lkt_i][EAST] ^ rook;
+}
+
+uint64_t    Board::_compute_castling_negative_ray(uint64_t king, uint64_t rook)
+{
+    int king_lkt_i = _count_trailing_zeros(king);
+    int rook_lkt_i = _count_trailing_zeros(rook);
+
+    return sliding_lookup[king_lkt_i][WEST] ^ sliding_lookup[rook_lkt_i][WEST] ^ rook;
 }
 
 // --- OPERATORS ---

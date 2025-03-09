@@ -197,7 +197,8 @@ class Board {
         uint64_t    _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
         void        _compute_sliding_piece_positive_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
         void        _compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
-
+        uint64_t    _compute_castling_positive_ray(uint64_t king, uint64_t rook);
+        uint64_t    _compute_castling_negative_ray(uint64_t king, uint64_t rook);
 
         // LOOKUP TABLES
 

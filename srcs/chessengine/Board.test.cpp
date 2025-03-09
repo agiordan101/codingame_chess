@@ -659,7 +659,7 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
             }
 
             cerr << "- This requested move wasn't found by the engine : " << endl;
-            // requested_moves[i]->log();
+            requested_moves[i]->log();
             success = false;
         }
     }
@@ -676,7 +676,7 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
             }
 
             cerr << "- This move found by the engine isn't requested : " << endl;
-            // moves_found[i].log();
+            moves_found[i].log();
             success = false;
         }
     }
@@ -692,11 +692,11 @@ int find_moves_RegularCases_FindAllMoves(int testIndex, Board *board, Move *requ
 
         cerr << "- Moves found by the engine : " << endl;
         for (int i = 0; i < moves_found.size(); i++)
-            // moves_found[i].log();
+            moves_found[i].log();
 
         cerr << "- Requested moves : " << endl;
         for (int i = 0; i < requested_moves_count; i++)
-            // requested_moves[i]->log();
+            requested_moves[i]->log();
 
         success = false;
     }
@@ -1112,7 +1112,7 @@ int find_moves_ckecks_testLauncher()
 int find_moves_not_unpinning_testLauncher()
 {
     int success_count = 0;
-    Move *requested_moves[15];
+    Move *requested_moves[10];
 
     // Only the king can move if there are 2 checks - White
     requested_moves[0] = new Move('K', 1UL << 17, 1UL << 16); // King W
@@ -1146,6 +1146,62 @@ int find_moves_not_unpinning_testLauncher()
 int find_moves_not_illegal_ones_testLauncher()
 {
     return 0;
+}
+
+int find_moves_castles_testLauncher()
+{
+    int success_count = 0;
+    Move *requested_moves[20];
+
+    // Black Chess960 Castles
+    requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5); // King E
+    requested_moves[1] = new Move('k', 1UL << 4, 1UL << 13); // King SE
+    requested_moves[2] = new Move('k', 1UL << 4, 1UL << 12); // King S
+    requested_moves[3] = new Move('k', 1UL << 4, 1UL << 11); // King SW
+    requested_moves[4] = new Move('k', 1UL << 4, 1UL << 3); // King W
+    requested_moves[5] = new Move('k', 1UL << 4, 1UL << 0, 0, BLACKLEFT);
+    requested_moves[6] = new Move('r', 1UL << 0, 1UL << 1); // Rook 1
+    requested_moves[7] = new Move('r', 1UL << 0, 1UL << 2); // Rook 2
+    requested_moves[8] = new Move('r', 1UL << 0, 1UL << 3); // Rook 3
+    requested_moves[9] = new Move('r', 1UL << 0, 1UL << 8); // Rook 4
+    requested_moves[10] = new Move('r', 1UL << 0, 1UL << 16); // Rook capture
+    requested_moves[11] = new Move('k', 1UL << 4, 1UL << 7, 0, BLACKRIGHT);
+    requested_moves[12] = new Move('r', 1UL << 7, 1UL << 6); // Rook 6
+    requested_moves[13] = new Move('r', 1UL << 7, 1UL << 5); // Rook 5
+    requested_moves[14] = new Move('r', 1UL << 7, 1UL << 15); // Rook 6
+    requested_moves[15] = new Move('r', 1UL << 7, 1UL << 23); // Rook capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        19,
+        new Board("r3k2r/8/P6P/8/8/8/8/8 b ah - 0 1"),
+        requested_moves,
+        16
+    );
+
+    // White Chess960 Castles
+    requested_moves[0] = new Move('K', 1UL << 60, 1UL << 61); // King E
+    requested_moves[1] = new Move('K', 1UL << 60, 1UL << 59); // King W
+    requested_moves[2] = new Move('K', 1UL << 60, 1UL << 51); // King NW
+    requested_moves[3] = new Move('K', 1UL << 60, 1UL << 52); // King N
+    requested_moves[4] = new Move('K', 1UL << 60, 1UL << 53); // King NE
+    requested_moves[5] = new Move('K', 1UL << 60, 1UL << 56, 0, WHITELEFT);
+    requested_moves[6] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
+    requested_moves[7] = new Move('R', 1UL << 56, 1UL << 58); // Rook 2
+    requested_moves[8] = new Move('R', 1UL << 56, 1UL << 59); // Rook 3
+    requested_moves[9] = new Move('R', 1UL << 56, 1UL << 48); // Rook 4
+    requested_moves[10] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
+    requested_moves[11] = new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT);
+    requested_moves[12] = new Move('R', 1UL << 63, 1UL << 62); // Rook 1
+    requested_moves[13] = new Move('R', 1UL << 63, 1UL << 61); // Rook 2
+    requested_moves[14] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
+    requested_moves[15] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        20,
+        new Board("8/8/8/8/8/p6p/8/R3K2R w AH - 0 1"),
+        requested_moves,
+        16
+    );
+
+    return success_count;
 }
 
 # else
@@ -1827,10 +1883,11 @@ int find_moves_not_unpinning_testLauncher()
 {
     return 0;
 }
-int find_moves_not_illegal_ones_testLauncher()
+int find_moves_castles_testLauncher()
 {
     return 0;
 }
+
 # endif
 
 #pragma endregion find_moves
@@ -2324,6 +2381,7 @@ int mainTestBoard()
     successCount += find_moves_ckecks_testLauncher();
     successCount += find_moves_not_unpinning_testLauncher();
     successCount += find_moves_not_illegal_ones_testLauncher();
+    successCount += find_moves_castles_testLauncher();
 
     // successCount += clone_testLauncher();
 

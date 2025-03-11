@@ -607,14 +607,14 @@ void    Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle
     else if (castle_info == WHITELEFT)
     {
         white_rooks &= ~dst;
-        white_king = 0x0400000000000000;
-        white_rooks |= 0x0800000000000000;
+        white_king = BITMASK_CASTLE_WHITE_LEFT_KING;
+        white_rooks |= BITMASK_CASTLE_WHITE_LEFT_ROOK;
     }
     else if (castle_info == WHITERIGHT)
     {
         white_rooks &= ~dst;
-        white_king = 0x4000000000000000;
-        white_rooks |= 0x2000000000000000;
+        white_king = BITMASK_CASTLE_WHITE_RIGHT_KING;
+        white_rooks |= BITMASK_CASTLE_WHITE_RIGHT_ROOK;
     }
 
     white_castles = 0UL;
@@ -643,14 +643,14 @@ void    Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle
     else if (castle_info == BLACKLEFT)
     {
         black_rooks &= ~dst;
-        black_king = 0x04;
-        black_rooks |= 0x08;
+        black_king = BITMASK_CASTLE_BLACK_LEFT_KING;
+        black_rooks |= BITMASK_CASTLE_BLACK_LEFT_ROOK;
     }
     else if (castle_info == BLACKRIGHT)
     {
         black_rooks &= ~dst;
-        black_king = 0x40;
-        black_rooks |= 0x20;
+        black_king = BITMASK_CASTLE_BLACK_RIGHT_KING;
+        black_rooks |= BITMASK_CASTLE_BLACK_RIGHT_ROOK;
     }
 
     black_castles = 0UL;
@@ -1082,42 +1082,64 @@ void Board::_find_white_king_moves() {
     }
 }
 
-void Board::_find_white_castle_moves(uint64_t dst) {
+void Board::_find_white_castle_moves(uint64_t rook) {
 
-    if (PRINT_ENGINE_UPDATES)
-    {
-        cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
-        cerr << "Dst: " << endl << std::bitset<64>(dst) << endl;
-        cerr << "Check state: " << check_state << endl;
-    }
+    // if (PRINT_ENGINE_UPDATES)
+    // {
+    //     cerr << "White king: " << endl << std::bitset<64>(white_king) << endl;
+    //     cerr << "rook: " << endl << std::bitset<64>(rook) << endl;
+    //     cerr << "white_rooks: " << endl << std::bitset<64>(white_rooks) << endl;
+    //     cerr << "Check state: " << check_state << endl;
+    // }
 
     if (white_king && !check_state)
     {
-        uint64_t castle_ray;
+        uint64_t rook_path;
+        uint64_t king_path;
         castle_info_e castle_info;
-        if (dst < white_king)
+        if (rook < white_king)
         {
-            castle_ray = _compute_castling_negative_ray(white_king, dst);
             castle_info = WHITELEFT;
+
+            king_path = _compute_castling_negative_path(white_king, BITMASK_CASTLE_WHITE_LEFT_KING);
+            if (rook < BITMASK_CASTLE_WHITE_LEFT_ROOK)
+                rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
+            else
+                rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
+            
+            // if (PRINT_ENGINE_UPDATES) {
+            //     cerr << "King final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_KING) << endl;
+            //     cerr << "Rook final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_ROOK) << endl;
+            // }
         }
         else
         {
-            castle_ray = _compute_castling_positive_ray(white_king, dst);
             castle_info = WHITERIGHT;
+            
+            king_path = _compute_castling_positive_path(white_king, BITMASK_CASTLE_WHITE_RIGHT_KING);
+            if (rook < BITMASK_CASTLE_WHITE_RIGHT_ROOK)
+                rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
+            else
+                rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
+            
+            // if (PRINT_ENGINE_UPDATES) {
+            //     cerr << "King final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_KING) << endl;
+            //     cerr << "Rook final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_ROOK) << endl;
+            // }
         }
 
-        if (PRINT_ENGINE_UPDATES) {
-            cerr << "Castle ray: " << endl << std::bitset<64>(castle_ray) << endl;
-            cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
-            cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
-            cerr << "Castle ray & all pieces mask: " << endl << std::bitset<64>(castle_ray & all_pieces_mask) << endl;
-            cerr << "(castle_ray | dst) & attacked_cells_mask: " << endl << std::bitset<64>((castle_ray | dst) & attacked_cells_mask) << endl;
-        }
-        // If no pieces are blocking the castle ray, and no cells are attacked, castle is legal
-        if ((castle_ray & all_pieces_mask) == 0UL && ((castle_ray | dst) & attacked_cells_mask) == 0UL)
+        // if (PRINT_ENGINE_UPDATES) {
+        //     cerr << "King path: " << endl << std::bitset<64>(king_path) << endl;
+        //     cerr << "Rook path: " << endl << std::bitset<64>(rook_path) << endl;
+        //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
+        //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
+        // }
+
+        // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
+        if (((king_path | rook_path) & all_pieces_mask) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
-            this->available_moves.push_back(Move('K', white_king, dst, 0, castle_info));
-            this->visual_board.updateBoard('o', dst);
+            this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
+            this->visual_board.updateBoard('o', rook);
         }
     }
 }
@@ -1198,43 +1220,53 @@ void Board::_find_black_king_moves() {
     }
 }
 
-void Board::_find_black_castle_moves(uint64_t dst) {
+void Board::_find_black_castle_moves(uint64_t rook) {
 
-    if (PRINT_ENGINE_UPDATES)
-    {
-        cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
-        cerr << "Dst: " << endl << std::bitset<64>(dst) << endl;
-        cerr << "Check state: " << check_state << endl;
-    }
+    // if (PRINT_ENGINE_UPDATES)
+    // {
+    //     cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
+    //     cerr << "Rook: " << endl << std::bitset<64>(rook) << endl;
+    //     cerr << "Check state: " << check_state << endl;
+    // }
 
     if (black_king && !check_state)
     {
-        uint64_t castle_ray;
+        uint64_t rook_path;
+        uint64_t king_path;
         castle_info_e castle_info;
-        if (dst < black_king)
+        if (rook < black_king)
         {
-            castle_ray = _compute_castling_negative_ray(black_king, dst);
             castle_info = BLACKLEFT;
+
+            king_path = _compute_castling_negative_path(black_king, BITMASK_CASTLE_BLACK_LEFT_KING);
+            if (rook < BITMASK_CASTLE_BLACK_LEFT_ROOK)
+                rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_BLACK_LEFT_ROOK);
+            else
+                rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_BLACK_LEFT_ROOK);
         }
         else
         {
-            castle_ray = _compute_castling_positive_ray(black_king, dst);
             castle_info = BLACKRIGHT;
+
+            king_path = _compute_castling_positive_path(black_king, BITMASK_CASTLE_BLACK_RIGHT_KING);
+            if (rook < BITMASK_CASTLE_BLACK_RIGHT_ROOK)
+                rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
+            else
+                rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
         }
 
-        if (PRINT_ENGINE_UPDATES) {
-            cerr << "Castle ray: " << endl << std::bitset<64>(castle_ray) << endl;
-            cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
-            cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
-            cerr << "Castle ray & all pieces mask: " << endl << std::bitset<64>(castle_ray & all_pieces_mask) << endl;
-            cerr << "(castle_ray | dst) & attacked_cells_mask: " << endl << std::bitset<64>((castle_ray | dst) & attacked_cells_mask) << endl;
-        }
- 
-        // If no pieces are blocking the castle ray, and no cells are attacked, castle is legal
-        if ((castle_ray & all_pieces_mask) == 0UL && ((castle_ray | dst) & attacked_cells_mask) == 0UL)
+        // if (PRINT_ENGINE_UPDATES) {
+        //     cerr << "king_path: " << endl << std::bitset<64>(king_path) << endl;
+        //     cerr << "rook_path: " << endl << std::bitset<64>(rook_path) << endl;
+        //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
+        //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
+        // }
+
+        // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
+        if (((king_path | rook_path) & all_pieces_mask) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
-            this->available_moves.push_back(Move('k', black_king, dst, 0, castle_info));
-            this->visual_board.updateBoard('o', dst);
+            this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
+            this->visual_board.updateBoard('o', rook);
         }
     }
 }
@@ -1504,20 +1536,38 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
     }
 }
 
-uint64_t    Board::_compute_castling_positive_ray(uint64_t king, uint64_t rook)
+uint64_t    Board::_compute_castling_positive_path(uint64_t src, uint64_t dst)
 {
-    int king_lkt_i = _count_trailing_zeros(king);
-    int rook_lkt_i = _count_trailing_zeros(rook);
+    int src_lkt_i = _count_trailing_zeros(src);
+    int dst_lkt_i = _count_trailing_zeros(dst);
 
-    return sliding_lookup[king_lkt_i][EAST] ^ sliding_lookup[rook_lkt_i][EAST] ^ rook;
+    // if (PRINT_ENGINE_UPDATES && (src & black_rooks)) {
+    //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
+    //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
+    //     cerr << "src_lkt_i: " << src_lkt_i << endl;
+    //     cerr << "dst_lkt_i: " << dst_lkt_i << endl;
+    //     cerr << "sliding_lookup[src_lkt_i][EAST]: " << endl << std::bitset<64>(sliding_lookup[src_lkt_i][EAST]) << endl;
+    //     cerr << "sliding_lookup[dst_lkt_i][EAST]: " << endl << std::bitset<64>(sliding_lookup[dst_lkt_i][EAST]) << endl;
+    // }
+    
+    return sliding_lookup[src_lkt_i][EAST] ^ sliding_lookup[dst_lkt_i][EAST];
 }
 
-uint64_t    Board::_compute_castling_negative_ray(uint64_t king, uint64_t rook)
+uint64_t    Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 {
-    int king_lkt_i = _count_trailing_zeros(king);
-    int rook_lkt_i = _count_trailing_zeros(rook);
+    int src_lkt_i = _count_trailing_zeros(src);
+    int dst_lkt_i = _count_trailing_zeros(dst);
 
-    return sliding_lookup[king_lkt_i][WEST] ^ sliding_lookup[rook_lkt_i][WEST] ^ rook;
+    // if (PRINT_ENGINE_UPDATES && (src & black_rooks)) {
+    //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
+    //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
+    //     cerr << "src_lkt_i: " << src_lkt_i << endl;
+    //     cerr << "dst_lkt_i: " << dst_lkt_i << endl;
+    //     cerr << "sliding_lookup[src_lkt_i][WEST]: " << endl << std::bitset<64>(sliding_lookup[src_lkt_i][WEST]) << endl;
+    //     cerr << "sliding_lookup[dst_lkt_i][WEST]: " << endl << std::bitset<64>(sliding_lookup[dst_lkt_i][WEST]) << endl;
+    // }
+
+    return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
 }
 
 // --- OPERATORS ---

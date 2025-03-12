@@ -1136,7 +1136,7 @@ void Board::_find_white_castle_moves(uint64_t rook) {
         // }
 
         // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
-        if (((king_path | rook_path) & (all_pieces_mask ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
+        if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
             this->visual_board.updateBoard('o', rook);
@@ -1263,7 +1263,7 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         // }
 
         // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
-        if (((king_path | rook_path) & (all_pieces_mask ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
+        if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
             this->visual_board.updateBoard('o', rook);

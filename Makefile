@@ -42,7 +42,7 @@ format:
 
 ### Compile unit tests main
 test:
-	@g++ mains/main.test.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
+	@g++ mains/unittests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
 	./bins/$(TEST_EXEC)
 
 ### Compile the bots and copy them into codingame chess engine folder

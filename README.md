@@ -187,7 +187,7 @@ Board optimization :
 
 - Next steps :
 
-    * Hardcode glabal mask in ChessEngine.hpp representing columns and lines
+    * Squash rebase bitboard VALID implementation on dev, create iterative deepening respecting times, then create versions.
 
     * Switch some function pointer at engine start depending on the rule ?
         - It will speed up the engine

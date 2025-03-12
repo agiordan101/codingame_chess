@@ -15,5 +15,5 @@ int main()
     successCount += unittests_Move();
     successCount += unittests_ChessEngine();
 
-    cerr << "[UNITTEST] End: " << successCount << "/87 tests were successfull !" << endl;
+    cerr << "[UNITTEST] End: " << successCount << "/89 tests were successfull !" << endl;
 }

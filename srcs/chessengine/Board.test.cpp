@@ -1153,6 +1153,8 @@ int find_moves_castles_testLauncher()
     int success_count = 0;
     Move *requested_moves[20];
 
+    /* VALID CASTLES */
+
     // Black - Standard castle
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5, 0, NOTCASTLE); // King E
     requested_moves[1] = new Move('k', 1UL << 4, 1UL << 13, 0, NOTCASTLE); // King SE
@@ -1231,7 +1233,7 @@ int find_moves_castles_testLauncher()
     requested_moves[14] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
     requested_moves[15] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        20,
+        22,
         new Board("8/8/8/8/8/p6p/8/R3K2R w AH - 0 1"),
         requested_moves,
         16
@@ -1250,7 +1252,7 @@ int find_moves_castles_testLauncher()
     requested_moves[10] = new Move('R', 1UL << 61, 1UL << 56); // Rook
     requested_moves[11] = new Move('K', 1UL << 62, 1UL << 61, 0, WHITELEFT); // King NE
     success_count += find_moves_RegularCases_FindAllMoves(
-        21,
+        23,
         new Board("8/8/8/8/8/5p1p/8/5RKR w FH - 0 1"),
         requested_moves,
         12
@@ -1269,11 +1271,13 @@ int find_moves_castles_testLauncher()
     requested_moves[10] = new Move('R', 1UL << 58, 1UL << 63); // Rook
     requested_moves[11] = new Move('K', 1UL << 57, 1UL << 58, 0, WHITERIGHT); // King NE
     success_count += find_moves_RegularCases_FindAllMoves(
-        22,
+        24,
         new Board("8/8/8/8/8/p1p5/8/RKR5 w AC - 0 1"),
         requested_moves,
         12
     );
+
+    /* NO RIGHTS */
 
     // Black - No castle rights
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5, 0, NOTCASTLE); // King E
@@ -1291,7 +1295,7 @@ int find_moves_castles_testLauncher()
     requested_moves[12] = new Move('r', 1UL << 7, 1UL << 15); // Rook 6
     requested_moves[13] = new Move('r', 1UL << 7, 1UL << 23); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        23,
+        25,
         new Board("r3k2r/8/P6P/8/8/8/8/8 b AH - 0 1"), // These castle rights are for the opponent
         requested_moves,
         14
@@ -1312,18 +1316,20 @@ int find_moves_castles_testLauncher()
     requested_moves[12] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
     requested_moves[13] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        24,
+        26,
         new Board("8/8/8/8/8/p6p/8/R3K2R w ah - 0 1"), // These castle rights are for the opponent
         requested_moves,
         14
     );
+
+    /* IN CHECK */
 
     // Black - King is in check
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 13, 0, NOTCASTLE); // King SE
     requested_moves[1] = new Move('k', 1UL << 4, 1UL << 12, 0, NOTCASTLE); // King S
     requested_moves[2] = new Move('k', 1UL << 4, 1UL << 11, 0, NOTCASTLE); // King SW
     success_count += find_moves_RegularCases_FindAllMoves(
-        25,
+        27,
         new Board("r3k2R/8/8/8/8/8/8/8 b a - 0 1"),
         requested_moves,
         3
@@ -1333,11 +1339,13 @@ int find_moves_castles_testLauncher()
     requested_moves[1] = new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE); // King N
     requested_moves[2] = new Move('K', 1UL << 60, 1UL << 53, 0, NOTCASTLE); // King NE
     success_count += find_moves_RegularCases_FindAllMoves(
-        26,
+        28,
         new Board("8/8/8/8/8/8/8/R3K2r w a - 0 1"),
         requested_moves,
         3
     );
+
+    /* KING FINAL CELL IS ATTACKED */
 
     // Black - Most right position - King final cell is attacked
     requested_moves[0] = new Move('k', 1UL << 6, 1UL << 7, 0, NOTCASTLE); // King E
@@ -1351,7 +1359,7 @@ int find_moves_castles_testLauncher()
     requested_moves[8] = new Move('r', 1UL << 5, 1UL << 13); // Rook capture
     requested_moves[9] = new Move('r', 1UL << 5, 1UL << 21); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        27,
+        29,
         new Board("5rk1/8/2R2P2/8/8/8/8/8 b f - 0 1"),
         requested_moves,
         10
@@ -1368,12 +1376,34 @@ int find_moves_castles_testLauncher()
     requested_moves[8] = new Move('r', 1UL << 2, 1UL << 6); // Rook
     requested_moves[9] = new Move('r', 1UL << 2, 1UL << 7); // Rook
     success_count += find_moves_RegularCases_FindAllMoves(
-        28,
+        30,
         new Board("rkr5/8/R1R3R1/8/8/8/8/8 b ac - 0 1"),
         requested_moves,
         10
     );
-    // Black - Left - King path is attacked
+    // White - Most right position - King final cell is attacked
+    // White - Most left position - King final cell is attacked
+    requested_moves[0] = new Move('K', 1UL << 57, 1UL << 48, 0, NOTCASTLE); // King NW
+    requested_moves[1] = new Move('K', 1UL << 57, 1UL << 50, 0, NOTCASTLE); // King NE
+    requested_moves[2] = new Move('R', 1UL << 56, 1UL << 48); // Rook 1
+    requested_moves[3] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
+    requested_moves[4] = new Move('R', 1UL << 58, 1UL << 50); // Rook 3
+    requested_moves[5] = new Move('R', 1UL << 58, 1UL << 42); // Rook capture
+    requested_moves[6] = new Move('R', 1UL << 58, 1UL << 59); // Rook
+    requested_moves[7] = new Move('R', 1UL << 58, 1UL << 60); // Rook
+    requested_moves[8] = new Move('R', 1UL << 58, 1UL << 61); // Rook
+    requested_moves[9] = new Move('R', 1UL << 58, 1UL << 62); // Rook
+    requested_moves[10] = new Move('R', 1UL << 58, 1UL << 63); // Rook
+    success_count += find_moves_RegularCases_FindAllMoves(
+        31,
+        new Board("8/8/8/8/8/p1p3r1/8/RKR5 w AC - 0 1"),
+        requested_moves,
+        11
+    );
+
+    /* PATH IS ATTACKED */
+
+    // Black - King path is attacked
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 12, 0, NOTCASTLE); // King S
     requested_moves[1] = new Move('r', 1UL << 0, 1UL << 1); // Rook 1
     requested_moves[2] = new Move('r', 1UL << 0, 1UL << 2); // Rook 2
@@ -1385,12 +1415,32 @@ int find_moves_castles_testLauncher()
     requested_moves[8] = new Move('r', 1UL << 7, 1UL << 15); // Rook 6
     requested_moves[9] = new Move('r', 1UL << 7, 1UL << 23); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        29,
+        32,
         new Board("r3k2r/8/P2R1R1P/8/8/8/8/8 b ah - 0 1"),
         requested_moves,
         10
     );
-    // Black - Left - Piece on king path
+    // White - King path is attacked
+    requested_moves[0] = new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE); // King N
+    requested_moves[1] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
+    requested_moves[2] = new Move('R', 1UL << 56, 1UL << 58); // Rook 2
+    requested_moves[3] = new Move('R', 1UL << 56, 1UL << 59); // Rook 3
+    requested_moves[4] = new Move('R', 1UL << 56, 1UL << 48); // Rook 4
+    requested_moves[5] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
+    requested_moves[6] = new Move('R', 1UL << 63, 1UL << 62); // Rook 1
+    requested_moves[7] = new Move('R', 1UL << 63, 1UL << 61); // Rook 2
+    requested_moves[8] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
+    requested_moves[9] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        33,
+        new Board("8/8/8/8/8/p2r1r1p/8/R3K2R w AH - 0 1"),
+        requested_moves,
+        10
+    );
+
+    /* PIECE ON PATH */
+
+    // Black - Piece on king path
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 13, 0, NOTCASTLE); // King SE
     requested_moves[1] = new Move('k', 1UL << 4, 1UL << 12, 0, NOTCASTLE); // King S
     requested_moves[2] = new Move('k', 1UL << 4, 1UL << 11, 0, NOTCASTLE); // King SW
@@ -1404,12 +1454,12 @@ int find_moves_castles_testLauncher()
     requested_moves[10] = new Move('p', 1UL << 3, 1UL << 11); // Pawn
     requested_moves[11] = new Move('p', 1UL << 5, 1UL << 13); // Pawn
     success_count += find_moves_RegularCases_FindAllMoves(
-        30,
+        34,
         new Board("r2pkp1r/8/P6P/8/8/8/8/8 b ah - 0 1"),
         requested_moves,
         12
     );
-    // Black - Left - Piece on rook path
+    // Black - Piece on rook path
     requested_moves[0] = new Move('k', 1UL << 4, 1UL << 5, 0, NOTCASTLE); // King E
     requested_moves[1] = new Move('k', 1UL << 4, 1UL << 13, 0, NOTCASTLE); // King SE
     requested_moves[2] = new Move('k', 1UL << 4, 1UL << 12, 0, NOTCASTLE); // King S
@@ -1424,49 +1474,52 @@ int find_moves_castles_testLauncher()
     requested_moves[11] = new Move('p', 1UL << 1, 1UL << 9); // Pawn
     requested_moves[12] = new Move('k', 1UL << 4, 1UL << 7, 0, BLACKRIGHT); // King castle !
     success_count += find_moves_RegularCases_FindAllMoves(
-        31,
+        35,
         new Board("rp2k2r/8/P6P/8/8/8/8/8 b ah - 0 1"),
         requested_moves,
         13
     );
-
-    // White - King path is attacked
+    // White - Piece on king path
     requested_moves[0] = new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE); // King N
-    requested_moves[1] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
-    requested_moves[2] = new Move('R', 1UL << 56, 1UL << 58); // Rook 2
-    requested_moves[3] = new Move('R', 1UL << 56, 1UL << 59); // Rook 3
-    requested_moves[4] = new Move('R', 1UL << 56, 1UL << 48); // Rook 4
-    requested_moves[5] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
-    requested_moves[6] = new Move('R', 1UL << 63, 1UL << 62); // Rook 1
-    requested_moves[7] = new Move('R', 1UL << 63, 1UL << 61); // Rook 2
-    requested_moves[8] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
-    requested_moves[9] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
+    requested_moves[1] = new Move('K', 1UL << 60, 1UL << 53, 0, NOTCASTLE); // King NE
+    requested_moves[2] = new Move('K', 1UL << 60, 1UL << 61, 0, NOTCASTLE); // King E
+    requested_moves[3] = new Move('K', 1UL << 60, 1UL << 59, 0, NOTCASTLE); // King W
+    requested_moves[4] = new Move('K', 1UL << 60, 1UL << 51, 0, NOTCASTLE); // King NW
+    requested_moves[5] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
+    requested_moves[6] = new Move('R', 1UL << 56, 1UL << 58); // Rook 2
+    requested_moves[7] = new Move('R', 1UL << 56, 1UL << 59); // Rook 3
+    requested_moves[8] = new Move('R', 1UL << 56, 1UL << 48); // Rook 4
+    requested_moves[9] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
+    requested_moves[10] = new Move('R', 1UL << 63, 1UL << 62); // Rook 1
+    requested_moves[11] = new Move('R', 1UL << 63, 1UL << 61); // Rook 2
+    requested_moves[12] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
+    requested_moves[13] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
     success_count += find_moves_RegularCases_FindAllMoves(
-        32,
-        new Board("8/8/8/8/8/p2r1r1p/8/R3K2R w AH - 0 1"),
+        36,
+        new Board("8/8/8/8/8/p6p/8/R2pKp1R w AH - 0 1"),
         requested_moves,
-        10
+        14
     );
-    // White - Left - King final cell is attacked
-    requested_moves[0] = new Move('K', 1UL << 57, 1UL << 48, 0, NOTCASTLE); // King NW
-    requested_moves[1] = new Move('K', 1UL << 57, 1UL << 50, 0, NOTCASTLE); // King NE
-    requested_moves[2] = new Move('R', 1UL << 56, 1UL << 48); // Rook 1
-    requested_moves[3] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
-    requested_moves[4] = new Move('R', 1UL << 58, 1UL << 50); // Rook 3
-    requested_moves[5] = new Move('R', 1UL << 58, 1UL << 42); // Rook capture
-    requested_moves[6] = new Move('R', 1UL << 58, 1UL << 59); // Rook
-    requested_moves[7] = new Move('R', 1UL << 58, 1UL << 60); // Rook
-    requested_moves[8] = new Move('R', 1UL << 58, 1UL << 61); // Rook
-    requested_moves[9] = new Move('R', 1UL << 58, 1UL << 62); // Rook
-    requested_moves[10] = new Move('R', 1UL << 58, 1UL << 63); // Rook
+    // White - Piece on rook path
+    requested_moves[0] = new Move('K', 1UL << 60, 1UL << 52, 0, NOTCASTLE); // King N
+    requested_moves[1] = new Move('K', 1UL << 60, 1UL << 53, 0, NOTCASTLE); // King NE
+    requested_moves[2] = new Move('K', 1UL << 60, 1UL << 61, 0, NOTCASTLE); // King E
+    requested_moves[3] = new Move('K', 1UL << 60, 1UL << 59, 0, NOTCASTLE); // King W
+    requested_moves[4] = new Move('K', 1UL << 60, 1UL << 51, 0, NOTCASTLE); // King NW
+    requested_moves[5] = new Move('R', 1UL << 56, 1UL << 57); // Rook 1
+    requested_moves[6] = new Move('R', 1UL << 56, 1UL << 48); // Rook 4
+    requested_moves[7] = new Move('R', 1UL << 56, 1UL << 40); // Rook capture
+    requested_moves[8] = new Move('R', 1UL << 63, 1UL << 62); // Rook 1
+    requested_moves[9] = new Move('R', 1UL << 63, 1UL << 61); // Rook 2
+    requested_moves[10] = new Move('R', 1UL << 63, 1UL << 55); // Rook 3
+    requested_moves[11] = new Move('R', 1UL << 63, 1UL << 47); // Rook capture
+    requested_moves[12] = new Move('K', 1UL << 60, 1UL << 63, 0, WHITERIGHT); // King W
     success_count += find_moves_RegularCases_FindAllMoves(
-        33,
-        new Board("8/8/8/8/8/p1p3r1/8/RKR5 w AC - 0 1"),
+        36,
+        new Board("8/8/8/8/8/p6p/8/Rp2K2R w AH - 0 1"),
         requested_moves,
-        11
+        13
     );
-    // White - Left - Piece on king path
-    // White - Left - Piece on rook path
 
     return success_count;
 }

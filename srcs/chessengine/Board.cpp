@@ -141,7 +141,7 @@ float Board::get_game_state()
         if (!this->engine_data_updated)
             _update_engine_at_turn_start();
 
-        this->game_state = GAME_CONTINUE;
+        this->game_state = _compute_game_state();
     }
 
     return this->game_state;
@@ -692,7 +692,7 @@ void    Board::_capture_black_pieces(uint64_t dst)
     }
 }
 
-// - Engine specific -
+// - Engine updates -
 
 void Board::_update_engine_at_turn_start()
 {
@@ -1568,6 +1568,81 @@ uint64_t    Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
     // }
 
     return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
+}
+
+// - End game -
+
+float   Board::_compute_game_state()
+{
+    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
+    if (
+        half_turn_rule >= 100 ||
+        game_turn >= game_turn_max + 1 ||
+        _threefold_repetition_rule() ||
+        _insufficient_material_rule()
+    )
+        return DRAW;
+
+    available_moves = get_available_moves();
+
+    // If no moves are available, it's either a Checkmate or a Stalemate
+    if (available_moves.size() == 0)
+    {
+        if (get_check_state())
+            return white_turn ? BLACK_WIN : WHITE_WIN;
+        return DRAW;
+    }
+
+    return GAME_CONTINUE;
+}
+
+bool Board::_threefold_repetition_rule()
+{
+    int actual_fen_index = fen_history_index - 1;
+    string actual_fen = fen_history[actual_fen_index];
+
+    // Check if the actual FEN is already 2 times in the history
+    // Loop over all FEN_HISTORY_SIZE last moves, skipping the actual one
+    bool fen_found = false;
+    int history_index = -1;
+    while (++history_index < FEN_HISTORY_SIZE)
+        if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
+        {
+            if (fen_found)
+                return true;
+            fen_found = true;
+        }
+
+    return false;
+}
+
+bool Board::_insufficient_material_rule()
+{
+    if (white_pawns | black_pawns | white_rooks | black_rooks | white_queens | black_queens)
+        return false;
+    
+    int white_knights_count = _count_bits(white_knights);
+    int black_knights_count = _count_bits(black_knights);
+    int knights_count = white_knights_count + black_knights_count;
+    
+    // If there is multiple knights, it's not a material insufficient
+    if (knights_count > 1)
+        return false;
+    
+    int white_bishops_count = _count_bits(white_bishops);
+    int black_bishops_count = _count_bits(black_bishops);
+    int bishops_count = white_bishops_count + black_bishops_count;
+    
+    // If there is a knight and another piece, it's not a material insufficient
+    if (knights_count == 1 && bishops_count > 0)
+        return false;
+        
+    // If there is more than one bishop, on opposite colors, it's not a material insufficient
+    uint64_t all_bishops = white_bishops | black_bishops;
+    if ((all_bishops & BITMASK_WHITE_CELLS) && (all_bishops & BITMASK_BLACK_CELLS))
+       return false;
+
+    return true;
 }
 
 // --- OPERATORS ---

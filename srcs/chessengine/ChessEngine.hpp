@@ -14,12 +14,14 @@ using namespace std;
 # define BITBOARD_IMPLEMENTATION 1
 # define CHESS960_RULES 1
 # define PRINT_ENGINE_UPDATES 0
-# define PRINT_TURNS 1
+# define PRINT_TURNS 0
 
 # define EMPTY_CELL '-'
 
 // Bit masks representing chess board columns and lines, using UCI notation
-# define BITMASK_ALL_CELLS  0xFFFFFFFFFFFFFFFFUL
+# define BITMASK_ALL_CELLS      0xFFFFFFFFFFFFFFFFUL
+# define BITMASK_WHITE_CELLS    0xAA55AA55AA55AA55UL
+# define BITMASK_BLACK_CELLS    0x55AA55AA55AA55AAUL
 
 # define BITMASK_LINE_81    0xFF000000000000FFUL
 # define BITMASK_LINE_7     0x000000000000FF00UL
@@ -186,6 +188,12 @@ inline string bitboard_to_algebraic(uint64_t bitboard)
 }
 
 /* BITWISE OPERATIONS */
+
+inline uint64_t _count_bits(uint64_t bitboard)
+{
+    // __builtin_popcountll() returns the number of set bits
+    return __builtin_popcountll(bitboard);
+}
 
 inline uint64_t _count_trailing_zeros(uint64_t bitboard)
 {

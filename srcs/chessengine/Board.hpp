@@ -147,7 +147,7 @@ class Board {
         void    _capture_white_pieces(uint64_t dst);
         void    _capture_black_pieces(uint64_t dst);
         
-        // - Engine specific -
+        // - Engine updates -
         void    _update_engine_at_turn_end();
         void    _update_engine_at_turn_start();
         void    _update_check_and_pins();
@@ -188,7 +188,7 @@ class Board {
         void    _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
         void    _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
 
-        // BIT OPERATIONS
+        // - Bit operations -
 
         void        _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
         uint64_t    _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
@@ -199,6 +199,11 @@ class Board {
         void        _compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
         uint64_t    _compute_castling_positive_path(uint64_t src, uint64_t dst);
         uint64_t    _compute_castling_negative_path(uint64_t src, uint64_t dst);
+
+        // - End game -
+        float   _compute_game_state();
+        bool    _threefold_repetition_rule();
+        bool    _insufficient_material_rule();
 
         // LOOKUP TABLES
 

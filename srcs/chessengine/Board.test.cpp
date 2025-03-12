@@ -2325,22 +2325,9 @@ int get_game_state_unittest(int testIndex, Board *board, float requested_game_st
     return 1;
 }
 
-# if BITBOARD_IMPLEMENTATION == 1
-
-int get_game_state_testLauncher()
-{
-    return 0;
-}
-
-# else
-
 int get_game_state_testLauncher()
 {
     int success_count = 0;
-    vector<Move> moves_exists;
-    vector<Move> moves_empty;
-
-    moves_exists.push_back(Move(0, 0, 0, 0, 0));
 
     // 0 - Fifty-Move rule
     success_count += get_game_state_unittest(
@@ -2372,97 +2359,97 @@ int get_game_state_testLauncher()
 
     // 33 - Black wins
     success_count += get_game_state_unittest(
-        33,
+        4,
         new Board("8/8/8/8/8/8/7r/K6r w - - 0 0"),
         BLACK_WIN
     );
 
     // 4 - Stalemate - White turn
     success_count += get_game_state_unittest(
-        4,
+        5,
         new Board("6r1/8/8/8/8/8/r7/7K w - - 0 0"),
         DRAW
     );
 
     // 44 - Stalemate - Black turn
     success_count += get_game_state_unittest(
-        44,
+        6,
         new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 0"),
         DRAW
     );
 
     // Insufficient material: King vs king
     success_count += get_game_state_unittest(
-        5,
+        7,
         new Board("8/8/3K4/8/8/3k4/8/8 w - - 0 0"),
         DRAW
     );
     // Same, but with an extra piece on the board (Game continue)
     success_count += get_game_state_unittest(
-        51,
+        8,
         new Board("8/8/3K4/8/8/3k4/8/2p5 w - - 0 0"),
         GAME_CONTINUE
     );
 
     // Insufficient material: King+knight vs king
     success_count += get_game_state_unittest(
-        6,
+        9,
         new Board("8/8/3K4/8/3n4/3k4/8/8 w - - 0 0"),
         DRAW
     );
 
     // Insufficient material: King+bishop vs king
     success_count += get_game_state_unittest(
-        7,
+        10,
         new Board("8/8/3K4/3B4/8/3k4/8/8 w - - 0 0"),
         DRAW
     );
 
     // Insufficient material: King+bishop vs king+bishop if both bishops are on the same square color.
     success_count += get_game_state_unittest(
-        8,
+        11,
         new Board("8/8/3K4/3B4/4b3/3k4/8/8 w - - 0 0"),
         DRAW
     );
 
     // Game continue (Bishop vs Knight)
     success_count += get_game_state_unittest(
-        81,
+        12,
         new Board("3k4/8/8/6K1/3B4/8/8/5n2 b - - 0 115"),
         GAME_CONTINUE
     );
     
     // Game continue (Knight vs Bishop)
     success_count += get_game_state_unittest(
-        82,
+        13,
         new Board("3k4/8/8/6K1/3N4/8/8/5b2 b - - 0 115"),
         GAME_CONTINUE
     );
 
     // Game continue (2 bishops on different square color)
     success_count += get_game_state_unittest(
-        9,
+        14,
         new Board("8/8/3K4/3B4/3b4/3k4/8/8 w - - 0 0"),
         GAME_CONTINUE
     );
 
     // Game continue (2 knights)
     success_count += get_game_state_unittest(
-        9,
+        15,
         new Board("8/8/3K4/3N4/3n4/3k4/8/8 w - - 0 0"),
         GAME_CONTINUE
     );
 
     // Game continue (Queen)
     success_count += get_game_state_unittest(
-        9,
+        16,
         new Board("8/8/3K4/3Q4/8/3k4/8/8 w - - 0 0"),
         GAME_CONTINUE
     );
 
     // Game continue (Rook)
     success_count += get_game_state_unittest(
-        9,
+        17,
         new Board("8/8/3K4/8/3r4/3k4/8/8 w - - 0 0"),
         GAME_CONTINUE
     );
@@ -2470,30 +2457,30 @@ int get_game_state_testLauncher()
     Board *board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
 
     // Threefold Repetition rule fails (Only 1 repetition)
-    board->apply_move(Move(3, 2, 4, 2, 0)); // White move right
-    board->apply_move(Move(3, 5, 4, 5, 0)); // Black move right
-    board->apply_move(Move(4, 2, 3, 2, 0)); // White move left
-    board->apply_move(Move(4, 5, 3, 5, 0)); // Black move left
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
     success_count += get_game_state_unittest(
-        9,
+        18,
         board,
         GAME_CONTINUE
     );
 
     // Threefold Repetition rule succeed -> 2 repetitions
-    board->apply_move(Move(3, 2, 4, 2, 0)); // White move right
-    board->apply_move(Move(3, 5, 4, 5, 0)); // Black move right
-    board->apply_move(Move(4, 2, 3, 2, 0)); // White move left
-    board->apply_move(Move(4, 5, 3, 5, 0)); // Black move left
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
     success_count += get_game_state_unittest(
-        9,
+        19,
         board,
         DRAW
     );
 
     // CG int test
     success_count += get_game_state_unittest(
-        10,
+        20,
         new Board("1rk5/1pnrb2p/2p1b1P1/Q2p1p2/P2P1P2/3n1BP1/1q6/NKR3B1 w b - 6 25"),
         BLACK_WIN
     );
@@ -2502,15 +2489,13 @@ int get_game_state_testLauncher()
     board = new Board("b4r2/r3np2/2p1k2b/p1P1p1Q1/K1P1P2p/3R1B2/1q3P2/1N1R4 b - - 0 48");
     board->apply_move(Move("b2b4"));
     success_count += get_game_state_unittest(
-        11,
+        21,
         board,
         BLACK_WIN
     );
 
     return success_count;
 }
-
-# endif
 
 #pragma endregion get_game_state
 
@@ -2686,11 +2671,11 @@ int mainTestBoard()
     // Use '#' to block moves
     // Use 't' and 'T' to simulate opponent pieces
 
-    // successCount += create_fen_testLauncher();
-    // successCount += apply_move_testLauncher();
-    // successCount += apply_move_testLauncher_uci();
-    // successCount += get_game_state_testLauncher();
-    // successCount += is_check_testLauncher();
+    successCount += create_fen_testLauncher();
+    successCount += apply_move_testLauncher();
+    successCount += apply_move_testLauncher_uci();
+    successCount += get_game_state_testLauncher();
+    successCount += is_check_testLauncher();
 
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();
@@ -2703,7 +2688,7 @@ int mainTestBoard()
     successCount += find_moves_not_illegal_ones_testLauncher();
     successCount += find_moves_castles_testLauncher();
 
-    // successCount += clone_testLauncher();
+    successCount += clone_testLauncher();
 
     return successCount;
 }

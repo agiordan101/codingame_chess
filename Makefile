@@ -1,5 +1,6 @@
 
 TEST_EXEC = unittests
+PERFT_EXEC = perft
 CG_EXEC = mychessbot
 MM_EXEC = mm2
 MMBB_EXEC = mmbb
@@ -40,10 +41,17 @@ format:
 	black python/*
 	flake8 python/*
 
+test: utest perft
+
 ### Compile unit tests main
-test:
+utest:
 	@g++ mains/unittests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
-	./bins/$(TEST_EXEC)
+	@./bins/$(TEST_EXEC)
+
+### Compile perft test main
+perft:
+	@g++ mains/perft_test_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
+	@./bins/$(PERFT_EXEC)
 
 ### Compile the bots and copy them into codingame chess engine folder
 mm2:

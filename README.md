@@ -187,6 +187,38 @@ Board optimization :
 
 - Next steps :
 
+    * From perft test :
+        --- Test failed ---
+        FEN: 2nnrbkr/p1qppppp/8/1ppb4/6PP/3PP3/PPP2P2/BQNNRBKR w HEhe - 1 9
+        Depth: 2
+        Expected: 18002
+        Got: 18004
+        -------------------
+        --- Test failed ---
+        FEN: 1nrbkr1q/1pppp1pp/1n6/p4p2/N1b4P/8/PPPPPPPB/N1RBKR1Q w FCfc - 2 9
+        Depth: 2
+        Expected: 24141
+        Got: 24143
+        -------------------
+        --- Test failed ---
+        FEN: nrbkn2r/pppp1pqp/4p1p1/8/3P2P1/P3B3/P1P1PP1P/NR1KNBQR w HBhb - 1 9
+        Depth: 2
+        Expected: 25578
+        Got: 25579
+        -------------------
+        --- Test failed ---
+        FEN: qnr1bkrn/p3pppp/1bpp4/1p6/2P2PP1/8/PP1PPN1P/QNRBBKR1 w GCgc - 0 9
+        Depth: 2
+        Expected: 26617
+        Got: 26621
+        -------------------
+        --- Test failed ---
+        FEN: qnrkr1bn/p1pp1ppp/8/1p2p3/3P1P2/bP4P1/P1P1P2P/QNRKRBBN w ECec - 1 9
+        Depth: 2
+        Expected: 20973
+        Got: 20993
+        -------------------
+
     * Squash rebase bitboard VALID implementation on dev, create iterative deepening respecting times, then create versions.
 
     * Switch some function pointer at engine start depending on the rule ?

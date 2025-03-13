@@ -1139,7 +1139,8 @@ void Board::_find_white_castle_moves(uint64_t rook) {
         if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
-            this->visual_board.updateBoard('o', rook);
+            if (PRINT_ATTACKS)
+                this->visual_board.updateBoard('o', rook);
         }
     }
 }
@@ -1266,14 +1267,16 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
-            this->visual_board.updateBoard('o', rook);
+            if (PRINT_ATTACKS)
+                this->visual_board.updateBoard('o', rook);
         }
     }
 }
 
 void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
 {
-    this->visual_board.updateBoard('o', dst);
+    if (PRINT_ATTACKS)
+        this->visual_board.updateBoard('o', dst);
 
     if (dst & BITMASK_LINE_81)
     {
@@ -1289,7 +1292,8 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
-    this->visual_board.updateBoard('o', legal_moves);
+    if (PRINT_ATTACKS)
+        this->visual_board.updateBoard('o', legal_moves);
 
     uint64_t dst;
     // Find all individual bits in legal_moves

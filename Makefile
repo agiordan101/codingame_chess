@@ -1,6 +1,7 @@
 
 TEST_EXEC = unittests
 PERFT_EXEC = perft
+DATASETTEST_EXEC = datasettest
 CG_EXEC = mychessbot
 MM_EXEC = mm2
 MMBB_EXEC = mmbb
@@ -41,12 +42,16 @@ format:
 	black python/*
 	flake8 python/*
 
-test: utest perft
+test: utest datasettest perft
 
 ### Compile unit tests main
 utest:
 	@g++ mains/unittests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
 	@./bins/$(TEST_EXEC)
+
+datasettest:
+	@g++ mains/dataset_test_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
+	@./bins/$(DATASETTEST_EXEC)
 
 ### Compile perft test main
 perft:

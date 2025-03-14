@@ -51,7 +51,7 @@ int test_perft_board(string fen, int *expected_moves, int expected_moves_count)
 int main()
 {
     // PArse csv file
-    ifstream file("perft_dataset/perft_dataset.csv");
+    ifstream file("datasets/perft_dataset.csv");
     if (!file.is_open()) {
         cerr << "Error opening file" << endl;
         return 1;
@@ -64,7 +64,7 @@ int main()
 
     int id;
     string fen;
-    int depths_count = 2;
+    int depths_count = 1;
     int depths[depths_count];
 
     int success_count = 0;
@@ -94,7 +94,7 @@ int main()
         // cerr << "Depths: " << depths[0] << " " << depths[1] << " " << depths[2] << " " << depths[3] << " " << depths[4] << " " << depths[5] << endl;
     }
 
-    cerr << "[PERFT TEST] End: " << success_count << "/" << total_count << " tests were successfull !" << endl;
+    cerr << "[PERFT TEST] End: " << success_count << "/" << total_count << " tests were successfull ! (Depth " << depths_count << ")" << endl;
 
     return 0;
 }

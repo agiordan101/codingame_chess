@@ -21,13 +21,9 @@ class GameRunner:
         while outcome is None:
 
             move = players[players_i].get_next_move(board)
-            # print(move)
-
             board.push(chess.Move.from_uci(move))
-            # print(board)
-            # print("\n")
 
-            outcome = board.outcome()
+            outcome = board.outcome(claim_draw=True)
             players_i = (players_i + 1) % 2
 
         p1.stop()

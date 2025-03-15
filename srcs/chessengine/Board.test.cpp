@@ -2552,6 +2552,21 @@ int get_game_state_testLauncher()
         BLACK_WIN
     );
 
+    
+    // Test coding game special rule where the game is a draw if it exceeds 125 turns
+    success_count += get_game_state_unittest(
+        22,
+        new Board("k3NN2/8/8/3b4/8/4K3/8/5n2 w - - 22 128"),
+        DRAW
+    );
+
+    // Test without coding game special rule where the game is a draw if it exceeds 125 turns
+    success_count += get_game_state_unittest(
+        22,
+        new Board("k3NN2/8/8/3b4/8/4K3/8/5n2 w - - 22 128", true, false),
+        GAME_CONTINUE
+    );
+
     return success_count;
 }
 
@@ -2577,15 +2592,6 @@ int is_check_unittest(int testIndex, Board *board, bool requested_is_check)
 
     return 1;
 }
-
-# if BITBOARD_IMPLEMENTATION == 1
-
-int is_check_testLauncher()
-{
-    return 0;
-}
-
-# else
 
 int is_check_testLauncher()
 {
@@ -2642,31 +2648,36 @@ int is_check_testLauncher()
     // Check obstrued by piece - Rook
     success_count += is_check_unittest(
         9,
-        new Board("4r3/8/8/4t3/8/8/8/4K3 w - - 0 1"),
+        new Board("4r3/8/8/4p3/8/8/8/4K3 w - - 0 1"),
         false
     );
     success_count += is_check_unittest(
         10,
-        new Board("4k3/8/8/4T3/8/8/8/4R3 b - - 0 1"),
+        new Board("4k3/8/8/4P3/8/8/8/4R3 b - - 0 1"),
         false
     );
 
     // Check obstrued by piece - Bishop
     success_count += is_check_unittest(
         11,
-        new Board("8/8/1b6/8/3T4/4K3/8/8 w - - 0 1"),
+        new Board("8/8/1b6/8/3P4/4K3/8/8 w - - 0 1"),
         false
     );
     success_count += is_check_unittest(
         12,
-        new Board("8/8/1k6/8/3t4/4B3/8/8 b - - 0 1"),
+        new Board("8/8/1k6/8/3p4/4B3/8/8 b - - 0 1"),
         false
+    );
+
+    // Check by pawn 2
+    success_count += is_check_unittest(
+        71,
+        new Board("8/6B1/8/2Pp3P/4k3/3p2p1/2p5/2RK2R1 w - - 0 84"),
+        true
     );
 
     return success_count;
 }
-
-# endif
 
 #pragma endregion is_check
 

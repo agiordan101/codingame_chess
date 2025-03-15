@@ -4,7 +4,7 @@
 
 // --- PUBLIC METHODS ---
 
-Board::Board(string _fen, bool _chess960_rule) {
+Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule) {
     
     stringstream ss(_fen);
     string board;
@@ -21,11 +21,11 @@ Board::Board(string _fen, bool _chess960_rule) {
     getline(ss, half_turn_rule, ' ');
     getline(ss, game_turn, ' ');
 
-    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule);
+    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule, _codingame_rule);
 }
 
-Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule) {
-    _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule);
+Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule, bool _codingame_rule) {
+    _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule, _codingame_rule);
 }
 
 void Board::log() {
@@ -264,7 +264,7 @@ string Board::create_fen(bool with_turns) {
 Board *Board::clone()
 {
     // TODO: Create a new constructor, taking an instance in param, which then copy all the needed data
-    Board *cloned_board = new Board(create_fen(), chess960_rule);
+    Board *cloned_board = new Board(create_fen(), chess960_rule, codingame_rule);
 
     // Copy history
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
@@ -281,12 +281,13 @@ Board *Board::clone()
 
 // - Parsing -
 
-void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
+void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule, bool _codingame_rule)
 {
     this->visual_board = VisualBoard();
 
     // Initialize private variables
     chess960_rule = _chess960_rule;
+    codingame_rule = _codingame_rule;
 
     _initialize_bitboards();
     _create_lookup_tables();
@@ -741,7 +742,7 @@ void Board::_update_engine_at_turn_start()
     _update_check_and_pins();
     _update_attacked_cells_mask();
 
-    if (PRINT_ENGINE_UPDATES)
+    if (PRINT_ENGINE_DATA)
     {
         this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
         this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
@@ -756,10 +757,6 @@ void Board::_update_check_and_pins()
     //  - We Define a checkmask
     //  - We Define a pinmask
     // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
-    // memset(pin_masks, 0xFF, 512);
-    // for (int i = 0; i < 64; i++) {
-    //     pin_masks[i] = BITMASK_ALL_CELLS;
-    // }
 
     if (ally_king == 0UL)
     {
@@ -768,11 +765,17 @@ void Board::_update_check_and_pins()
         return;
     }
 
+    // If our king can take an opponent piece using its movements, then the opponent piece is checking our king.
     int king_lkt_i = _count_trailing_zeros(ally_king);
     int lkt_color = white_turn ? 0 : 1;
 
     // Compute pawn attacks
     uint64_t pawn_attacks = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
+    // if (PRINT_ENGINE_DATA)
+    // {
+    //     this->visual_board.printSpecificBoard('T', uncheck_mask, "Uncheck mask");
+    //     this->visual_board.printSpecificBoard('Z', pawn_attacks, "Pawn attacks");
+    // }
     if (pawn_attacks)
     {
         check_state = true;
@@ -1084,7 +1087,7 @@ void Board::_find_white_king_moves() {
 
 void Board::_find_white_castle_moves(uint64_t rook) {
 
-    // if (PRINT_ENGINE_UPDATES)
+    // if (PRINT_ENGINE_DATA)
     // {
     //     cerr << "White king: " << endl << std::bitset<64>(white_king) << endl;
     //     cerr << "rook: " << endl << std::bitset<64>(rook) << endl;
@@ -1107,7 +1110,7 @@ void Board::_find_white_castle_moves(uint64_t rook) {
             else
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
             
-            // if (PRINT_ENGINE_UPDATES) {
+            // if (PRINT_ENGINE_DATA) {
             //     cerr << "King final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_KING) << endl;
             //     cerr << "Rook final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_ROOK) << endl;
             // }
@@ -1122,13 +1125,13 @@ void Board::_find_white_castle_moves(uint64_t rook) {
             else
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
             
-            // if (PRINT_ENGINE_UPDATES) {
+            // if (PRINT_ENGINE_DATA) {
             //     cerr << "King final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_KING) << endl;
             //     cerr << "Rook final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_ROOK) << endl;
             // }
         }
 
-        // if (PRINT_ENGINE_UPDATES) {
+        // if (PRINT_ENGINE_DATA) {
         //     cerr << "King path: " << endl << std::bitset<64>(king_path) << endl;
         //     cerr << "Rook path: " << endl << std::bitset<64>(rook_path) << endl;
         //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
@@ -1223,7 +1226,7 @@ void Board::_find_black_king_moves() {
 
 void Board::_find_black_castle_moves(uint64_t rook) {
 
-    // if (PRINT_ENGINE_UPDATES)
+    // if (PRINT_ENGINE_DATA)
     // {
     //     cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
     //     cerr << "Rook: " << endl << std::bitset<64>(rook) << endl;
@@ -1256,7 +1259,7 @@ void Board::_find_black_castle_moves(uint64_t rook) {
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
         }
 
-        // if (PRINT_ENGINE_UPDATES) {
+        // if (PRINT_ENGINE_DATA) {
         //     cerr << "king_path: " << endl << std::bitset<64>(king_path) << endl;
         //     cerr << "rook_path: " << endl << std::bitset<64>(rook_path) << endl;
         //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
@@ -1476,7 +1479,7 @@ void        Board::_compute_sliding_piece_positive_ray_checks_and_pins(uint64_t 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
 
-                    if (PRINT_ENGINE_UPDATES)
+                    if (PRINT_ENGINE_DATA)
                         this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "PIN FOUND");
                 }
             }
@@ -1532,7 +1535,7 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
 
-                    if (PRINT_ENGINE_UPDATES)
+                    if (PRINT_ENGINE_DATA)
                         this->visual_board.printSpecificBoard('I', pin_masks[blocker_lkt_i], "PIN FOUND");
                 }
             }
@@ -1545,7 +1548,7 @@ uint64_t    Board::_compute_castling_positive_path(uint64_t src, uint64_t dst)
     int src_lkt_i = _count_trailing_zeros(src);
     int dst_lkt_i = _count_trailing_zeros(dst);
 
-    // if (PRINT_ENGINE_UPDATES && (src & black_rooks)) {
+    // if (PRINT_ENGINE_DATA && (src & black_rooks)) {
     //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
     //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
     //     cerr << "src_lkt_i: " << src_lkt_i << endl;
@@ -1562,7 +1565,7 @@ uint64_t    Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
     int src_lkt_i = _count_trailing_zeros(src);
     int dst_lkt_i = _count_trailing_zeros(dst);
 
-    // if (PRINT_ENGINE_UPDATES && (src & black_rooks)) {
+    // if (PRINT_ENGINE_DATA && (src & black_rooks)) {
     //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
     //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
     //     cerr << "src_lkt_i: " << src_lkt_i << endl;
@@ -1576,24 +1579,43 @@ uint64_t    Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 
 // - End game -
 
-float   Board::_compute_game_state()
+float Board::_compute_game_state()
 {
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (
         half_turn_rule >= 100 ||
-        game_turn >= game_turn_max + 1 ||
         _threefold_repetition_rule() ||
         _insufficient_material_rule()
     )
-        return DRAW;
+    {
+        if (PRINT_ENGINE_DATA)
+            cerr << "Draw: " << half_turn_rule << "/100 half-turns without capture or pawn move" << endl;
 
-    available_moves = get_available_moves();
+        return DRAW;
+    }
+
+    // Convert this to PRE PROCESSING if ?
+    if (codingame_rule)
+    {
+        if (game_turn > 125)
+        {
+            if (PRINT_ENGINE_DATA)
+                cerr << "Draw: " << game_turn << "/125 turns played" << endl;
+
+            return DRAW;
+        }
+    }
+
+    vector<Move> moves = get_available_moves();
 
     // If no moves are available, it's either a Checkmate or a Stalemate
-    if (available_moves.size() == 0)
+    if (moves.size() == 0)
     {
         if (get_check_state())
             return white_turn ? BLACK_WIN : WHITE_WIN;
+        
+        if (PRINT_ENGINE_DATA)
+            cerr << "Stalemate" << endl;
         return DRAW;
     }
 
@@ -1613,10 +1635,16 @@ bool Board::_threefold_repetition_rule()
         if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
         {
             if (fen_found)
+            {
+                if (PRINT_ENGINE_DATA)
+                   cerr << "Threefold repetition rule: TRUE" << endl;
                 return true;
+            }
             fen_found = true;
         }
 
+    if (PRINT_ENGINE_DATA)
+        cerr << "Threefold repetition rule: FALSE" << endl;
     return false;
 }
 
@@ -1631,7 +1659,11 @@ bool Board::_insufficient_material_rule()
     
     // If there is multiple knights, it's not a material insufficient
     if (knights_count > 1)
+    {
+        if (PRINT_ENGINE_DATA)
+            cerr << "Insufficient material rule: FALSE" << endl;
         return false;
+    }
     
     int white_bishops_count = _count_bits(white_bishops);
     int black_bishops_count = _count_bits(black_bishops);
@@ -1639,13 +1671,23 @@ bool Board::_insufficient_material_rule()
     
     // If there is a knight and another piece, it's not a material insufficient
     if (knights_count == 1 && bishops_count > 0)
+    {
+        if (PRINT_ENGINE_DATA)
+            cerr << "Insufficient material rule: FALSE" << endl;
         return false;
+    }
         
     // If there is more than one bishop, on opposite colors, it's not a material insufficient
     uint64_t all_bishops = white_bishops | black_bishops;
     if ((all_bishops & BITMASK_WHITE_CELLS) && (all_bishops & BITMASK_BLACK_CELLS))
-       return false;
+    {
+        if (PRINT_ENGINE_DATA)
+            cerr << "Insufficient material rule: FALSE" << endl;
+        return false;
+    }
 
+    if (PRINT_ENGINE_DATA)
+        cerr << "Insufficient material rule: TRUE" << endl;
     return true;
 }
 
@@ -1686,32 +1728,31 @@ void Board::_create_lookup_tables()
 
 void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
-    if (0 < y && y < 7)
-    {
-        // - White pawns -
-        uint64_t pawn_mask = 0UL;
+    // We need pawn attacks on lines 0 and 7, because we are using them to find checks (when kings are on those lines)
 
-        // Left capture
-        if (x > 0)
-            pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
-        // Right capture
-        if (x < 7)
-            pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+    // - White pawns -
+    uint64_t pawn_mask = 0UL;
 
-        pawn_captures_lookup[lkt_i][0] = pawn_mask;
+    // Left capture
+    if (x > 0 && y > 0)
+        pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+    // Right capture
+    if (x < 7 && y > 0)
+        pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
 
-        // - Black pawns -
-        pawn_mask = 0UL;
+    pawn_captures_lookup[lkt_i][0] = pawn_mask;
 
-        // Left capture
-        if (x > 0)
-            pawn_mask |= 1UL << ((y + 1) * 8 + (x - 1));
-        // Right capture
-        if (x < 7)
-            pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+    // - Black pawns -
+    pawn_mask = 0UL;
 
-        pawn_captures_lookup[lkt_i][1] = pawn_mask;
-    }
+    // Left capture
+    if (x > 0 && y < 7)
+        pawn_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+    // Right capture
+    if (x < 7 && y < 7)
+        pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+
+    pawn_captures_lookup[lkt_i][1] = pawn_mask;
 }
 
 void Board::_create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i)

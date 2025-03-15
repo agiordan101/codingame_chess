@@ -28,7 +28,7 @@ int test_perft_board(string fen, int *expected_moves, int expected_moves_count)
 {
     for (int i = 0; i < expected_moves_count; i++)
     {
-        Board board(fen);
+        Board board(fen, true, false);
 
         int possible_moves = find_board_possibilities(&board, 0, i + 1);
         if (possible_moves != expected_moves[i])
@@ -64,7 +64,7 @@ int main()
 
     int id;
     string fen;
-    int depths_count = 1;
+    int depths_count = 2;
     int depths[depths_count];
 
     int success_count = 0;

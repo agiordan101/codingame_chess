@@ -67,7 +67,7 @@ int compare_string_lists(vector<string> &list1, vector<string> &list2)
 
 int test_position(Position *position)
 {
-    Board board(position->fen);
+    Board board(position->fen, true, false);
     int success = 1;
     
     vector<Move>    board_moves = board.get_available_moves();
@@ -125,30 +125,43 @@ int test_position(Position *position)
 }
 
 
-int main()
+void test_dataset(string file_name)
 {
-    cerr << "[DATASET TEST] Start ..." << endl;
-
-    // PArse csv file
-    ifstream file("datasets/check_positions.txt");
+    ifstream file("datasets/" + file_name + ".txt");
     if (!file.is_open()) {
         cerr << "Error opening file" << endl;
-        return 1;
+        return ;
     }
 
     string lines;
     getline(file, lines, ',');
     stringstream ss(lines);
-
-    int dataset_len = 10;
+    
+    int max_len = 1000;
+    int dataset_len = 0;
     int success_count = 0;
-    for (int i = 0; i < dataset_len; i++)
+    while (!ss.eof())
     {
         Position position(ss);
         success_count += test_position(&position);
+        
+        // cerr << "[DATASET TEST] " << file_name << " in progress ... " << success_count << "/" << dataset_len << endl;
+        dataset_len++;
+        if (dataset_len == max_len) break;
     }
 
-    cerr << "[DATASET TEST] End: " << success_count << "/" << dataset_len << " tests were successfull !" << endl;
+    cerr << "[DATASET TEST] " << file_name << " - End: " << success_count << "/" << dataset_len << " tests were successfull !" << endl;
+}
+
+
+int main()
+{
+    cerr << "[DATASET TEST] Start ..." << endl;
+
+    // test_dataset("positions_from_fen");
+    test_dataset("positions");
+    test_dataset("check_positions");
+    test_dataset("endgame_positions");
 
     return 0;
 }

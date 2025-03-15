@@ -175,49 +175,9 @@ Inside the file :
 
 ## Roadmap
 
-Board optimization :
-    - (DONE) Do not optimize Board methods ! Don't break anything
-    - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
-    - (DONE) Probably need to create more inline getter/Setter
-    - (IN PROGRESS) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
-    - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
-    - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
-        - Simulate N games and create an average time for all methods ?
-    - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
-
 - Next steps :
 
-    * From perft test :
-        --- Test failed ---
-        FEN: 2nnrbkr/p1qppppp/8/1ppb4/6PP/3PP3/PPP2P2/BQNNRBKR w HEhe - 1 9
-        Depth: 2
-        Expected: 18002
-        Got: 18004
-        -------------------
-        --- Test failed ---
-        FEN: 1nrbkr1q/1pppp1pp/1n6/p4p2/N1b4P/8/PPPPPPPB/N1RBKR1Q w FCfc - 2 9
-        Depth: 2
-        Expected: 24141
-        Got: 24143
-        -------------------
-        --- Test failed ---
-        FEN: nrbkn2r/pppp1pqp/4p1p1/8/3P2P1/P3B3/P1P1PP1P/NR1KNBQR w HBhb - 1 9
-        Depth: 2
-        Expected: 25578
-        Got: 25579
-        -------------------
-        --- Test failed ---
-        FEN: qnr1bkrn/p3pppp/1bpp4/1p6/2P2PP1/8/PP1PPN1P/QNRBBKR1 w GCgc - 0 9
-        Depth: 2
-        Expected: 26617
-        Got: 26621
-        -------------------
-        --- Test failed ---
-        FEN: qnrkr1bn/p1pp1ppp/8/1p2p3/3P1P2/bP4P1/P1P1P2P/QNRKRBBN w ECec - 1 9
-        Depth: 2
-        Expected: 20973
-        Got: 20993
-        -------------------
+    * Format c++ code
 
     * Squash rebase bitboard VALID implementation on dev, create iterative deepening respecting times, then create versions.
 
@@ -227,21 +187,13 @@ Board optimization :
 
     * Regroup all .test. files into a tests folder
 
-    * Create test counting all possible moves in the future (N+1, N+2, ...) and compare the result number to several online sources
-
     * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
     * Reword win ratio so it takes draws into count
 
     * BotPlayer : from vector to *vector
 
-    * Create GameEngineIntTests.cpp :
-        - Assert given fen is identical as the current one
-        - Preshot the game ends
-        - Log each move with their quality
-        - Log how many nodes are computed
-        - Log time uses
-        - New CG protocol : "move fen avmove"
-        - avmove: Send a list of moves to the Python GameRunner so it asserts their validity
+    * You can offer a draw to your opponent by adding = right after the move, without a space.
+    * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
 
     * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
 
@@ -259,6 +211,16 @@ Board optimization :
         On push:
             make format
 
+    * Board optimization :
+        - (DONE) Do not optimize Board methods ! Don't break anything
+        - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
+        - (DONE) Probably need to create more inline getter/Setter
+        - (DONE) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
+        - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
+        - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
+            - Simulate N games and create an average time for all methods ?
+        - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
+        
     * Modify Board::Board(): Randomize the board generation
 
     * Use valgrind to remove invalid reads
@@ -268,26 +230,9 @@ Board optimization :
 
 - Refactor & Improvments :
 
-    * Create 10 private vars : Opponent pieces | turn_pieces
-        - Assing them at each new turn
-        - Simplify find_move()
-            * Factorize opp_case_func and EMPTY_cell tests
-            * Factorize edge tests
     * Board::Board() parsing protection from invalid FEN
         - REgex to valid chess FEN ?
 
-- Optimizations :
-
-    * Use copilot to optimize 
-    * Opti castle loops
-    * not legal moves - on apply 
-    * Board :
-        - _filter_non_legal_moves():
-            - Do not find the king through iterating over the board for each moves.
-                Should save the king position.
-        - find_move():
-            - Create move in order of piece values
-         
 
 ## Versionning
 
@@ -312,8 +257,9 @@ Examples:
 
 Git tag should be created when bot is stable and a next version begin to be developed.
 All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
-Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix, so benchmarks can conclude the fix has really improved the new bot version.
-
+Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix (so benchmarks can conclude the fix has really improved the new bot version...)
+All versions should have a ELO rating.
+All versions should be deployed in Codingame, with the resulting classement saved in this README.
 
 ## Tests
 

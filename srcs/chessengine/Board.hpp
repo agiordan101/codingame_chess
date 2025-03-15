@@ -115,6 +115,7 @@ class Board {
         uint64_t   capturable_by_black_pawns_mask;
         
         uint64_t   uncheck_mask; // Full set of bits to 1 means there is no check
+        uint64_t   pawn_uncheck_mask; // Uncheck mask only available for pawns
         uint64_t   attacked_cells_mask; // Squares attacked by the opponent
         uint64_t   pin_masks[64]; // Each cell can have a pinned mask
 
@@ -151,6 +152,7 @@ class Board {
         void    _update_engine_at_turn_end();
         void    _update_engine_at_turn_start();
         void    _update_check_and_pins();
+        void    _update_pawn_check(int king_lkt_i);
         void    _update_attacked_cells_mask();
         void    _update_fen_history();
 
@@ -197,6 +199,8 @@ class Board {
         uint64_t    _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
         void        _compute_sliding_piece_positive_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
         void        _compute_sliding_piece_negative_ray_checks_and_pins(uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker);
+        bool        _is_sliding_piece_positive_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir);
+        bool        _is_sliding_piece_negative_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir);
         uint64_t    _compute_castling_positive_path(uint64_t src, uint64_t dst);
         uint64_t    _compute_castling_negative_path(uint64_t src, uint64_t dst);
 

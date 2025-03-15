@@ -736,16 +736,21 @@ void Board::_update_engine_at_turn_start()
     check_state = false;
     double_check = false;
     uncheck_mask = 0UL;
+    pawn_uncheck_mask = 0UL;
     std::fill(std::begin(pin_masks), std::end(pin_masks), BITMASK_ALL_CELLS);
     attacked_cells_mask = 0UL;
 
     _update_check_and_pins();
     _update_attacked_cells_mask();
 
+    // pawn_uncheck_mask is only set for a the specific case, so we must add generic uncheck_mask to it
+    pawn_uncheck_mask |= uncheck_mask;
+
     if (PRINT_ENGINE_DATA)
     {
-        this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
         this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
+        this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
+        this->visual_board.printSpecificBoard('c', pawn_uncheck_mask, "Pawn uncheck mask");
     }
 
     engine_data_updated = true;
@@ -767,21 +772,10 @@ void Board::_update_check_and_pins()
 
     // If our king can take an opponent piece using its movements, then the opponent piece is checking our king.
     int king_lkt_i = _count_trailing_zeros(ally_king);
-    int lkt_color = white_turn ? 0 : 1;
 
     // Compute pawn attacks
-    uint64_t pawn_attacks = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
-    // if (PRINT_ENGINE_DATA)
-    // {
-    //     this->visual_board.printSpecificBoard('T', uncheck_mask, "Uncheck mask");
-    //     this->visual_board.printSpecificBoard('Z', pawn_attacks, "Pawn attacks");
-    // }
-    if (pawn_attacks)
-    {
-        check_state = true;
-        uncheck_mask |= pawn_attacks;
-    }
-
+    _update_pawn_check(king_lkt_i);
+    
     // Compute knight attacks
     uint64_t knight_attacks = knight_lookup[king_lkt_i] & enemy_knights;
     if (knight_attacks)
@@ -807,6 +801,55 @@ void Board::_update_check_and_pins()
     {
         check_state = false;
         uncheck_mask = BITMASK_ALL_CELLS;
+    }
+}
+
+void Board::_update_pawn_check(int king_lkt_i)
+{
+    int lkt_color = white_turn ? 0 : 1;
+
+    // Compute pawn attacks
+    uint64_t attacking_pawn = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
+    // if (PRINT_ENGINE_DATA)
+    // {
+    //     this->visual_board.printSpecificBoard('T', uncheck_mask, "Uncheck mask");
+    //     this->visual_board.printSpecificBoard('Z', attacking_pawn, "Pawn attacks");
+    // }
+    if (attacking_pawn)
+    {
+        check_state = true;
+        uncheck_mask |= attacking_pawn;
+
+        // Attacking pawn could be captured by taking the en-passant
+        if (en_passant)
+        {
+            if (white_turn)
+            {
+                // if (PRINT_ENGINE_DATA)
+                // {
+                //     this->visual_board.printSpecificBoard('E', en_passant, "En passant");
+                //     this->visual_board.printSpecificBoard('T', en_passant << 8, "En passant");
+                //     this->visual_board.printSpecificBoard('A', attacking_pawn, "Attacking pawn");
+                //     cerr << "Attacking pawn: " << endl << std::bitset<64>(attacking_pawn) << endl;
+                //     cerr << "En passant: " << endl << std::bitset<64>(en_passant << 8) << endl;
+                // }
+                if (attacking_pawn == (en_passant << 8))
+                {
+                    // But only if no opponent diagonal sliding piece is hidden behind it
+                    if (!_is_sliding_piece_negative_diagonal_ray_behind(attacking_pawn, ally_king == attacking_pawn - 9 ? NORTHWEST : NORTHEAST))
+                        pawn_uncheck_mask = en_passant;
+                }
+            }
+            else
+            {
+                if (attacking_pawn == (en_passant >> 8))
+                {
+                    // But only if no opponent diagonal sliding piece is hidden behind it
+                    if (!_is_sliding_piece_positive_diagonal_ray_behind(attacking_pawn, ally_king == attacking_pawn + 7 ? SOUTHWEST : SOUTHEAST))
+                        pawn_uncheck_mask = en_passant;
+                }
+            }
+        }
     }
 }
 
@@ -1014,15 +1057,15 @@ void Board::_find_white_pawns_moves(uint64_t src)
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask & pin_mask
     // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
-    
+
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & capturable_by_white_pawns_mask;
     uint64_t advance_move = (src >> 8) & empty_cells_mask;
-    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask & pin_masks[src_lkt_i];
+    uint64_t legal_moves = (capture_moves | advance_move) & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
-        legal_moves |= (src >> 16) & empty_cells_mask & uncheck_mask & pin_masks[src_lkt_i];
+        legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -1156,12 +1199,12 @@ void Board::_find_black_pawns_moves(uint64_t src)
 
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & capturable_by_black_pawns_mask;
     uint64_t advance_move = (src << 8) & empty_cells_mask;
-    uint64_t legal_moves = (capture_moves | advance_move) & uncheck_mask & pin_masks[src_lkt_i];
+    uint64_t legal_moves = (capture_moves | advance_move) & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
     // When pawn is on the 7th rank, it can move two squares forward
     // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
-        legal_moves |= (src << 16) & empty_cells_mask & uncheck_mask & pin_masks[src_lkt_i];
+        legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
     // Find all individual bits in legal_moves
     uint64_t dst;
@@ -1501,7 +1544,7 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
 
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the smallest index)
+        // Find the first blocker in the ray (the one with the greatest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
         int blocker_lkt_i = _count_trailing_zeros(blocker);
 
@@ -1541,6 +1584,49 @@ void        Board::_compute_sliding_piece_negative_ray_checks_and_pins(uint64_t 
             }
         }
     }
+}
+
+bool        Board::_is_sliding_piece_positive_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir)
+{
+    int pawn_lkt_i = _count_trailing_zeros(pawn_pos);
+    uint64_t attacks = sliding_lookup[pawn_lkt_i][dir];
+
+    // Find all pieces in the ray
+    uint64_t blockers = attacks & all_pieces_mask;
+    if (blockers)
+    {
+        // Find the first blocker in the ray (the one with the smallest index)
+        uint64_t blocker = _get_least_significant_bit(blockers);
+
+        if (blocker & enemy_pieces_sliding_diag)
+            return true;
+    }
+
+    return false;
+}
+
+bool        Board::_is_sliding_piece_negative_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir)
+{
+    int pawn_lkt_i = _count_trailing_zeros(pawn_pos);
+    uint64_t attacks = sliding_lookup[pawn_lkt_i][dir];
+
+    // if (PRINT_ENGINE_DATA)
+    // {
+    //     this->visual_board.printSpecificBoard('A', attacks, "Behind pawn");
+    // }
+
+    // Find all pieces in the ray
+    uint64_t blockers = attacks & all_pieces_mask;
+    if (blockers)
+    {
+        // Find the first blocker in the ray (the one with the greatest index)
+        uint64_t blocker = _get_most_significant_bit(blockers);
+
+        if (blocker & enemy_pieces_sliding_diag)
+            return true;
+    }
+
+    return false;
 }
 
 uint64_t    Board::_compute_castling_positive_path(uint64_t src, uint64_t dst)

@@ -1106,6 +1106,48 @@ int find_moves_ckecks_testLauncher()
         2
     );
 
+    // Take en-passant to uncheck the king - White
+    requested_moves[0] = new Move('K', 1UL << 32, 1UL << 25, 0, NOTCASTLE); // King captures
+    requested_moves[1] = new Move('K', 1UL << 32, 1UL << 41, 0, NOTCASTLE); // King SE
+    requested_moves[2] = new Move('K', 1UL << 32, 1UL << 40, 0, NOTCASTLE); // King S
+    requested_moves[3] = new Move('P', 1UL << 24, 1UL << 17, 0, NOTCASTLE); // Pawn takes en-passant
+    success_count += find_moves_RegularCases_FindAllMoves(
+        160,
+        new Board("k7/8/5r2/Ppp5/K7/3n1pP1/8/8 w - b6 0 88"),
+        requested_moves,
+        4
+    );
+    // Take en-passant to uncheck the king - White - Except if an hidding diagonal sliding piece is behind the en-passant pawn !..
+    requested_moves[0] = new Move('K', 1UL << 32, 1UL << 41, 0, NOTCASTLE); // King SE
+    requested_moves[1] = new Move('K', 1UL << 32, 1UL << 40, 0, NOTCASTLE); // King S
+    success_count += find_moves_RegularCases_FindAllMoves(
+        161,
+        new Board("k7/3b4/5r2/Ppp5/K7/3n1pP1/8/8 w - b6 0 88"),
+        requested_moves,
+        2
+    );
+
+    // Take en-passant to uncheck the king - Black
+    requested_moves[0] = new Move('k', 1UL << 24, 1UL << 33, 0, NOTCASTLE); // King captures
+    requested_moves[1] = new Move('k', 1UL << 24, 1UL << 17, 0, NOTCASTLE); // King NE
+    requested_moves[2] = new Move('k', 1UL << 24, 1UL << 16, 0, NOTCASTLE); // King N
+    requested_moves[3] = new Move('p', 1UL << 32, 1UL << 41, 0, NOTCASTLE); // Pawn takes en-passant
+    success_count += find_moves_RegularCases_FindAllMoves(
+        162,
+        new Board("8/8/3N1Pp1/k7/pPP5/5R2/8/K7 b - b3 0 88"),
+        requested_moves,
+        4
+    );
+    // Take en-passant to uncheck the king - Black - Except if an hidding diagonal sliding piece is behind the en-passant pawn !..
+    requested_moves[0] = new Move('k', 1UL << 24, 1UL << 17, 0, NOTCASTLE); // King NE
+    requested_moves[1] = new Move('k', 1UL << 24, 1UL << 16, 0, NOTCASTLE); // King N
+    success_count += find_moves_RegularCases_FindAllMoves(
+        163,
+        new Board("8/8/3N1Pp1/k7/pPP5/5R2/3B4/K7 b - b3 0 88"),
+        requested_moves,
+        2
+    );
+
     return success_count;
 }
 

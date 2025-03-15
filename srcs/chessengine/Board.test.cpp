@@ -2432,14 +2432,14 @@ int get_game_state_testLauncher()
     // 0 - Fifty-Move rule
     success_count += get_game_state_unittest(
         0,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 99 1"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 98 1"),
         GAME_CONTINUE
     );
 
-    // 1 - Fifty-Move rule
+    // 1 - Fifty-Move rule (49.5)
     success_count += get_game_state_unittest(
         1,
-        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 100 1"),
+        new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 99 1"),
         DRAW
     );
 
@@ -2604,7 +2604,7 @@ int get_game_state_testLauncher()
 
     // Test without coding game special rule where the game is a draw if it exceeds 125 turns
     success_count += get_game_state_unittest(
-        22,
+        23,
         new Board("k3NN2/8/8/3b4/8/4K3/8/5n2 w - - 22 128", true, false),
         GAME_CONTINUE
     );

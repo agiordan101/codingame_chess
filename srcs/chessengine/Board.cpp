@@ -1669,7 +1669,7 @@ float Board::_compute_game_state()
 {
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (
-        half_turn_rule >= 100 ||
+        half_turn_rule >= 99 ||
         _threefold_repetition_rule() ||
         _insufficient_material_rule()
     )

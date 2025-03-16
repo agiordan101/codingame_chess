@@ -177,6 +177,9 @@ Inside the file :
 
 - Next steps :
 
+    * Board: Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
+        - Same shit than copying the board each turn...
+
     * Test how much time we lose parsing the fen and recreating the board each turns
     * Format c++ code
 
@@ -217,6 +220,12 @@ Inside the file :
         - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
         - (DONE) Probably need to create more inline getter/Setter
         - (DONE) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
+           - Timing results :
+                - get_available_moves():    From 2350 ms to 268 ms  -> 9x  faster
+                - apply_move():             From 32 ms to 100 ms    -> 3x  slower
+                - get_check_state():        From 18 ms to 18 ms     -> Same
+                - get_game_state():         From 1750 ms to 30 ms   -> 60x faster
+                - 4 mains functions :       From 4700 ms to 550 ms  -> 9x faster !!!!
         - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
         - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
             - Simulate N games and create an average time for all methods ?

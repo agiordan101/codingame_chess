@@ -2,8 +2,9 @@
 TEST_EXEC = unittests
 PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
+TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMm2Pv
+BOT_EXEC = BbMm50Pv
 
 flag = -g -O2 # -Wall -Wextra
 
@@ -20,12 +21,14 @@ BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngineIntTests.cpp\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
@@ -54,6 +57,10 @@ utest:
 datasettest:
 	@g++ testmains/dataset_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
 	@./bins/$(DATASETTEST_EXEC)
+
+timetest:
+	@g++ testmains/time_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(TIMETEST_EXEC)
+	@./bins/$(TIMETEST_EXEC)
 
 ### Compile perft test main
 perft:

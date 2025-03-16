@@ -1,6 +1,7 @@
 
 # include "../srcs/gameengine/GameEngine.hpp"
 # include "../srcs/agents/MinMaxAgent.hpp"
+# include "../srcs/agents/MinMaxIterDeepAgent.hpp"
 # include "../srcs/heuristics/PiecesHeuristic.hpp"
 # include "../srcs/players/BotPlayer.hpp"
 
@@ -10,9 +11,9 @@ int main()
 {
     GameEngine *game_engine = new GameEngine(
         new BotPlayer(
-            new MinMaxAgent(
+            new MinMaxIterDeepAgent(
                 new PiecesHeuristic(),
-                1
+                50
             )
         )
     );

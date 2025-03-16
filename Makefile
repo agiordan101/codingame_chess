@@ -3,9 +3,7 @@ TEST_EXEC = unittests
 PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 CG_EXEC = mychessbot
-MM_EXEC = mm2
-MMBB_EXEC = mmbb
-BITBOARDTEST_EXEC = bbtest
+BOT_EXEC = BbMm2Pv
 
 flag = -g -O2 # -Wall -Wextra
 
@@ -27,7 +25,7 @@ MINMAX_SRCS = $(BOT_SRCS)\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
-all: test mmbb mm2
+all: setup test run
 
 ### Install python tools for code formatting
 setup:
@@ -46,27 +44,23 @@ test: utest datasettest perft
 
 ### Compile unit tests main
 utest:
-	@g++ mains/unittests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
+	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
 	@./bins/$(TEST_EXEC)
 
 datasettest:
-	@g++ mains/dataset_test_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
+	@g++ testmains/dataset_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
 	@./bins/$(DATASETTEST_EXEC)
 
 ### Compile perft test main
 perft:
-	@g++ mains/perft_test_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
+	@g++ testmains/perft_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
 	@./bins/$(PERFT_EXEC)
 
-### Compile the bots and copy them into codingame chess engine folder
-mm2:
+### Compile the actual bot (and run an engine to play against it ?)
+run:
+	g++ $(flag) mains/main.cpp $(MINMAX_SRCS) -o ./bins/$(BOT_EXEC)
+
+### Compile the actual bot version and test against codingame chess engine
+runcg:
 	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MM_EXEC)
 	cp ./bins/$(MM_EXEC) ../codingame-chess/$(CG_EXEC)
-
-mmbb:
-	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MMBB_EXEC)
-	cp ./bins/$(MMBB_EXEC) ../codingame-chess/$(CG_EXEC)
-
-bbtest:
-	g++ $(flag) mains/main_test_bitboard.cpp $(MINMAX_SRCS) -o ./bins/$(BITBOARDTEST_EXEC)
-	./bins/$(BITBOARDTEST_EXEC)

@@ -137,7 +137,7 @@ void test_dataset(string file_name)
     getline(file, lines, ',');
     stringstream ss(lines);
     
-    int max_len = 1000;
+    int max_len = 50000;
     int dataset_len = 0;
     int success_count = 0;
     while (!ss.eof())

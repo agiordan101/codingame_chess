@@ -252,9 +252,9 @@ These properties combinations are represented in 3 different ways:
 
 Examples:
 
-    * Mm2P / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
-    * BbMmP50 / bitboard_minimax[50]_piecevalues / 1.1.1
-    * BbMmttP50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
+    * BMm2Pv / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
+    * BbMmPv50 / bitboard_minimax[50]_piecevalues / 1.1.1
+    * BbMmttPv50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
 
 Git tag should be created when bot is stable and a next version begin to be developed.
 All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)

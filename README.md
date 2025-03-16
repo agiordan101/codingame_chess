@@ -177,6 +177,7 @@ Inside the file :
 
 - Next steps :
 
+    * Test how much time we lose parsing the fen and recreating the board each turns
     * Format c++ code
 
     * Squash rebase bitboard VALID implementation on dev, create iterative deepening respecting times, then create versions.

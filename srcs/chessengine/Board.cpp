@@ -1147,7 +1147,10 @@ void Board::_find_white_castle_moves(uint64_t rook) {
         {
             castle_info = WHITELEFT;
 
-            king_path = _compute_castling_negative_path(white_king, BITMASK_CASTLE_WHITE_LEFT_KING);
+            if (white_king < BITMASK_CASTLE_WHITE_LEFT_KING)
+                king_path = _compute_castling_positive_path(white_king, BITMASK_CASTLE_WHITE_LEFT_KING);
+            else
+                king_path = _compute_castling_negative_path(white_king, BITMASK_CASTLE_WHITE_LEFT_KING);
             if (rook < BITMASK_CASTLE_WHITE_LEFT_ROOK)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
             else
@@ -1162,7 +1165,10 @@ void Board::_find_white_castle_moves(uint64_t rook) {
         {
             castle_info = WHITERIGHT;
             
-            king_path = _compute_castling_positive_path(white_king, BITMASK_CASTLE_WHITE_RIGHT_KING);
+            if (white_king < BITMASK_CASTLE_WHITE_RIGHT_KING)
+                king_path = _compute_castling_positive_path(white_king, BITMASK_CASTLE_WHITE_RIGHT_KING);
+            else
+                king_path = _compute_castling_negative_path(white_king, BITMASK_CASTLE_WHITE_RIGHT_KING);
             if (rook < BITMASK_CASTLE_WHITE_RIGHT_ROOK)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
             else
@@ -1285,7 +1291,10 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         {
             castle_info = BLACKLEFT;
 
-            king_path = _compute_castling_negative_path(black_king, BITMASK_CASTLE_BLACK_LEFT_KING);
+            if (black_king < BITMASK_CASTLE_BLACK_LEFT_KING)
+                king_path = _compute_castling_positive_path(black_king, BITMASK_CASTLE_BLACK_LEFT_KING);
+            else
+                king_path = _compute_castling_negative_path(black_king, BITMASK_CASTLE_BLACK_LEFT_KING);
             if (rook < BITMASK_CASTLE_BLACK_LEFT_ROOK)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_BLACK_LEFT_ROOK);
             else
@@ -1295,7 +1304,10 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         {
             castle_info = BLACKRIGHT;
 
-            king_path = _compute_castling_positive_path(black_king, BITMASK_CASTLE_BLACK_RIGHT_KING);
+            if (black_king < BITMASK_CASTLE_BLACK_RIGHT_KING)
+                king_path = _compute_castling_positive_path(black_king, BITMASK_CASTLE_BLACK_RIGHT_KING);
+            else
+                king_path = _compute_castling_negative_path(black_king, BITMASK_CASTLE_BLACK_RIGHT_KING);
             if (rook < BITMASK_CASTLE_BLACK_RIGHT_ROOK)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
             else
@@ -1307,6 +1319,10 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         //     cerr << "rook_path: " << endl << std::bitset<64>(rook_path) << endl;
         //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
         //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
+        //     this->visual_board.printSpecificBoard('k', king_path, "King path");
+        //     this->visual_board.printSpecificBoard('r', rook_path, "Rook path");
+        //     this->visual_board.printSpecificBoard('#', all_pieces_mask, "All pieces mask");
+        //     this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
         // }
 
         // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal

@@ -1621,6 +1621,28 @@ int find_moves_castles_testLauncher()
         13
     );
 
+    // King doesn't move during the castle
+    requested_moves[0] = new Move('k', 1UL << 2, 1UL << 1, 0, BLACKLEFT); // King castle !
+    requested_moves[1] = new Move('k', 1UL << 2, 1UL << 9, 0, NOTCASTLE); // King capture
+    requested_moves[2] = new Move('r', 1UL << 1, 1UL << 0); // Rook
+    requested_moves[3] = new Move('r', 1UL << 1, 1UL << 9); // Rook capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        37,
+        new Board("1rk5/1R6/2N5/8/8/8/8/8 b b - 0 1"),
+        requested_moves,
+        4
+    );
+
+    // King path is attacked (Castling left but king going right)
+    requested_moves[0] = new Move('k', 1UL << 1, 1UL << 8, 0, NOTCASTLE); // King capture
+    requested_moves[1] = new Move('r', 1UL << 0, 1UL << 8); // Rook capture
+    success_count += find_moves_RegularCases_FindAllMoves(
+        38,
+        new Board("rk6/R7/1N6/8/8/8/8/8 b a - 2 18"),
+        requested_moves,
+        2
+    );
+
     return success_count;
 }
 

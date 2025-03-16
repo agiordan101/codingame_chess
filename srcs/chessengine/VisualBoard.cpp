@@ -31,6 +31,22 @@ void VisualBoard::updateBoard(char piece, uint64_t bitboard) {
     }
 }
 
+void VisualBoard::printRawBoard() {
+
+    cerr << "----+----------------" << endl;
+    cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
+    cerr << " uci| A B C D E F G H" << endl;
+    cerr << "----+----------------" << endl;
+    for (int y = 0; y < 8; y++)
+    {
+        cerr << y << " " << line_index_to_number(y) << " |";
+        for (int x = 0; x < 8; x++)
+            cerr << " " << board[y][x];
+        cerr << endl;
+    }
+    cerr << "----+----------------" << endl;
+}
+
 void VisualBoard::printBoard() {
 
     cerr << "----+----------------" << endl;

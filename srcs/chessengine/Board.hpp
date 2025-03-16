@@ -72,10 +72,11 @@ class Board {
         vector<Move>    get_available_moves();
         void            apply_move(Move move);
 
-        void            log();
+        void            log(bool raw = false);
         void            log_history(int turns = -1);
 
         bool            operator ==(Board *test_board);
+        bool            moves_computed;
 
     private:
         VisualBoard visual_board;
@@ -85,7 +86,6 @@ class Board {
         bool            double_check;
         bool            engine_data_updated;
         vector<Move>    available_moves;
-        bool            moves_computed;
         float           game_state;
         bool            game_state_computed;
 

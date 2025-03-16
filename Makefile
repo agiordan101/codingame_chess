@@ -18,9 +18,13 @@ CHESS_ENGINE_SRCS = $(filter-out $(CHESS_ENGINE_TESTCPP), $(CHESS_ENGINE_CPP))
 
 BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
-	$(SRCS_PATH)/players/BotPlayer.cpp
+	$(SRCS_PATH)/players/BotPlayer.cpp\
+	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
+	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
-MINMAX_SRCS = $(BOT_SRCS)\
+BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
+	$(SRCS_PATH)/gameengine/GameEngineIntTests.cpp\
+	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
@@ -40,11 +44,11 @@ format:
 	black python/*
 	flake8 python/*
 
-test: utest datasettest perft
+test: utest datasettest perft cgtest
 
 ### Compile unit tests main
 utest:
-	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
+	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(TEST_EXEC)
 	@./bins/$(TEST_EXEC)
 
 datasettest:
@@ -56,11 +60,16 @@ perft:
 	@g++ testmains/perft_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
 	@./bins/$(PERFT_EXEC)
 
+### Compile the actual bot with a special GameEngine, to compare codingame chess engine and mine
+cgtest:
+	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ./bins/$(CG_EXEC)
+	cp ./bins/$(CG_EXEC) ../codingame-chess/$(CG_EXEC)
+
+### Compile the actual bot to run it against the codingame engine
+runcg:
+	g++ $(flag) mains/maincg.cpp $(BOT_SRCS) -o ./bins/$(CG_EXEC)
+	cp ./bins/$(CG_EXEC) ../codingame-chess/$(CG_EXEC)
+
 ### Compile the actual bot (and run an engine to play against it ?)
 run:
-	g++ $(flag) mains/main.cpp $(MINMAX_SRCS) -o ./bins/$(BOT_EXEC)
-
-### Compile the actual bot version and test against codingame chess engine
-runcg:
-	g++ $(flag) mains/maincg.cpp $(MINMAX_SRCS) -o ./bins/$(MM_EXEC)
-	cp ./bins/$(MM_EXEC) ../codingame-chess/$(CG_EXEC)
+	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)

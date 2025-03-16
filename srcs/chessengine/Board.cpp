@@ -28,7 +28,7 @@ Board::Board(string _board, string _color, string _castling, string _en_passant,
     _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule, _codingame_rule);
 }
 
-void Board::log() {
+void Board::log(bool raw) {
 
     uint64_t rook;
 
@@ -66,7 +66,10 @@ void Board::log() {
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
-    this->visual_board.printBoard();
+    if (raw)
+        this->visual_board.printRawBoard();
+    else
+        this->visual_board.printBoard();
 }
 
 void Board::log_history(int turns) {
@@ -995,6 +998,9 @@ void Board::_find_black_king_attacks() {
 
 void Board::_find_moves()
 {
+    // Reset move list
+    this->available_moves.clear();
+
     if (white_turn)
     {
         if (!double_check)

@@ -13,6 +13,7 @@ class VisualBoard {
 
         void    resetBoard();
         void    updateBoard(char piece, uint64_t bitboard);
+        void    printRawBoard();
         void    printBoard();
 
         void    printSpecificBoard(char piece, uint64_t bitboard, string title = "");

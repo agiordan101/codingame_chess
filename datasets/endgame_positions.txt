@@ -5332,17 +5332,3 @@ k2R3n/1p6/r7/QN3P1p/p7/1P5P/2P5/2K2R2 b - - 5 36
 2r5/6k1/4p1p1/3p1p1p/3P2nP/4PBPK/1r5q/6R1 w - - 14 42
 0 
 1 -1
-5b2/8/8/5k2/8/2n5/8/5K2 b - - 99 151
-23 f8g7 f8e7 f8h6 f8d6 f8c5 f8b4 f8a3 f5g6 f5f6 f5e6 f5g5 f5e5 f5g4 f5f4 f5e4 c3d5 c3b5 c3e4 c3a4 c3e2 c3a2 c3d1 c3b1 
-0 08/8/4k2N/8/8/4K3/8/8 b - - 0 200
-6 e6e7 e6d7 e6f6 e6d6 e6e5 e6d5 
-0 0
-8/8/8/r5k1/3K4/8/8/8 b - - 99 227
-20 g5h6 g5g6 g5f6 g5h5 g5f5 g5h4 g5g4 g5f4 a5a8 a5a7 a5a6 a5f5 a5e5 a5d5 a5c5 a5b5 a5a4 a5a3 a5a2 a5a1 
-0 0
-1k6/1n6/8/1p2q3/1K6/3r4/8/8 w - - 44 169
-0 
-0 0
-8/4k3/8/3K4/8/8/1n6/8 w - - 0 153
-5 d5c6 d5e5 d5c5 d5e4 d5d4 
-0 0

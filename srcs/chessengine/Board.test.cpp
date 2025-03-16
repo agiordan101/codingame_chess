@@ -1643,6 +1643,16 @@ int find_moves_castles_testLauncher()
         2
     );
 
+    // Rook is pinned by an enemy sliding piece
+    requested_moves[0] = new Move('r', 1UL << 1, 1UL << 0); // Rook capture
+    requested_moves[1] = new Move('k', 1UL << 2, 1UL << 3, 0, NOTCASTLE); // King moves
+    success_count += find_moves_RegularCases_FindAllMoves(
+        39,
+        new Board("Qrk4/1Q6/8/8/8/8/8/8 b b - 1 20"),
+        requested_moves,
+        2
+    );
+
     return success_count;
 }
 

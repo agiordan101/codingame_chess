@@ -1187,8 +1187,11 @@ void Board::_find_white_castle_moves(uint64_t rook) {
         //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) << endl;
         // }
 
-        // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
-        if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
+        // Castle is legal if :
+        // - No pieces are blocking both king and rook paths
+        // - No cells are attacked in the king path
+        // - Rook isn't pinned
+        if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL && pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
             if (PRINT_ATTACKS)
@@ -1323,10 +1326,15 @@ void Board::_find_black_castle_moves(uint64_t rook) {
         //     this->visual_board.printSpecificBoard('r', rook_path, "Rook path");
         //     this->visual_board.printSpecificBoard('#', all_pieces_mask, "All pieces mask");
         //     this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
+        //     this->visual_board.printSpecificBoard('I', pin_masks[_count_trailing_zeros(rook)], "pin_masks[_count_trailing_zeros(rook)]");
+        //     cerr << "pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS: " << (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS) << endl;
         // }
 
-        // If no pieces are blocking both king and rook paths, and no cells are attacked in the king path, castle is legal
-        if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL)
+        // Castle is legal if :
+        // - No pieces are blocking both king and rook paths
+        // - No cells are attacked in the king path
+        // - Rook isn't pinned
+        if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL && (king_path & attacked_cells_mask) == 0UL && (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS))
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
             if (PRINT_ATTACKS)

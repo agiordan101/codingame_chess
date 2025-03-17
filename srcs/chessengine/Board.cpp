@@ -2020,7 +2020,7 @@ void Board::_create_king_lookup_table(int y, int x, uint64_t position, int lkt_i
 
 // --- PUBLIC METHODS ---
 
-Board::Board(string _fen, bool _chess960_rule) {
+Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule) {
     
     stringstream ss(_fen);
     string board;
@@ -2037,14 +2037,14 @@ Board::Board(string _fen, bool _chess960_rule) {
     getline(ss, half_turn_rule, ' ');
     getline(ss, game_turn, ' ');
 
-    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule);
+    _main_parsing(board, color, castling, en_passant, stoi(half_turn_rule), stoi(game_turn), _chess960_rule, _codingame_rule);
 }
 
-Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule) {
-    _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule);
+Board::Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule, bool _codingame_rule) {
+    _main_parsing(_board, _color, _castling, _en_passant, _half_turn_rule, _game_turn, _chess960_rule, _codingame_rule);
 }
 
-void Board::log() {
+void Board::log(bool raw) {
     std::locale::global(std::locale("C.UTF-8"));
     std::wcout.imbue(std::locale("C.UTF-8"));
 
@@ -2270,8 +2270,9 @@ Board *Board::clone()
 
 // --- PRIVATE METHODS ---
 
-void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule)
+void Board::_main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool _chess960_rule, bool _codingame_rule)
 {
+    codingame_rule = _codingame_rule;
     // Set the right castling function pointer
     chess960_rule = _chess960_rule;
     _handle_castle = _chess960_rule ? &Board::_handle_chess960_castle : &Board::_handle_standard_castle;
@@ -2551,11 +2552,17 @@ float Board::_find_game_state()
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (
         half_turn_rule >= 100 ||
-        game_turn >= game_turn_max + 1 ||
         _threefold_repetition_rule() ||
         _insufficient_material_rule()
     )
         return DRAW;
+
+    // Convert this to PRE PROCESSING if ?
+    if (codingame_rule)
+    {
+        if (game_turn > 125)
+            return DRAW;
+    }
 
     available_moves = get_available_moves();
 

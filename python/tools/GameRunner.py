@@ -21,7 +21,17 @@ class GameRunner:
         while outcome is None:
 
             move = players[players_i].get_next_move(board)
-            board.push(chess.Move.from_uci(move))
+
+            try:
+                board.push(chess.Move.from_uci(move))
+            except AssertionError as e:
+                print(f"AssertionError: {e}")
+                # Give the win to the other player
+                # winner=True when p1 wins
+                return chess.Outcome(
+                    termination=chess.Termination(1),
+                    winner=chess.WHITE if players_i == 1 else chess.BLACK
+                )
 
             outcome = board.outcome(claim_draw=True)
             players_i = (players_i + 1) % 2

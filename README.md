@@ -177,6 +177,8 @@ Inside the file :
 
 - Next steps :
 
+    * Assert old board is working (Test against the new one with 50ms tpt). Mesure the impact of a new engine, 9 times faster.
+
     * Board: Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
         - Same shit than copying the board each turn...
 

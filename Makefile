@@ -51,7 +51,7 @@ test: utest datasettest perft cgtest
 
 ### Compile unit tests main
 utest:
-	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(TEST_EXEC)
+	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
 	@./bins/$(TEST_EXEC)
 
 datasettest:

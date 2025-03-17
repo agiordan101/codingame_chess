@@ -244,8 +244,6 @@ class Board {
     bool        en_passant_available;
     int         half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
 
-    int         game_turn_max = 125;
-
     // FEN history is used to check the Threefold Repetition rule
     // Each FEN is saved in the history after each move
     string         fen_history[FEN_HISTORY_SIZE];
@@ -254,8 +252,8 @@ class Board {
     public:
         int         game_turn;                  // Game turn, incremented after each black move
 
-        Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true);
-        Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true);
+        Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true, bool codingame_rule = true);
+        Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true, bool codingame_rule = true);
 
         bool            is_white_turn();
         char            get_cell(int x, int y);
@@ -269,7 +267,7 @@ class Board {
         vector<Move>    get_available_moves();
         void            apply_move(Move move);
         
-        void            log();
+        void            log(bool raw = false);
         void            log_history(int turns = -1);
 
         bool            operator ==(Board *test_board);
@@ -283,11 +281,13 @@ class Board {
         float           game_state;
         bool            game_state_computed;
 
+        bool        codingame_rule;
+
         // Function pointer to apply castle depending on the chess960 rule
         bool    chess960_rule;
         bool    (Board::*_handle_castle)(int, int, int, int);
 
-        void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule);
+        void    _main_parsing(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _game_turn, bool chess960_rule, bool codingame_rule);
         void    _parse_board(string fen_board);
         void    _parse_castling(string castling_fen);
         void    _parse_en_passant(string _en_passant);

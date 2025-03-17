@@ -65,6 +65,7 @@ class Board {
         float           get_game_state();
         bool            get_check_state();
         int             get_castling_rights();
+        static string   get_name();
 
         string          create_fen(bool with_turns = true);
         Board           *clone();
@@ -209,18 +210,19 @@ class Board {
         bool    _threefold_repetition_rule();
         bool    _insufficient_material_rule();
 
-        // LOOKUP TABLES
+        // STATIC LOOKUP TABLES
 
-        uint64_t pawn_captures_lookup[64][2]; // 0: white, 1: black
-        uint64_t knight_lookup[64];
-        uint64_t sliding_lookup[64][8]; // 0: N, 1: NE, 2: E, 3: SE, 4: S, 5: SW, 6: W, 7: NW
-        uint64_t king_lookup[64];
+        static bool     lookup_tables_initialized;
+        static uint64_t pawn_captures_lookup[64][2]; // 0: white, 1: black
+        static uint64_t knight_lookup[64];
+        static uint64_t sliding_lookup[64][8]; // 0: N, 1: NE, 2: E, 3: SE, 4: S, 5: SW, 6: W, 7: NW
+        static uint64_t king_lookup[64];
 
-        void    _create_lookup_tables();
-        void    _create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i);
-        void    _create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i);
-        void    _create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i);
-        void    _create_king_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void     _initialize_lookup_tables();
+        static void     _create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void     _create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void     _create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void     _create_king_lookup_table(int y, int x, uint64_t position, int lkt_i);
 };
 
 # else
@@ -260,6 +262,7 @@ class Board {
         float           get_game_state();
         bool            get_check_state();
         int             get_castling_rights();
+        static string   get_name();
 
         string          create_fen(bool with_turns = true);
         Board           *clone();

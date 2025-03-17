@@ -38,7 +38,7 @@ vector<string> MinMaxAgent::get_stats()
     vector<string> stats;
 
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "MinMaxIterDeepAgent: stats: " << stats[0] << endl;
+    cerr << Board::get_name() + "MinMaxAgent: stats: " << stats[0] << endl;
     return stats;
 }
 

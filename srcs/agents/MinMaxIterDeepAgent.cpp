@@ -59,7 +59,7 @@ vector<string> MinMaxIterDeepAgent::get_stats()
 
 string MinMaxIterDeepAgent::get_name()
 {
-    return "MinMaxIterDeepAgent[" + to_string(this->_ms_constraint) + "ms]." + this->_heuristic->get_name();
+    return Board::get_name() + ".MinMaxIterDeepAgent[" + to_string(this->_ms_constraint) + "ms]." + this->_heuristic->get_name();
 }
 
 float MinMaxIterDeepAgent::minmax(Board *board, int max_depth, int depth)

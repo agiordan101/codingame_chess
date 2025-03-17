@@ -2,6 +2,12 @@
 
 # if BITBOARD_IMPLEMENTATION == 1
 
+bool        Board::lookup_tables_initialized = false;
+uint64_t    Board::pawn_captures_lookup[64][2];
+uint64_t    Board::knight_lookup[64];
+uint64_t    Board::sliding_lookup[64][8];
+uint64_t    Board::king_lookup[64];
+
 // --- PUBLIC METHODS ---
 
 Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule) {
@@ -182,6 +188,11 @@ vector<Move> Board::get_available_moves()
     return this->available_moves;
 }
 
+string  Board::get_name()
+{
+    return "BitBoard";
+}
+
 string Board::create_fen(bool with_turns) {
     char fen[85];
     int fen_i = 0;
@@ -288,12 +299,14 @@ void Board::_main_parsing(string _board, string _color, string _castling, string
 {
     this->visual_board = VisualBoard();
 
+    if (Board::lookup_tables_initialized == false)
+        Board::_initialize_lookup_tables();
+
     // Initialize private variables
     chess960_rule = _chess960_rule;
     codingame_rule = _codingame_rule;
 
     _initialize_bitboards();
-    _create_lookup_tables();
 
     // Parse FEN data
     _parse_board(_board);
@@ -1814,9 +1827,9 @@ bool Board::operator==(Board *test_board_abstracted) {
     return this->create_fen() == test_board_abstracted->create_fen();
 }
 
-// --- LOOKUP METHODS ---
+// --- STATIC LOOKUP METHODS ---
 
-void Board::_create_lookup_tables()
+void Board::_initialize_lookup_tables()
 {
     memset(pawn_captures_lookup, 0, sizeof(uint64_t) * 64 * 2);
     memset(knight_lookup, 0, sizeof(uint64_t) * 64);
@@ -1829,8 +1842,6 @@ void Board::_create_lookup_tables()
     {
         for (int x = 0; x < 8; x++)
         {
-            // cerr << "_create_lookup_tables pos: " << std::bitset<64>(pos_mask) << endl;
-
             // Create the lookup table for the current position
             _create_pawn_captures_lookup_table(y, x, pos_mask, lkt_i);
             _create_knight_lookup_table(y, x, pos_mask, lkt_i);
@@ -1840,6 +1851,9 @@ void Board::_create_lookup_tables()
             pos_mask <<= 1;
         }
     }
+
+    cerr << "!!!!!!!!!! Lookup tables initialized !!!!!!!!!!" << endl;
+    Board::lookup_tables_initialized = true;
 }
 
 void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i)
@@ -2137,6 +2151,11 @@ int Board::get_castling_rights() {
         (this->castles[1] ? 1 : 0) << 1 +\
         (this->castles[2] ? 1 : 0) << 2 +\
         (this->castles[3] ? 1 : 0) << 3;
+}
+
+string  Board::get_name()
+{
+    return "Board";
 }
 
 bool Board::is_white_turn() {

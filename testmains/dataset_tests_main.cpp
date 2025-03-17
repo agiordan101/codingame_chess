@@ -28,8 +28,9 @@ Position::Position(stringstream &ss)
         moves.push_back(buff);
     }
 
+    getline(ss, buff);
     getline(ss, buff, ' ');
-    ischeck = buff[1] == '1';
+    ischeck = buff[0] == '1';
 
     getline(ss, buff);
     outcome = stoi(buff);
@@ -147,7 +148,8 @@ void test_dataset(string file_name)
         
         // cerr << "[DATASET TEST] " << file_name << " in progress ... " << success_count << "/" << dataset_len << endl;
         dataset_len++;
-        if (dataset_len == max_len) break;
+        if (dataset_len == max_len)
+            break;
     }
 
     cerr << "[DATASET TEST] " << file_name << " - End: " << success_count << "/" << dataset_len << " tests were successfull !" << endl;

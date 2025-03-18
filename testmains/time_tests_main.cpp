@@ -61,6 +61,8 @@ void test_dataset(string file_name)
         return ;
     }
 
+    PiecesHeuristic *heuristic = new PiecesHeuristic();
+
     string lines;
     getline(file, lines, ',');
     stringstream ss(lines);
@@ -91,16 +93,19 @@ void test_dataset(string file_name)
         // start_time = clock();
         // board.get_game_state();
         // elapsed_times[3] += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-
+        
         clock_t start_time = clock();
-        board.get_available_moves();
-        board.apply_move(Move(position.moves[random_move]));
-        board.get_game_state();
-        board.get_check_state();
+        
+        heuristic->evaluate(&board);
+        
+        // board.get_available_moves();
+        // board.apply_move(Move(position.moves[random_move]));
+        // board.get_game_state();
+        // board.get_check_state();
         // board.get_available_moves();
 
         elapsed_time += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-        
+
         // cerr << "[TIME TEST] " << file_name << " in progress ... " << success_count << "/" << dataset_len << endl;
         dataset_len++;
         if (dataset_len == max_len)

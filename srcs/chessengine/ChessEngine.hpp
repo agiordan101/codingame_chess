@@ -63,27 +63,6 @@ enum ray_dir_e {NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTH
 
 /* PIECES FUNCTIONS */
 
-inline float get_piece_value(char piece)
-{
-    switch (tolower(piece))
-    {
-        case 'p':
-            return 1;
-        case 'n':
-            return 3;
-        case 'b':
-            return 3.2;
-        case 'r':
-            return 5;
-        case 'q':
-            return 9;
-        // case 'k':
-        //     return 100;
-        default:
-            return 0;
-    }
-}
-
 inline wchar_t convert_piece_to_unicode(char piece)
 {
     switch (piece)

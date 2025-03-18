@@ -17,6 +17,9 @@ CHESS_ENGINE_CPP = $(wildcard $(SRCS_PATH)/chessengine/*.cpp)
 CHESS_ENGINE_TESTCPP = $(wildcard $(SRCS_PATH)/chessengine/*.test.cpp)
 CHESS_ENGINE_SRCS = $(filter-out $(CHESS_ENGINE_TESTCPP), $(CHESS_ENGINE_CPP))
 
+TEST_SRCS = $(CHESS_ENGINE_SRCS)\
+	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
+
 BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
@@ -59,7 +62,7 @@ datasettest:
 	@./bins/$(DATASETTEST_EXEC)
 
 timetest:
-	@g++ testmains/time_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(TIMETEST_EXEC)
+	@g++ testmains/time_tests_main.cpp $(BOT_SRCS) -o ./bins/$(TIMETEST_EXEC)
 	@./bins/$(TIMETEST_EXEC)
 
 ### Compile perft test main

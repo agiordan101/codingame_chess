@@ -27,20 +27,6 @@ class Board {
 
     bool        chess960_rule;
     bool        codingame_rule;
-
-    // FEN data: Pieces
-    uint64_t    white_pawns;
-    uint64_t    white_knights;
-    uint64_t    white_bishops;
-    uint64_t    white_rooks;
-    uint64_t    white_queens;
-    uint64_t    white_king;
-    uint64_t    black_pawns;
-    uint64_t    black_knights;
-    uint64_t    black_bishops;
-    uint64_t    black_rooks;
-    uint64_t    black_queens;
-    uint64_t    black_king;
     
     // FEN data: Player turn
     bool        white_turn;
@@ -53,9 +39,23 @@ class Board {
     uint64_t        en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
     uint64_t        next_turn_en_passant;                 // En passant position is created after a pawn move of 2 squares. 0 means no en passant available
     int             half_turn_rule;             // Number of half-turn since the last capture or pawn move (Fifty-Move rule)
-
+    
     public:
         int         game_turn;                  // Game turn, incremented after each black move
+    
+        // FEN data: Pieces
+        uint64_t    white_pawns;
+        uint64_t    white_knights;
+        uint64_t    white_bishops;
+        uint64_t    white_rooks;
+        uint64_t    white_queens;
+        uint64_t    white_king;
+        uint64_t    black_pawns;
+        uint64_t    black_knights;
+        uint64_t    black_bishops;
+        uint64_t    black_rooks;
+        uint64_t    black_queens;
+        uint64_t    black_king;
 
         Board(string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1", bool chess960_rule = true, bool codingame_rule = true);
         Board(string _board, string _color, string _castling, string _en_passant, int _half_turn_rule, int _full_move, bool chess960_rule = true, bool codingame_rule = true);

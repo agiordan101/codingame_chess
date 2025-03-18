@@ -6,8 +6,8 @@
 class PiecesHeuristic : public AbstractHeuristic {
 
     public:
-        virtual float evaluate(Board *board) override;
-        virtual string get_name() override;
+        float evaluate(Board *board) override;
+        string get_name() override;
 };
 
 #endif

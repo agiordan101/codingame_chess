@@ -232,7 +232,9 @@ Inside the file :
                 - get_check_state():        From 18 ms to 18 ms     -> Same
                 - get_game_state():         From 1750 ms to 30 ms   -> 60x faster
                 - 4 mains functions :       From 4700 ms to 550 ms  -> 9x faster !!!!
-                - 4 mains functions + Board:From 5000 ms to 2500 ms  -> 2x faster ...
+                - 4 mains functions + Board:From 5000 ms to 2500 ms -> 2x faster ...
+
+                - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
 
         - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
         - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)

@@ -257,16 +257,6 @@ Inside the file :
         - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
         - (DONE) Probably need to create more inline getter/Setter
         - (DONE) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
-           - Timing results :
-                - Board():                  From 80 ms to 1500 ms  -> 18x  slower ..
-                - get_available_moves():    From 2350 ms to 268 ms  -> 9x  faster
-                - apply_move():             From 32 ms to 100 ms    -> 3x  slower
-                - get_check_state():        From 18 ms to 18 ms     -> Same
-                - get_game_state():         From 1750 ms to 30 ms   -> 60x faster
-                - 4 mains functions :       From 4700 ms to 550 ms  -> 9x faster !!!!
-                - 4 mains functions + Board:From 5000 ms to 2500 ms -> 2x faster ...
-
-                - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
 
         - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
         - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
@@ -285,6 +275,25 @@ Inside the file :
     * Board::Board() parsing protection from invalid FEN
         - REgex to valid chess FEN ?
 
+
+## Bot comments
+
+### BitBoard.MinMaxIterDeepAgent[50ms].PiecesHeuristicBb
+
+- Timing comparaison with Board.MinMaxIterDeepAgent[50ms].PiecesHeuristic
+    - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
+    - Board():                  From 80 ms to 1500 ms  -> 18x slower ..
+    - get_available_moves():    From 2350 ms to 268 ms ->  9x faster
+    - apply_move():             From 32 ms to 100 ms   ->  3x slower
+    - get_check_state():        From 18 ms to 18 ms    ->     Same
+    - get_game_state():         From 1750 ms to 30 ms  -> 60x faster
+    - 4 mains functions :       From 4700 ms to 550 ms ->  9x faster !!!!
+    - 4 mains functions + Board:From 5000 ms to 2500 ms->  2x faster ...
+
+- Explored nodes per turns
+    - Quantity of explored nodes per turn is constant ~19 npms (nodes per milliseconds)
+    - Where as the BMm50Pv begin at 40 npms and slow down to apprimately 10 npms at turn 30
+    - Until turn 12, BbMm50Pv compute less nodes
 
 ## Tests
 

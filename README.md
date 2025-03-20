@@ -39,19 +39,50 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 
 ## Description
 
-Project created in local, thanks to CodinGame SDK environment and CodinGame chess-engine to simulate exact same executions.
+I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
+
+The idea is to implemente several algorithm and heuristic and benchmark them using python scripts and Stockfish.
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
+
+## Versionning
+
+An unique bot is defined by 4 properties:
+
+    * Chess engine
+    * Algorithm
+    * Heuristic
+    * Thinking time in ms
+
+These properties combinations are represented in 3 different ways:
+
+    * A short name for executable name (PascalCase) : {chess_engine}{algorithm}{heuristic}{thinking_time}
+    * A long name for logging name     (snake_case) : {chess_engine}_{algorithm}[{thinking_time}]_{heuristic}
+    * A version number for git tags (Num. with dots): {chess_engine_version}.{algorithm_version}.{heuristic_version}
+
+Examples:
+
+    * BMm2Pv / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
+    * BbMmPv50 / bitboard_minimax[50]_piecevalues / 1.1.1
+    * BbMmttPv50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
+
+Git tag should be created when bot is stable and a next version begin to be developed.
+All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
+Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix (so benchmarks can conclude the fix has really improved the new bot version...)
+All versions should have a ELO rating.
+All versions should be deployed in Codingame, with the resulting classement saved in this README.
 
 ## Project explanations
 
 ### Branches
 
-- main  ->  Stable best version used in CodinGame
-- dev   ->  Stable version in development
+- main  ->  Bot deployed in CodinGame
+- dev   ->  Last stable bot
+- tags  ->  Stable bot versions
 
 ### Entity heritage
 
+!!! NOT UP TO DATE !!!
 - AbtractPlayer
     * BotPlayer
     * HumanPlayer
@@ -132,6 +163,7 @@ Despite the rules, the final position after castling is always the same:
 
 ### Python tools
 
+!!! NOT UP TO DATE !!!
 * What do I want from python ? :
     - Integration test
         * Create a random position, provide the FEN and a list of moves.
@@ -253,33 +285,6 @@ Inside the file :
     * Board::Board() parsing protection from invalid FEN
         - REgex to valid chess FEN ?
 
-
-## Versionning
-
-An unique bot is defined by 4 properties:
-
-    * Chess engine
-    * Algorithm
-    * Heuristic
-    * Thinking time in ms
-
-These properties combinations are represented in 3 different ways:
-
-    * A short name for executable name (PascalCase) : {chess_engine}{algorithm}{heuristic}{thinking_time}
-    * A long name for logging name     (snake_case) : {chess_engine}_{algorithm}[{thinking_time}]_{heuristic}
-    * A version number for git tags (Num. with dots): {chess_engine_version}.{algorithm_version}.{heuristic_version}
-
-Examples:
-
-    * BMm2Pv / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
-    * BbMmPv50 / bitboard_minimax[50]_piecevalues / 1.1.1
-    * BbMmttPv50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
-
-Git tag should be created when bot is stable and a next version begin to be developed.
-All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
-Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix (so benchmarks can conclude the fix has really improved the new bot version...)
-All versions should have a ELO rating.
-All versions should be deployed in Codingame, with the resulting classement saved in this README.
 
 ## Tests
 

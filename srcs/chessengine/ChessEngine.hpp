@@ -11,7 +11,7 @@ using namespace std;
 # include <stdio.h>
 # include <string.h>
 
-# define BITBOARD_IMPLEMENTATION 1
+# define BITBOARD_IMPLEMENTATION 0
 # define CHESS960_RULES 1
 
 # define PRINT_ENGINE_DATA 0

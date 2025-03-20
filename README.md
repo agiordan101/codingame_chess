@@ -42,6 +42,7 @@ I created my own chess engine compatible with both Standard and Chess960 rules. 
 
 The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
 The actual best stable bot is BMmPv (board_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual bot in development is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 

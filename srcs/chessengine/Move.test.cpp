@@ -22,8 +22,6 @@ int Move_unittest(int test_index, string uci, Move *requested_move)
     return 0;
 }
 
-#if BITBOARD_IMPLEMENTATION == 1
-
 int Move_unittestLauncher()
 {
     int success_count = 0;
@@ -50,41 +48,9 @@ int Move_unittestLauncher()
     return success_count;
 }
 
-#else
-
-int Move_unittestLauncher()
-{
-    int success_count = 0;
-
-    // All columns and lines
-    success_count += Move_unittest(1, "a8b7", new Move(0, 0, 1, 1, 0));
-    success_count += Move_unittest(2, "c5d6", new Move(2, 3, 3, 2, 0));
-    success_count += Move_unittest(3, "e4f3", new Move(4, 4, 5, 5, 0));
-    success_count += Move_unittest(4, "g1h2", new Move(6, 7, 7, 6, 0));
-
-    // Promotions
-    success_count += Move_unittest(5, "a7a8r", new Move(0, 1, 0, 0, 'r'));
-    success_count += Move_unittest(6, "h7h8b", new Move(7, 1, 7, 0, 'b'));
-
-    // White castle - Left side
-    success_count += Move_unittest(7, "e1a1", new Move(4, 7, 0, 7, 0));
-    // White castle - Right side
-    success_count += Move_unittest(8, "e1h1", new Move(4, 7, 7, 7, 0));
-    // Black castle - Left side
-    success_count += Move_unittest(9, "e8a8", new Move(4, 0, 0, 0, 0));
-    // Black castle - Right side
-    success_count += Move_unittest(10, "e8h8", new Move(4, 0, 7, 0, 0));
-
-    return success_count;
-}
-
-#endif
-
 #pragma endregion Move
 
 #pragma region to_uci
-
-#if BITBOARD_IMPLEMENTATION == 1
 
 int to_uci_unittest(
     int test_index, Move *move, bool chess960_rules, bool castling, string requested_uci
@@ -160,76 +126,6 @@ int to_uci_unittestLauncher()
     return success_count;
 }
 
-#else
-
-int to_uci_unittest(int test_index, Move *move, bool regular_rules_castling, string requested_uci)
-{
-    string final_uci = move->to_uci(regular_rules_castling);
-
-    if (final_uci == requested_uci)
-        return 1;
-
-    cerr << "\n---------- Move - to_uci_unittest() - Test " << test_index
-         << " - !!! FAILURE !!! ----------" << endl;
-    cerr << "- Move : " << endl;
-    move->log();
-
-    cerr << "\n- Final UCI : " << final_uci << endl;
-    cerr << "- Requested UCI : " << requested_uci << endl;
-    return 0;
-}
-
-int to_uci_unittestLauncher()
-{
-    int success_count = 0;
-
-    // All columns and lines
-    success_count += to_uci_unittest(1, new Move(0, 6, 0, 1, 0), false, "a2a7");
-    success_count += to_uci_unittest(2, new Move(1, 2, 6, 5, 0), false, "b6g3");
-    success_count += to_uci_unittest(3, new Move(3, 0, 4, 7, 0), false, "d8e1");
-    success_count += to_uci_unittest(4, new Move(2, 4, 5, 3, 0), false, "c4f5");
-
-    // Promotions
-    success_count += to_uci_unittest(5, new Move(6, 1, 6, 0, 'q'), false, "g7g8q");
-    success_count += to_uci_unittest(6, new Move(6, 1, 6, 0, 'n'), false, "g7g8n");
-
-    // Same right castle with 2 different rules :
-    Move *castling_move = new Move(4, 7, 7, 7, 0);
-
-    //  - White castle - Right - Regular chess rule
-    success_count += to_uci_unittest(7, castling_move, true, "e1g1");
-    //  - White castle - Right - Chess960 rule
-    success_count += to_uci_unittest(8, castling_move, false, "e1h1");
-
-    // Same left castle with 2 different rules :
-    castling_move = new Move(4, 7, 0, 7, 0);
-
-    //  - White castle - Left - Regular chess rule
-    success_count += to_uci_unittest(9, castling_move, true, "e1c1");
-    //  - White castle - Left - Chess960 rule
-    success_count += to_uci_unittest(10, castling_move, false, "e1a1");
-
-    // Same right castle with 2 different rules :
-    castling_move = new Move(4, 0, 7, 0, 0);
-
-    //  - Black castle - Right - Regular chess rule
-    success_count += to_uci_unittest(11, castling_move, true, "e8g8");
-    //  - Black castle - Right - Chess960 rule
-    success_count += to_uci_unittest(12, castling_move, false, "e8h8");
-
-    // Same left castle with 2 different rules :
-    castling_move = new Move(4, 0, 0, 0, 0);
-
-    //  - Black castle - Left - Regular chess rule
-    success_count += to_uci_unittest(13, castling_move, true, "e8c8");
-    //  - Black castle - Left - Chess960 rule
-    success_count += to_uci_unittest(14, castling_move, false, "e8a8");
-
-    return success_count;
-}
-
-#endif
-
 #pragma endregion to_uci
 
 #pragma region equaloperator
@@ -252,8 +148,6 @@ int equaloperator_unittest(int test_index, Move *move1, Move *move2, bool expect
     cerr << "- Expected result : " << expected_result << endl;
     return 0;
 }
-
-#if BITBOARD_IMPLEMENTATION == 1
 
 int equaloperator_unittestLauncher()
 {
@@ -283,28 +177,6 @@ int equaloperator_unittestLauncher()
     return success_count;
 }
 
-#else
-
-int equaloperator_unittestLauncher()
-{
-    int success_count = 0;
-
-    success_count +=
-        equaloperator_unittest(1, new Move(0, 0, 1, 1, 0), new Move(0, 0, 1, 1, 0), true);
-
-    success_count += equaloperator_unittest(2, new Move("a1b7"), new Move("a1b7"), true);
-
-    // Promotions
-    success_count +=
-        equaloperator_unittest(3, new Move(0, 1, 0, 0, 'r'), new Move(0, 1, 0, 0, 'r'), true);
-    success_count +=
-        equaloperator_unittest(4, new Move(6, 1, 6, 0, 'b'), new Move(6, 1, 6, 0, 'b'), true);
-
-    return success_count;
-}
-
-#endif
-
 #pragma endregion equaloperator
 
 #pragma region compare_move_vector
@@ -332,51 +204,6 @@ int compare_move_vector_unittest(
     return 0;
 }
 
-#if BITBOARD_IMPLEMENTATION == 1
-
-int compare_move_vector_unittestLauncher()
-{
-    return 0;
-}
-
-#else
-
-int compare_move_vector_unittestLauncher()
-{
-    int success_count = 0;
-
-    // No moves
-    success_count += compare_move_vector_unittest(1, vector<Move>{}, vector<Move>{}, true);
-
-    // With UCI promotions
-    success_count += compare_move_vector_unittest(
-        2,
-        vector<Move>{
-            Move("f7f8n"),
-        },
-        vector<Move>{
-            Move("f7f8n"),
-        },
-        true
-    );
-
-    // With promotions
-    success_count += compare_move_vector_unittest(
-        3,
-        vector<Move>{
-            Move(6, 1, 6, 0, 'b'),
-        },
-        vector<Move>{
-            Move(6, 1, 6, 0, 'b'),
-        },
-        true
-    );
-
-    return success_count;
-}
-
-#endif
-
 #pragma endregion compare_move_vector
 
 int unittests_Move()
@@ -386,7 +213,6 @@ int unittests_Move()
     success_count += to_uci_unittestLauncher();
     success_count += Move_unittestLauncher();
     success_count += equaloperator_unittestLauncher();
-    success_count += compare_move_vector_unittestLauncher();
 
     return success_count;
 }

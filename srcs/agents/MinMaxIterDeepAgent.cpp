@@ -30,7 +30,9 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
             new_board->apply_move(moves[i]);
 
             float move_quality = this->minmax(new_board, max_depth, 1);
-            // cerr << "Move: " << move.to_uci() << " - Quality: " << move_quality << endl;
+            // cerr << "Move: " << move.to_uci()
+            // << " - Quality: " << move_quality
+            // << endl;
 
             qualities->at(i) = move_quality;
             delete new_board;
@@ -44,7 +46,8 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
 
     float dtime = elapsed_time();
     if (dtime >= _ms_constraint)
-        cerr << "MinMaxIterDeepAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms" << endl;
+        cerr << "MinMaxIterDeepAgent: TIMEOUT: dtime="
+             << dtime << "/" << this->_ms_constraint << "ms" << endl;
 }
 
 vector<string> MinMaxIterDeepAgent::get_stats()
@@ -59,20 +62,23 @@ vector<string> MinMaxIterDeepAgent::get_stats()
 
 string MinMaxIterDeepAgent::get_name()
 {
-    return Board::get_name() + ".MinMaxIterDeepAgent[" + to_string(this->_ms_constraint) + "ms]." + this->_heuristic->get_name();
+    return Board::get_name() + ".MinMaxIterDeepAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
 }
 
 float MinMaxIterDeepAgent::minmax(Board *board, int max_depth, int depth)
 {
     this->_nodes_explored++;
 
-    // If we reach the max depth or the game is over, we evaluate the board
+    // If we reach the max depth or the game is
+    // over, we evaluate the board
     if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);
 
     vector<Move> moves = board->get_available_moves();
 
-    // Go deeper in each child nodes and keep the best one
+    // Go deeper in each child nodes and keep the
+    // best one
     float best_quality;
     if (board->is_white_turn())
     {
@@ -86,7 +92,7 @@ float MinMaxIterDeepAgent::minmax(Board *board, int max_depth, int depth)
     return best_quality;
 }
 
-float MinMaxIterDeepAgent::max_node(Board *board, vector<Move>* moves, int max_depth, int depth)
+float MinMaxIterDeepAgent::max_node(Board *board, vector<Move> *moves, int max_depth, int depth)
 {
     // White wants to maximize the heuristic value
     float best_quality = -1;
@@ -107,7 +113,7 @@ float MinMaxIterDeepAgent::max_node(Board *board, vector<Move>* moves, int max_d
     return best_quality;
 }
 
-float MinMaxIterDeepAgent::min_node(Board *board, vector<Move>* moves, int max_depth, int depth)
+float MinMaxIterDeepAgent::min_node(Board *board, vector<Move> *moves, int max_depth, int depth)
 {
     // Black wants to minimize the heuristic value
     float best_quality = 1;
@@ -137,4 +143,3 @@ float MinMaxIterDeepAgent::elapsed_time()
 {
     return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
 }
-

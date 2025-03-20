@@ -1,17 +1,18 @@
 #ifndef HEURISTICAGENT_HPP
-# define HEURISTICAGENT_HPP
+#define HEURISTICAGENT_HPP
 
 #include "AbstractAgent.hpp"
 
-class HeuristicAgent : public AbstractAgent {
-
+class HeuristicAgent : public AbstractAgent
+{
     public:
         HeuristicAgent(AbstractHeuristic *heuristic);
-        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual void
+        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
         virtual string get_name() override;
 
     private:
-        AbstractHeuristic* _heuristic;
+        AbstractHeuristic *_heuristic;
 };
 
 #endif

@@ -50,7 +50,7 @@ class CGBot(AbstractBot):
 
         line = self.process.stdout.readline().strip()
         move = line.split(" ")[0]
-        
+
         return move
 
     def get_next_move_and_stat(self, board: Board) -> dict[str, object]:
@@ -60,9 +60,9 @@ class CGBot(AbstractBot):
         line = self.process.stdout.readline().strip()
         responses = line.split(" ")
 
-        data = {'move': responses[0]}
+        data = {"move": responses[0]}
         data.update(dict(map(lambda x: x.split("="), responses[1:])))
-        
+
         return data
 
     def _send_info(self, board: Board):

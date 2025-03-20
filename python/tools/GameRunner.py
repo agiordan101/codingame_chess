@@ -30,7 +30,7 @@ class GameRunner:
                 # winner=True when p1 wins
                 return chess.Outcome(
                     termination=chess.Termination(1),
-                    winner=chess.WHITE if players_i == 1 else chess.BLACK
+                    winner=chess.WHITE if players_i == 1 else chess.BLACK,
                 )
 
             outcome = board.outcome(claim_draw=True)

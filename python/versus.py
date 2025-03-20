@@ -5,8 +5,8 @@ import time
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from bots_interfaces.CGBot import CGBot
-from bots_interfaces.StockfishBot import StockfishBot
 from bots_interfaces.RandomBot import RandomBot
+from bots_interfaces.StockfishBot import StockfishBot
 from tools.GameRunner import GameRunner
 
 

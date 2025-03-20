@@ -1,6 +1,7 @@
 #include "BotPlayer.hpp"
 
-BotPlayer::BotPlayer(AbstractAgent *agent) {
+BotPlayer::BotPlayer(AbstractAgent *agent)
+{
 
     this->_agent = agent;
 }
@@ -12,16 +13,18 @@ Move BotPlayer::choose_from(Board *board, vector<Move> moves)
 
     // Should be in the constructor
     // Depending on the player turn, we want to maximize or minimize the heuristic value
-    float (BotPlayer::*best_heuristic_choose)(float, float) = board->is_white_turn() ? &BotPlayer::max_float : &BotPlayer::min_float;
+    float (BotPlayer::*best_heuristic_choose)(float, float) =
+        board->is_white_turn() ? &BotPlayer::max_float : &BotPlayer::min_float;
 
-    int best_index = 0;
+    int   best_index = 0;
     float best_quality = qualities.at(0);
     float new_best_quality;
     for (int i = 1; i < qualities.size(); i++)
     {
         new_best_quality = (this->*best_heuristic_choose)(best_quality, qualities.at(i));
 
-        // cerr << "Move: " << moves.at(i).to_uci() << " | Quality: " << qualities.at(i) << " | Best quality: " << best_quality << " | New best quality: " << new_best_quality << endl;
+        // cerr << "Move: " << moves.at(i).to_uci() << " | Quality: " << qualities.at(i) << " | Best
+        // quality: " << best_quality << " | New best quality: " << new_best_quality << endl;
         if (best_quality != new_best_quality)
         {
             best_index = i;
@@ -42,10 +45,12 @@ string BotPlayer::get_name()
     return "Bot." + this->_agent->get_name();
 }
 
-float BotPlayer::max_float(float a, float b) {
+float BotPlayer::max_float(float a, float b)
+{
     return max(a, b);
 }
 
-float BotPlayer::min_float(float a, float b) {
+float BotPlayer::min_float(float a, float b)
+{
     return min(a, b);
 }

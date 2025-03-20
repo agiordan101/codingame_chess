@@ -46,9 +46,9 @@ setup:
 
 ### Format python code
 format:
+	clang-format -i -- */*.cpp */*/*.cpp */*/*.hpp
 	isort python/*
 	black python/*
-	flake8 python/*
 
 test: utest datasettest perft cgtest
 

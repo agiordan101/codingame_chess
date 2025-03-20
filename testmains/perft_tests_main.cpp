@@ -1,4 +1,4 @@
-# include "../srcs/chessengine/Board.hpp"
+#include "../srcs/chessengine/Board.hpp"
 
 int find_board_possibilities(Board *board, int depth, int max_depth)
 {
@@ -7,7 +7,7 @@ int find_board_possibilities(Board *board, int depth, int max_depth)
 
     vector<Move> moves = board->get_available_moves();
     // cerr << "Depth: " << depth << " Move count: " << moves.size() << endl;
-    
+
     int possibilities = 0;
     for (Move move : moves)
     {
@@ -52,7 +52,8 @@ int main()
 {
     // PArse csv file
     ifstream file("datasets/perft_dataset.csv");
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         cerr << "Error opening file" << endl;
         return 1;
     }
@@ -62,10 +63,10 @@ int main()
     string line;
     getline(file, line);
 
-    int id;
+    int    id;
     string fen;
-    int depths_count = 2;
-    int depths[depths_count];
+    int    depths_count = 2;
+    int    depths[depths_count];
 
     int success_count = 0;
     int total_count = 0;
@@ -74,7 +75,7 @@ int main()
         // cerr << line << endl;
 
         stringstream ss(line);
-        string buffer;
+        string       buffer;
 
         getline(ss, buffer, ',');
         id = stoi(buffer);
@@ -91,10 +92,12 @@ int main()
 
         // cerr << "Id: " << id << endl;
         // cerr << "FEN: " << fen << endl;
-        // cerr << "Depths: " << depths[0] << " " << depths[1] << " " << depths[2] << " " << depths[3] << " " << depths[4] << " " << depths[5] << endl;
+        // cerr << "Depths: " << depths[0] << " " << depths[1] << " " << depths[2] << " " <<
+        // depths[3] << " " << depths[4] << " " << depths[5] << endl;
     }
 
-    cerr << "[PERFT TEST] End: " << success_count << "/" << total_count << " tests were successfull ! (Depth " << depths_count << ")" << endl;
+    cerr << "[PERFT TEST] End: " << success_count << "/" << total_count
+         << " tests were successfull ! (Depth " << depths_count << ")" << endl;
 
     return 0;
 }

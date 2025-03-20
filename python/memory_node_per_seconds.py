@@ -1,11 +1,11 @@
 import argparse
 import random
 import time
-import chess
-import numpy as np
 
+import chess
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import numpy as np
 from bots_interfaces.CGBot import CGBot
 from bots_interfaces.StockfishBot import StockfishBot
 
@@ -56,17 +56,16 @@ def _update(frame, fig, ax1, ax2, lines, bot1, stats: dict):
 
     stats["nodes_count"].append(game_stats["states"])
 
-    stats["max_game_length"] = max(
-        stats["max_game_length"],
-        len(game_stats["states"])
-    )
+    stats["max_game_length"] = max(stats["max_game_length"], len(game_stats["states"]))
 
     # ISSUE: We shouldn't compute the average with zeros, coming from games that ended early
     # TODO: Fix this issue
 
     # Make sure all the arrays have the same length, the maximum game length of over all games
     for i, game_states in enumerate(stats["nodes_count"]):
-        stats["nodes_count"][i].extend([0] * (stats["max_game_length"] - len(game_states)))
+        stats["nodes_count"][i].extend(
+            [0] * (stats["max_game_length"] - len(game_states))
+        )
 
     # Filter out zeros before computing the average
     all_turn_nodes = []
@@ -99,7 +98,9 @@ def _update(frame, fig, ax1, ax2, lines, bot1, stats: dict):
 
     ax2.set_xlim(0, stats["max_game_length"])
     ax2.set_ylim(0, max(nodes_per_ms) * 1.1)
-    ax2.set_title(f"Explored Nodes per milliseconds ({len(stats['nodes_count'])} games)")
+    ax2.set_title(
+        f"Explored Nodes per milliseconds ({len(stats['nodes_count'])} games)"
+    )
 
     # Redraw the plot
     fig.canvas.draw()
@@ -111,7 +112,9 @@ def _display_stats(bot1: CGBot):
 
     lines = []
     lines.append(ax1.plot([], [], color="blue", label="Explored nodes")[0])
-    lines.append(ax2.plot([], [], color="purple", label="Explored Nodes per milliseconds")[0])
+    lines.append(
+        ax2.plot([], [], color="purple", label="Explored Nodes per milliseconds")[0]
+    )
 
     stats = {
         "max_game_length": 0,

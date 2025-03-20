@@ -1,22 +1,22 @@
 
-# include "../srcs/gameengine/GameEngineIntTests.hpp"
-# include "../srcs/agents/MinMaxAgent.hpp"
-# include "../srcs/heuristics/PiecesHeuristic.hpp"
-# include "../srcs/players/BotPlayer.hpp"
+#include "../srcs/agents/MinMaxAgent.hpp"
+#include "../srcs/gameengine/GameEngineIntTests.hpp"
+#include "../srcs/heuristics/PiecesHeuristic.hpp"
+#include "../srcs/players/BotPlayer.hpp"
 
 using namespace std;
 
 class Position
 {
     public:
-        string fen;
-        int move_count;
+        string         fen;
+        int            move_count;
         vector<string> moves;
-        bool ischeck;
-        int outcome;
+        bool           ischeck;
+        int            outcome;
 
-    Position(stringstream &ss);
-    void    print();
+        Position(stringstream &ss);
+        void print();
 };
 
 Position::Position(stringstream &ss)
@@ -41,7 +41,7 @@ Position::Position(stringstream &ss)
     outcome = stoi(buff);
 }
 
-void    Position::print()
+void Position::print()
 {
     cerr << "FEN: " << fen << endl;
     cerr << "Is check: " << ischeck << endl;
@@ -56,9 +56,10 @@ void    Position::print()
 void test_dataset(string file_name)
 {
     ifstream file("datasets/" + file_name + ".txt");
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         cerr << "Error opening file" << endl;
-        return ;
+        return;
     }
 
     PiecesHeuristic *heuristic = new PiecesHeuristic();
@@ -66,7 +67,7 @@ void test_dataset(string file_name)
     string lines;
     getline(file, lines, ',');
     stringstream ss(lines);
-    
+
     int max_len = 50000;
     int dataset_len = 0;
     // float elapsed_times[4] = {0, 0, 0, 0};
@@ -74,30 +75,30 @@ void test_dataset(string file_name)
     while (!ss.eof())
     {
         Position position(ss);
-        Board board = Board(position.fen);
-        
+        Board    board = Board(position.fen);
+
         int random_move = rand() % position.move_count;
 
         // clock_t start_time = clock();
         // board.get_available_moves();
         // elapsed_times[0] += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-        
+
         // start_time = clock();
         // board.apply_move(Move(position.moves[random_move]));
         // elapsed_times[1] += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-        
+
         // start_time = clock();
         // board.get_check_state();
         // elapsed_times[2] += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-        
+
         // start_time = clock();
         // board.get_game_state();
         // elapsed_times[3] += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
-        
+
         clock_t start_time = clock();
-        
+
         heuristic->evaluate(&board);
-        
+
         // board.get_available_moves();
         // board.apply_move(Move(position.moves[random_move]));
         // board.get_game_state();
@@ -106,19 +107,23 @@ void test_dataset(string file_name)
 
         elapsed_time += (float)(clock() - start_time) / CLOCKS_PER_SEC * 1000;
 
-        // cerr << "[TIME TEST] " << file_name << " in progress ... " << success_count << "/" << dataset_len << endl;
+        // cerr << "[TIME TEST] " << file_name << " in progress ... " << success_count << "/" <<
+        // dataset_len << endl;
         dataset_len++;
         if (dataset_len == max_len)
             break;
     }
 
-    // cerr << "[TIME TEST] " << file_name << " - End: get_available_moves() -> " << elapsed_times[0] << "ms \tfor " << dataset_len << " positions" << endl;
-    // cerr << "[TIME TEST] " << file_name << " - End: apply_move()          -> " << elapsed_times[1] << "ms \tfor " << dataset_len << " positions" << endl;
-    // cerr << "[TIME TEST] " << file_name << " - End: get_check_state()     -> " << elapsed_times[2] << "ms \tfor " << dataset_len << " positions" << endl;
-    // cerr << "[TIME TEST] " << file_name << " - End: get_game_state()      -> " << elapsed_times[3] << "ms \tfor " << dataset_len << " positions" << endl;
-    cerr << "[TIME TEST] " << file_name << " - End: 4 main functions      -> " << elapsed_time << "ms \tfor " << dataset_len << " positions" << endl;
+    // cerr << "[TIME TEST] " << file_name << " - End: get_available_moves() -> " <<
+    // elapsed_times[0] << "ms \tfor " << dataset_len << " positions" << endl; cerr << "[TIME TEST]
+    // " << file_name << " - End: apply_move()          -> " << elapsed_times[1] << "ms \tfor " <<
+    // dataset_len << " positions" << endl; cerr << "[TIME TEST] " << file_name << " - End:
+    // get_check_state()     -> " << elapsed_times[2] << "ms \tfor " << dataset_len << " positions"
+    // << endl; cerr << "[TIME TEST] " << file_name << " - End: get_game_state()      -> " <<
+    // elapsed_times[3] << "ms \tfor " << dataset_len << " positions" << endl;
+    cerr << "[TIME TEST] " << file_name << " - End: 4 main functions      -> " << elapsed_time
+         << "ms \tfor " << dataset_len << " positions" << endl;
 }
-
 
 int main()
 {

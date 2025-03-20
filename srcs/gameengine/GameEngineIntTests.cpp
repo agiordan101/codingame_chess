@@ -31,13 +31,15 @@ void GameEngineIntTests::infinite_game_loop()
         else
         {
             this->_board->apply_move(*this->_cg_last_move);
-            cerr << "\nGameEngineIntTests: loop: Board AFTER last move: " << this->_cg_last_move->to_uci() << endl;
+            cerr << "\nGameEngineIntTests: loop: Board AFTER last move: "
+                 << this->_cg_last_move->to_uci() << endl;
             this->_board->log(true);
         }
 
         if (this->_fen && !(*this->_board == this->_cg_board))
         {
-            cerr << "\nGameEngineIntTests: loop: Board is not the same as the one from CG: " << endl;
+            cerr << "\nGameEngineIntTests: loop: Board is not the same as the one from CG: "
+                 << endl;
             cerr << "GameEngineIntTests: loop: Board from CG:" << endl;
             this->_cg_board->log();
             cerr << "GameEngineIntTests: loop: Board from ChessEngine:" << endl;
@@ -52,16 +54,17 @@ void GameEngineIntTests::infinite_game_loop()
 
         // Print move UCI
         for (Move move : moves)
-           cerr << move.to_uci() << " ";
+            cerr << move.to_uci() << " ";
         cerr << endl;
 
         // // Compare move list
         // if (Move::compare_move_vector(moves, this->_possible_moves))
-        //     cerr << "GameEngineIntTests: loop: " << moves.size() << " legal moves were correctly found by the engine" << endl;
+        //     cerr << "GameEngineIntTests: loop: " << moves.size() << " legal moves were correctly
+        //     found by the engine" << endl;
         // else
         // {
-        //     cerr << "GameEngineIntTests: loop: Vector1: My chess board | Vector2: CG moves" << endl;
-        //     this->_board->log(true);
+        //     cerr << "GameEngineIntTests: loop: Vector1: My chess board | Vector2: CG moves" <<
+        //     endl; this->_board->log(true);
 
         //     exit(1);
         // }
@@ -71,7 +74,8 @@ void GameEngineIntTests::infinite_game_loop()
 
         this->_board->apply_move(move);
 
-        cerr << "\nGameEngineIntTests: loop: Board AFTER applying the choosen move: " << move.to_uci() << endl;
+        cerr << "\nGameEngineIntTests: loop: Board AFTER applying the choosen move: "
+             << move.to_uci() << endl;
         this->_board->log(true);
 
         cout << move.to_uci() << endl;
@@ -89,17 +93,20 @@ void GameEngineIntTests::infinite_game_loop()
 
 void GameEngineIntTests::_parse_first_turn()
 {
-    int constants_count;
+    int    constants_count;
     string name;
     string value;
-    bool    crazyHouse = false;
-    int     maxMoves = 0;
+    bool   crazyHouse = false;
+    int    maxMoves = 0;
 
-    cin >> constants_count; cin.ignore();
+    cin >> constants_count;
+    cin.ignore();
 
-    for (int i = 0; i < constants_count; i++) {
-        cin >> name >> value; cin.ignore();
-        
+    for (int i = 0; i < constants_count; i++)
+    {
+        cin >> name >> value;
+        cin.ignore();
+
         if (name == "crazyHouse")
             crazyHouse = value == "1";
         else if (name == "maxMoves")
@@ -109,7 +116,7 @@ void GameEngineIntTests::_parse_first_turn()
     // cerr << "GameEngineIntTests: first turn: maxMoves = " << maxMoves << endl;
 }
 
-void    GameEngineIntTests::_parse_turn()
+void GameEngineIntTests::_parse_turn()
 {
     // Parse last move
     string move;

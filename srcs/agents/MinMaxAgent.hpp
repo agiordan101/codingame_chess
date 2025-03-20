@@ -1,20 +1,21 @@
 #ifndef MINMAXAGENT_HPP
-# define MINMAXAGENT_HPP
+#define MINMAXAGENT_HPP
 
 #include "AbstractAgent.hpp"
 
-class MinMaxAgent : public AbstractAgent {
-
+class MinMaxAgent : public AbstractAgent
+{
     public:
         MinMaxAgent(AbstractHeuristic *heuristic, int depth);
-        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual void
+        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
         virtual string get_name() override;
         vector<string> get_stats() override;
 
     private:
-        AbstractHeuristic* _heuristic;
-        int _max_depth;
-        int _nodes_explored;
+        AbstractHeuristic *_heuristic;
+        int                _max_depth;
+        int                _nodes_explored;
 
         float minmax(Board *board, int depth, float alpha, float beta);
         float max_float(float a, float b);

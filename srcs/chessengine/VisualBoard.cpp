@@ -1,18 +1,21 @@
 #include "VisualBoard.hpp"
 
-VisualBoard::VisualBoard() {
+VisualBoard::VisualBoard()
+{
     std::locale::global(std::locale("C.UTF-8"));
     std::wcout.imbue(std::locale("C.UTF-8"));
 
     resetBoard();
 }
 
-void VisualBoard::resetBoard() {
+void VisualBoard::resetBoard()
+{
     // Initialize the board with empty spaces
     memset(board, EMPTY_CELL, 64);
 }
 
-void VisualBoard::updateBoard(char piece, uint64_t bitboard) {
+void VisualBoard::updateBoard(char piece, uint64_t bitboard)
+{
 
     uint64_t pos_mask = 1UL;
     for (int y = 0; y < 8; y++)
@@ -31,7 +34,8 @@ void VisualBoard::updateBoard(char piece, uint64_t bitboard) {
     }
 }
 
-void VisualBoard::printRawBoard() {
+void VisualBoard::printRawBoard()
+{
 
     cerr << "----+----------------" << endl;
     cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
@@ -47,7 +51,8 @@ void VisualBoard::printRawBoard() {
     cerr << "----+----------------" << endl;
 }
 
-void VisualBoard::printBoard() {
+void VisualBoard::printBoard()
+{
 
     cerr << "----+----------------" << endl;
     cerr << "yx  | 0 1 2 3 4 5 6 7" << endl;
@@ -73,7 +78,8 @@ void VisualBoard::printSpecificBoard(char piece, uint64_t bitboard, string title
     board.printBoard();
 }
 
-VisualBoard VisualBoard::clone() {
+VisualBoard VisualBoard::clone()
+{
     VisualBoard new_board;
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)

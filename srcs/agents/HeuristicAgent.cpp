@@ -8,7 +8,7 @@ HeuristicAgent::HeuristicAgent(AbstractHeuristic *heuristic)
 void HeuristicAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
     Board *next_turn_board;
-    float evaluation;
+    float  evaluation;
 
     for (int i = 0; i < moves.size(); i++)
     {

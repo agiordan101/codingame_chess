@@ -1,21 +1,23 @@
 #ifndef MINMAXITERDEEPAGENT_HPP
-# define MINMAXITERDEEPAGENT_HPP
+#define MINMAXITERDEEPAGENT_HPP
 
-# include "AbstractAgent.hpp"
+#include "AbstractAgent.hpp"
 
-class MinMaxIterDeepAgent : public AbstractAgent {
+class MinMaxIterDeepAgent : public AbstractAgent
+{
 
     public:
         MinMaxIterDeepAgent(AbstractHeuristic *heuristic, int ms_constraint);
-        virtual void            get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
-        virtual string          get_name() override;
-        vector<string>          get_stats() override;
+        virtual void
+        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual string get_name() override;
+        vector<string> get_stats() override;
 
     private:
-        AbstractHeuristic* _heuristic;
+        AbstractHeuristic *_heuristic;
 
-        int _ms_constraint;
-        float _ms_turn_stop;
+        int     _ms_constraint;
+        float   _ms_turn_stop;
         clock_t _start_time;
 
         int _depth_max_reached;
@@ -25,7 +27,7 @@ class MinMaxIterDeepAgent : public AbstractAgent {
         float max_node(Board *board, vector<Move> *moves, int max_depth, int depth);
         float min_node(Board *board, vector<Move> *moves, int max_depth, int depth);
 
-        bool is_time_up();
+        bool  is_time_up();
         float elapsed_time();
 };
 

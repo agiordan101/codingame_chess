@@ -25,7 +25,8 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
         delete new_board;
     }
 
-    cerr << this->get_name() << ": maxdepth=" << this->_max_depth << " nodes=" << this->_nodes_explored << endl;
+    cerr << this->get_name() << ": maxdepth=" << this->_max_depth
+         << " nodes=" << this->_nodes_explored << endl;
 }
 
 string MinMaxAgent::get_name()
@@ -69,7 +70,7 @@ float MinMaxAgent::minmax(Board *board, int depth, float alpha, float beta)
     }
 
     // Go deeper in each child nodes and keep the best one
-    float child_quality;
+    float        child_quality;
     vector<Move> moves = board->get_available_moves();
     for (Move move : moves)
     {
@@ -82,9 +83,12 @@ float MinMaxAgent::minmax(Board *board, int depth, float alpha, float beta)
         // Update best quality depending on the current node type - Maximize or minimize
         best_quality = (this->*child_quality_comp)(best_quality, child_quality);
 
-        // Alpha-beta pruning - Stop the search when we know the current node won't be chosen - 2 case :
-        // - Alpha cut : If we're in a min node and the current child min quality is lower than a brother node
-        // - Beta cut : If we're in a max node and the current child max quality is higher than a brother node
+        // Alpha-beta pruning - Stop the search when we know the current node won't be chosen - 2
+        // case :
+        // - Alpha cut : If we're in a min node and the current child min quality is lower than a
+        // brother node
+        // - Beta cut : If we're in a max node and the current child max quality is higher than a
+        // brother node
         if ((this->*alphabeta_cut)(best_quality, &alpha, &beta))
             return best_quality;
 
@@ -94,11 +98,13 @@ float MinMaxAgent::minmax(Board *board, int depth, float alpha, float beta)
     return best_quality;
 }
 
-float MinMaxAgent::max_float(float a, float b) {
+float MinMaxAgent::max_float(float a, float b)
+{
     return max(a, b);
 }
 
-float MinMaxAgent::min_float(float a, float b) {
+float MinMaxAgent::min_float(float a, float b)
+{
     return min(a, b);
 }
 

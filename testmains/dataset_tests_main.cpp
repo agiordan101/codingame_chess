@@ -1,16 +1,16 @@
-# include "../srcs/chessengine/Board.hpp"
+#include "../srcs/chessengine/Board.hpp"
 
 class Position
 {
     public:
-        string fen;
-        int move_count;
+        string         fen;
+        int            move_count;
         vector<string> moves;
-        bool ischeck;
-        int outcome;
+        bool           ischeck;
+        int            outcome;
 
-    Position(stringstream &ss);
-    void    print();
+        Position(stringstream &ss);
+        void print();
 };
 
 Position::Position(stringstream &ss)
@@ -36,7 +36,7 @@ Position::Position(stringstream &ss)
     outcome = stoi(buff);
 }
 
-void    Position::print()
+void Position::print()
 {
     cerr << "FEN: " << fen << endl;
     cerr << "Is check: " << ischeck << endl;
@@ -47,9 +47,6 @@ void    Position::print()
         cerr << move << " ";
     cerr << endl;
 }
-
-
-
 
 int compare_string_lists(vector<string> &list1, vector<string> &list2)
 {
@@ -69,14 +66,14 @@ int compare_string_lists(vector<string> &list1, vector<string> &list2)
 int test_position(Position *position)
 {
     Board board(position->fen, true, false);
-    int success = 1;
-    
-    vector<Move>    board_moves = board.get_available_moves();
-    bool            check_state = board.get_check_state();
-    int             game_state = board.get_game_state();
+    int   success = 1;
+
+    vector<Move> board_moves = board.get_available_moves();
+    bool         check_state = board.get_check_state();
+    int          game_state = board.get_game_state();
 
     // Compare moves
-    vector<string>  board_moves_uci;
+    vector<string> board_moves_uci;
     for (Move move : board_moves)
         board_moves_uci.push_back(move.to_uci());
 
@@ -125,19 +122,19 @@ int test_position(Position *position)
     return success;
 }
 
-
 void test_dataset(string file_name)
 {
     ifstream file("datasets/" + file_name + ".txt");
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         cerr << "Error opening file" << endl;
-        return ;
+        return;
     }
 
     string lines;
     getline(file, lines, ',');
     stringstream ss(lines);
-    
+
     int max_len = 50000;
     int dataset_len = 0;
     int success_count = 0;
@@ -145,16 +142,17 @@ void test_dataset(string file_name)
     {
         Position position(ss);
         success_count += test_position(&position);
-        
-        // cerr << "[DATASET TEST] " << file_name << " in progress ... " << success_count << "/" << dataset_len << endl;
+
+        // cerr << "[DATASET TEST] " << file_name << " in progress ... " << success_count << "/" <<
+        // dataset_len << endl;
         dataset_len++;
         if (dataset_len == max_len)
             break;
     }
 
-    cerr << "[DATASET TEST] " << file_name << " - End: " << success_count << "/" << dataset_len << " tests were successfull !" << endl;
+    cerr << "[DATASET TEST] " << file_name << " - End: " << success_count << "/" << dataset_len
+         << " tests were successfull !" << endl;
 }
-
 
 int main()
 {

@@ -1,129 +1,145 @@
 #include "MinMaxAgent.hpp"
 
-MinMaxAgent::MinMaxAgent(AbstractHeuristic *heuristic, int depth)
+MinMaxAgent::MinMaxAgent(AbstractHeuristic *heuristic, int ms_constraint)
 {
     this->_heuristic = heuristic;
-    this->_max_depth = depth;
+    this->_ms_constraint = ms_constraint;
+    this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_depth_max_reached = 0;
     this->_nodes_explored = 0;
+    this->_start_time = 0;
 }
 
 void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
     Board *new_board;
+
+    this->_start_time = clock();
     this->_nodes_explored = 0;
 
-    for (Move move : moves)
+    // Initialize qualities with 0
+    for (int i = 0; i < moves.size(); i++)
+        qualities->push_back(0);
+
+    int max_depth = 1;
+    while (!this->is_time_up())
     {
-        new_board = board->clone();
-        new_board->apply_move(move);
+        for (int i = 0; i < moves.size(); i++)
+        {
+            new_board = board->clone();
+            new_board->apply_move(moves[i]);
 
-        float move_quality = this->minmax(new_board, 1, -1, 1);
-        // cerr << "Move: " << move.to_uci() << " - Quality: " << move_quality << endl;
+            float move_quality = this->minmax(new_board, max_depth, 1);
+            // cerr << "Move: " << move.to_uci()
+            // << " - Quality: " << move_quality
+            // << endl;
 
-        qualities->push_back(move_quality);
+            qualities->at(i) = move_quality;
+            delete new_board;
+        }
 
-        delete new_board;
+        max_depth++;
     }
 
-    cerr << this->get_name() << ": maxdepth=" << this->_max_depth
-         << " nodes=" << this->_nodes_explored << endl;
-}
+    if (max_depth > this->_depth_max_reached)
+        this->_depth_max_reached = max_depth;
 
-string MinMaxAgent::get_name()
-{
-    return "MinMaxAgent[d=" + to_string(this->_max_depth) + "]." + this->_heuristic->get_name();
+    float dtime = elapsed_time();
+    if (dtime >= _ms_constraint)
+        cerr << "MinMaxAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
+             << endl;
 }
 
 vector<string> MinMaxAgent::get_stats()
 {
     vector<string> stats;
 
+    stats.push_back("depth=" + to_string(this->_depth_max_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << Board::get_name() + "MinMaxAgent: stats: " << stats[0] << endl;
+    cerr << this->get_name() << ": stats=" << stats[0] << " " << stats[1] << endl;
     return stats;
 }
 
-float MinMaxAgent::minmax(Board *board, int depth, float alpha, float beta)
+string MinMaxAgent::get_name()
+{
+    return Board::get_name() + ".MinMaxAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
+}
+
+float MinMaxAgent::minmax(Board *board, int max_depth, int depth)
 {
     this->_nodes_explored++;
 
-    // If we reach the max depth or the game is over, we evaluate the board
-    if (depth == this->_max_depth || board->get_game_state() != GAME_CONTINUE)
+    // If we reach the max depth or the game is
+    // over, we evaluate the board
+    if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);
 
+    vector<Move> moves = board->get_available_moves();
+
+    // Go deeper in each child nodes and keep the
+    // best one
     float best_quality;
-    float (MinMaxAgent::*child_quality_comp)(float, float);
-    bool (MinMaxAgent::*alphabeta_cut)(float, float *, float *);
     if (board->is_white_turn())
     {
-        // White wants to maximize the heuristic value
-        best_quality = -1;
-        child_quality_comp = &MinMaxAgent::max_float;
-        alphabeta_cut = &MinMaxAgent::beta_cut;
+        best_quality = this->max_node(board, &moves, max_depth, depth);
     }
     else
     {
-        // Black wants to minimize the heuristic value
-        best_quality = 1;
-        child_quality_comp = &MinMaxAgent::min_float;
-        alphabeta_cut = &MinMaxAgent::alpha_cut;
-    }
-
-    // Go deeper in each child nodes and keep the best one
-    float        child_quality;
-    vector<Move> moves = board->get_available_moves();
-    for (Move move : moves)
-    {
-        Board *new_board = board->clone();
-        new_board->apply_move(move);
-
-        // Compute child best quality
-        child_quality = this->minmax(new_board, depth + 1, alpha, beta);
-
-        // Update best quality depending on the current node type - Maximize or minimize
-        best_quality = (this->*child_quality_comp)(best_quality, child_quality);
-
-        // Alpha-beta pruning - Stop the search when we know the current node won't be chosen - 2
-        // case :
-        // - Alpha cut : If we're in a min node and the current child min quality is lower than a
-        // brother node
-        // - Beta cut : If we're in a max node and the current child max quality is higher than a
-        // brother node
-        if ((this->*alphabeta_cut)(best_quality, &alpha, &beta))
-            return best_quality;
-
-        delete new_board;
+        best_quality = this->min_node(board, &moves, max_depth, depth);
     }
 
     return best_quality;
 }
 
-float MinMaxAgent::max_float(float a, float b)
+float MinMaxAgent::max_node(Board *board, vector<Move> *moves, int max_depth, int depth)
 {
-    return max(a, b);
+    // White wants to maximize the heuristic value
+    float best_quality = -1;
+    for (Move move : *moves)
+    {
+        Board *new_board = board->clone();
+        new_board->apply_move(move);
+
+        float child_quality = this->minmax(new_board, max_depth, depth + 1);
+        delete new_board;
+
+        best_quality = max(best_quality, child_quality);
+
+        if (this->is_time_up())
+            break;
+    }
+
+    return best_quality;
 }
 
-float MinMaxAgent::min_float(float a, float b)
+float MinMaxAgent::min_node(Board *board, vector<Move> *moves, int max_depth, int depth)
 {
-    return min(a, b);
+    // Black wants to minimize the heuristic value
+    float best_quality = 1;
+    for (Move move : *moves)
+    {
+        Board *new_board = board->clone();
+        new_board->apply_move(move);
+
+        float child_quality = this->minmax(new_board, max_depth, depth + 1);
+        delete new_board;
+
+        best_quality = min(best_quality, child_quality);
+
+        if (this->is_time_up())
+            break;
+    }
+
+    return best_quality;
 }
 
-bool MinMaxAgent::alpha_cut(float best_quality, float *alpha, float *beta)
+bool MinMaxAgent::is_time_up()
 {
-    if (*alpha >= best_quality)
-        return true;
-
-    // Update beta for the next brother nodes
-    *beta = min(*beta, best_quality);
-    return false;
+    return this->elapsed_time() >= this->_ms_turn_stop;
 }
 
-bool MinMaxAgent::beta_cut(float best_quality, float *alpha, float *beta)
+float MinMaxAgent::elapsed_time()
 {
-    if (*beta <= best_quality)
-        return true;
-
-    // Update alpha for the next brother nodes
-    *alpha = max(*alpha, best_quality);
-    return false;
+    return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
 }

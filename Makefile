@@ -24,14 +24,12 @@ BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
-	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngineIntTests.cpp\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
-	$(SRCS_PATH)/agents/MinMaxIterDeepAgent.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main

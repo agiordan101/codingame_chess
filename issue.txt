@@ -1,6 +1,6 @@
 
-MinMaxIterDeepAgent[50ms].PiecesHeuristic: stats=depth=5 states=2034
-MinMaxIterDeepAgent[100ms].PiecesHeuristic: stats=depth=5 states=3106
+MinMaxAgent[50ms].PiecesHeuristic: stats=depth=5 states=2034
+MinMaxAgent[100ms].PiecesHeuristic: stats=depth=5 states=3106
 
 ->
 

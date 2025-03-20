@@ -97,6 +97,7 @@ All versions should be deployed in Codingame, with the resulting classement save
     * RandomAgent
     * HeuristicAgent
     * MinMaxAgent
+    * MinMaxAlphaBetaOldAgent
     * MCTSAgent
     * TimedAgent ?
 
@@ -154,7 +155,7 @@ Despite the rules, the final position after castling is always the same:
             x: -1
             y: -1
 
-#### MinMaxAgent
+#### MinMax algorithm
 
     - MinMax: Alternatively choose the min and the max value returned by the heuristic function
     - Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
@@ -210,7 +211,6 @@ Inside the file :
 
 - Next steps :
 
-    * Rename MinMaxAgent to MinMaxAlphaBetaAgent, and MinMaxIterDeepAgent to MinMaxAgent
     * Create BbMmPv
     * Optimize BitBoard :
         * Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
@@ -226,7 +226,7 @@ Inside the file :
                 - Simulate N games and create an average time for all methods ?
             - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * Transform game state from static define to enum
+    * Create BbMmPv-2, and compare with v1
 
     * In python script versus, write game results in a history file reserved for these opponents
     * ELO rating : take care of draws. Are ELO really being set ? Need versus 
@@ -236,9 +236,9 @@ Inside the file :
         - Think about 2 methods: for min node and max node
     * Create MinMaxAlphaBetaTransTableAgent
 
+    * Transform game state from static define to enum
     * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
     * BotPlayer : from vector to *vector
-
 
     * You can offer a draw to your opponent by adding = right after the move, without a space.
     * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
@@ -261,9 +261,9 @@ Inside the file :
 
 ## Bot comments
 
-### BitBoard.MinMaxIterDeepAgent[50ms].PiecesHeuristicBb
+### BitBoard.MinMaxAgent[50ms].PiecesHeuristicBb
 
-- Timing comparaison with Board.MinMaxIterDeepAgent[50ms].PiecesHeuristic
+- Timing comparaison with Board.MinMaxAgent[50ms].PiecesHeuristic
     - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
     - Board():                  From 80 ms to 1500 ms  -> 18x slower ..
     - get_available_moves():    From 2350 ms to 268 ms ->  9x faster

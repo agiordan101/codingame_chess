@@ -7,16 +7,15 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 ### Setup
 `make setup`
 
-### Run unit tests to assure everything is ok
+### Run all tests to assure everything is ok
 `make test`
 
-### Compile all bots
-`make`
+### Compile actual bot
+`make run`
 
 ### Compile a specific bot and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
+`make runcg`
 
-- `make mm2`
-- `make mm3`
 
 ### Python tools usage
 
@@ -29,7 +28,7 @@ Bot names, as python script argument, could be :
 
 Run a bunch of games against Stockfish instances with different ELO.
 From this dataset, we then fit linear regression algorithms to predict the given bot ELO. (i.e. With stockfish ELO would have a 50% win rate against the given bot)
- 
+
 `python3 python/versus.py {botName} {botName}`
 
 Displays a graph X: Stockfish ELO - Y: Winrate
@@ -41,9 +40,11 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 
 I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
 
-The idea is to implemente several algorithm and heuristic and benchmark them using python scripts and Stockfish.
+The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
+The actual best stable bot is BMmPv (board_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
+
 
 ## Versionning
 
@@ -58,13 +59,12 @@ These properties combinations are represented in 3 different ways:
 
     * A short name for executable name (PascalCase) : {chess_engine}{algorithm}{heuristic}{thinking_time}
     * A long name for logging name     (snake_case) : {chess_engine}_{algorithm}[{thinking_time}]_{heuristic}
-    * A version number for git tags (Num. with dots): {chess_engine_version}.{algorithm_version}.{heuristic_version}
 
 Examples:
 
-    * BMm2Pv / board_minimax[2]_piecevalues / 0.0.1 (No thinking time yet, just depth level)
-    * BbMmPv50 / bitboard_minimax[50]_piecevalues / 1.1.1
-    * BbMmttPv50 / bitboard_minimaxtranstable[50]_piecevalues / 1.2.1
+    * BMm2Pv / board_minimax[2]_piecevalues (No thinking time yet, just depth level)
+    * BbMmPv / bitboard_minimax[50]_piecevalues
+    * BbMmttPv / bitboard_minimaxtranstable[50]_piecevalues
 
 Git tag should be created when bot is stable and a next version begin to be developed.
 All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
@@ -77,8 +77,8 @@ All versions should be deployed in Codingame, with the resulting classement save
 ### Branches
 
 - main  ->  Bot deployed in CodinGame
+- tags  ->  Stable bot versions (Fully functionnal with CodinGame engine)
 - dev   ->  Last stable bot
-- tags  ->  Stable bot versions
 
 ### Entity heritage
 

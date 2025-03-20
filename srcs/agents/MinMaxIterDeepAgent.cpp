@@ -46,8 +46,8 @@ void MinMaxIterDeepAgent::get_qualities(Board *board, vector<Move> moves, vector
 
     float dtime = elapsed_time();
     if (dtime >= _ms_constraint)
-        cerr << "MinMaxIterDeepAgent: TIMEOUT: dtime="
-             << dtime << "/" << this->_ms_constraint << "ms" << endl;
+        cerr << "MinMaxIterDeepAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
+             << "ms" << endl;
 }
 
 vector<string> MinMaxIterDeepAgent::get_stats()

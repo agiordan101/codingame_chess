@@ -11,7 +11,7 @@ using namespace std;
 #include <string.h>
 #include <vector>
 
-#define CHESS960_RULES          1
+#define CHESS960_RULES 1
 
 #define PRINT_ENGINE_DATA 0
 #define PRINT_TURNS       0

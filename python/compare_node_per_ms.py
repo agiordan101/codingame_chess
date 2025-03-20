@@ -1,11 +1,11 @@
 import argparse
 import random
 import time
-import chess
-import numpy as np
 
+import chess
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import numpy as np
 from bots_interfaces.CGBot import CGBot
 from bots_interfaces.StockfishBot import StockfishBot
 
@@ -59,7 +59,7 @@ def _update_bot_plot(line, bot, bot_stats: dict):
 
     bot_stats["nodes_count"].append(game_stats["states"])
 
-    #Remove odd number that are more than two times greater than the 2nd gretaest number
+    # Remove odd number that are more than two times greater than the 2nd gretaest number
     for i, game_states in enumerate(bot_stats["nodes_count"]):
         if len(game_states) > 1:
             max_val = max(game_states)
@@ -70,21 +70,18 @@ def _update_bot_plot(line, bot, bot_stats: dict):
                         game_states[j] = second_max_val
 
     bot_stats["max_game_length"] = max(
-        bot_stats["max_game_length"],
-        len(game_stats["states"])
+        bot_stats["max_game_length"], len(game_stats["states"])
     )
 
     # Compute the average number of nodes explored for each turn
-    nodes_per_turn = np.array([
-        np.mean(
-            [
-                game[turn]
-                for game in bot_stats["nodes_count"]
-                if turn < len(game)
-            ]
-        )
-        for turn in range(bot_stats["max_game_length"])
-    ])
+    nodes_per_turn = np.array(
+        [
+            np.mean(
+                [game[turn] for game in bot_stats["nodes_count"] if turn < len(game)]
+            )
+            for turn in range(bot_stats["max_game_length"])
+        ]
+    )
 
     # Find the average nodes computed per millisecond, for each turns
     bot_stats["nodes_per_ms"] = nodes_per_turn / 50
@@ -105,21 +102,14 @@ def _update(frame, fig, ax, lines: list, bots: list[CGBot], stats: dict):
     for line, bot in zip(lines, bots):
         _update_bot_plot(line, bot, stats[bot.name])
 
-    max_game_length = max(
-        stats[bot.name]["max_game_length"]
-        for bot in bots
-    )
-    max_nodes_per_ms = max(
-        np.max(stats[bot.name]["nodes_per_ms"])
-        for bot in bots
-    )
+    max_game_length = max(stats[bot.name]["max_game_length"] for bot in bots)
+    max_nodes_per_ms = max(np.max(stats[bot.name]["nodes_per_ms"]) for bot in bots)
 
     ax.set_xlim(0, max_game_length)
     ax.set_ylim(0, max_nodes_per_ms * 1.1)
     ax.set_title(f"Explored Nodes per milliseconds ({frame + 1} games)")
 
-    #TODO: Find intersection of the two last bot lines: stats[bot.name]["nodes_per_ms"]
-
+    # TODO: Find intersection of the two last bot lines: stats[bot.name]["nodes_per_ms"]
 
     # Redraw the plot
     fig.canvas.draw()
@@ -129,16 +119,15 @@ def _display_stats(bots: list[CGBot]):
     # Create a figure and one axis
     fig, ax = plt.subplots(1, 1, figsize=(12, 6))
 
-    lines = [
-        ax.plot([], [], label=bot.name)[0]
-        for bot in bots
-    ]
+    lines = [ax.plot([], [], label=bot.name)[0] for bot in bots]
 
     stats = {
         bot.name: {
-            "max_game_length": 0,               # int: The maximum turn number of all games
-            "nodes_count": [],                  # list[list[int]]: The number of nodes explored at each turn, for all games
-            "nodes_per_turn": np.ndarray([]),   # np.ndarray: The actual average number of nodes explored for each turn (Computed at each game ends)
+            "max_game_length": 0,  # int: The maximum turn number of all games
+            "nodes_count": [],  # list[list[int]]: The number of nodes explored at each turn, for all games
+            "nodes_per_turn": np.ndarray(
+                []
+            ),  # np.ndarray: The actual average number of nodes explored for each turn (Computed at each game ends)
         }
         for bot in bots
     }
@@ -169,7 +158,7 @@ if __name__ == "__main__":
     )
 
     # Add a positional argument that can take multiple values
-    parser.add_argument("bot_names", type=str, nargs='+', help="Names of the bots.")
+    parser.add_argument("bot_names", type=str, nargs="+", help="Names of the bots.")
 
     # Parse the arguments
     args = parser.parse_args()

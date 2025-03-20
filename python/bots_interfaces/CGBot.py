@@ -60,7 +60,7 @@ class CGBot(AbstractBot):
         line = self.process.stdout.readline().strip()
         responses = line.split(" ")
 
-        data = {'move': responses[0]}
+        data = {"move": responses[0]}
         try:
             data.update(dict(map(lambda x: x.split("="), responses[1:])))
         except:

@@ -210,71 +210,53 @@ Inside the file :
 
 - Next steps :
 
-    * Board: Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
-        - Same shit than copying the board each turn...
+    * Rename MinMaxAgent to MinMaxAlphaBetaAgent, and MinMaxIterDeepAgent to MinMaxAgent
+    * Create BbMmPv
+    * Optimize BitBoard :
+        * Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
+            - Same shit than copying the board each turn...
+        * Improve Board::Board() !
+        * Test how much time we lose parsing the fen and recreating the board each turns
+        * Switch some function pointer at engine start depending on the rule ?
+            - It will speed up the engine
+            - We won't use boards with different rules in the same executable
+        * Time optimization :
+            - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
+            - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
+                - Simulate N games and create an average time for all methods ?
+            - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * Improve Board::Board() !
-
-    * Create PiecesHeuristicBb
+    * Transform game state from static define to enum
 
     * In python script versus, write game results in a history file reserved for these opponents
     * ELO rating : take care of draws. Are ELO really being set ? Need versus 
+    * Rework win ratio so it takes draws into count
 
-    * Test how much time we lose parsing the fen and recreating the board each turns
-    * Format c++ code
-
-    * Switch some function pointer at engine start depending on the rule ?
-        - It will speed up the engine
-        - We won't use boards with different rules in the same executable
-
-    * Regroup all .test. files into a tests folder
+    * Implement iterative deepening in MinMaxAlphaBetaAgent
+        - Think about 2 methods: for min node and max node
+    * Create MinMaxAlphaBetaTransTableAgent
 
     * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
-    * Reword win ratio so it takes draws into count
-
     * BotPlayer : from vector to *vector
+
 
     * You can offer a draw to your opponent by adding = right after the move, without a space.
     * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
 
-    * Create TimedAgent or TimedMinMax ? -> Probably not usefull as only the board performances make a real difference
-
-    * MinMaxIterDeepAgent:
-        - Then implement hash table
-        - Then alpha beta
-            - Think about 2 methods: for min node and max node
-
+    * Regroup all .test. files into a tests folder
     * Add png in README.md
-    * Transform game state from static define to enum
-
     * Setup git hooks:
         On commit:
             make test
         On push:
             make format
+    * Use valgrind to remove invalid reads
 
-    * Board optimization :
-        - (DONE) Do not optimize Board methods ! Don't break anything
-        - (DONE) Create AbstractBoard, and change almost all Board references to AbstractBoard (Unit test too)
-        - (DONE) Probably need to create more inline getter/Setter
-        - (DONE) Create bit Board implementation. Use the EXACT same solutions to simulate the game. (Don't optimize processes)
 
-        - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
-        - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
-            - Simulate N games and create an average time for all methods ?
-        - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
-        
     * Modify Board::Board(): Randomize the board generation
 
-    * Use valgrind to remove invalid reads
     * Try using smart pointers
     * CG game engine returns illegal castling move ? Report the bug ?
-
-
-- Refactor & Improvments :
-
-    * Board::Board() parsing protection from invalid FEN
-        - REgex to valid chess FEN ?
 
 
 ## Bot comments

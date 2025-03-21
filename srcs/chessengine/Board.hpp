@@ -98,7 +98,9 @@ class Board
         bool moves_computed;
 
     private:
+#if USE_VISUAL_BOARD == 1
         VisualBoard visual_board;
+#endif
 
         // Getters data
         bool         check_state;

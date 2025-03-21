@@ -26,23 +26,23 @@ def _update(frame, fig, ax, xdata, ydata, results, line, bot1, bot2):
     results["L"] += result["L"]
     results["D"] += result["D"]
 
-    if results["W"] + results["L"] == 0:
-        win_ratio = 0.5
-    else:
-        win_ratio = round(results["W"] / (results["W"] + results["L"]), 3)
+    game_count = results["W"] + results["L"] + results["D"]
+    win_ratio = round((results["W"] + 0.5 * results["D"]) / game_count, 3)
 
     # Append the game number and result to the plot data
-    xdata.append(frame * 2)
+    xdata.append(game_count)
     ydata.append(win_ratio)
 
     # Update the line data
     line.set_data(xdata, ydata)
 
     # Update the line label with the last division result
-    line.set_label(f'Win ratio: {win_ratio} (Draws: {results["D"]}/{frame * 2})')
+    line.set_label(
+        f'Average points: {win_ratio} ({results["W"]}W {results["D"]}D {results["L"]}L / {game_count} games)'
+    )
 
     # Adjust the plot limits
-    ax.set_xlim(0, frame * 2)
+    ax.set_xlim(0, game_count)
     ax.set_ylim(0, 1)
 
     # Update the legend

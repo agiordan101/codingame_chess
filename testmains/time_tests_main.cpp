@@ -61,7 +61,8 @@ void test_dataset(string file_name)
         return;
     }
 
-    PiecesHeuristic *heuristic = new PiecesHeuristic();
+    // PiecesHeuristic *heuristic = new PiecesHeuristic();
+    Board board = Board();
 
     string lines;
     getline(file, lines, ',');
@@ -74,7 +75,6 @@ void test_dataset(string file_name)
     while (!ss.eof())
     {
         Position position(ss);
-        Board    board = Board(position.fen);
 
         int random_move = rand() % position.move_count;
 
@@ -96,7 +96,9 @@ void test_dataset(string file_name)
 
         clock_t start_time = clock();
 
-        heuristic->evaluate(&board);
+        board = Board(position.fen);
+
+        // heuristic->evaluate(&board);
 
         // board.get_available_moves();
         // board.apply_move(Move(position.moves[random_move]));

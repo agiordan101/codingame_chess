@@ -5,7 +5,7 @@ from tools.GameRunner import GameRunner
 if __name__ == "__main__":
 
     runner = GameRunner()
-    bot1 = CGBot("mm2")
+    bot1 = CGBot("BbMmPv-2")
     # bot2 = CGBot("mm2")
     bot2 = RandomBot()
 

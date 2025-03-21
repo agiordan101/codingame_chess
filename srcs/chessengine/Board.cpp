@@ -10,7 +10,6 @@ uint64_t Board::king_lookup[64];
 
 Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule)
 {
-
     stringstream ss(_fen);
     string       board;
     string       color;
@@ -51,7 +50,6 @@ Board::Board(
 
 void Board::log(bool raw)
 {
-
     uint64_t rook;
 
     // Find all individual rooks in white_castles
@@ -91,10 +89,12 @@ void Board::log(bool raw)
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
 
+#if USE_VISUAL_BOARD == 1
     if (raw)
         this->visual_board.printRawBoard();
     else
         this->visual_board.printBoard();
+#endif
 }
 
 void Board::log_history(int turns)
@@ -143,6 +143,7 @@ void Board::apply_move(Move move)
     else if (piece == 'k')
         _move_black_king(move.src, move.dst, move.castle_info);
 
+#if USE_VISUAL_BOARD == 1
     this->visual_board.resetBoard();
     this->visual_board.updateBoard('P', white_pawns);
     this->visual_board.updateBoard('N', white_knights);
@@ -159,6 +160,7 @@ void Board::apply_move(Move move)
 
     if (PRINT_TURNS)
         this->visual_board.printBoard();
+#endif
 
     _update_engine_at_turn_end();
 }
@@ -186,7 +188,6 @@ bool Board::get_check_state()
 
 char Board::get_cell(int x, int y)
 {
-
     uint64_t pos_mask = 1UL << (y * 8 + x);
 
     return _get_cell(pos_mask);
@@ -301,7 +302,7 @@ string Board::create_fen(bool with_turns)
 Board *Board::clone()
 {
     // TODO: Create a new constructor, taking an instance in param, which then copy all the needed
-    // data
+    // data instead of creating and parsing FEN
     Board *cloned_board = new Board(create_fen(), chess960_rule, codingame_rule);
 
     // Copy history
@@ -330,7 +331,9 @@ void Board::_main_parsing(
     bool   _codingame_rule
 )
 {
+#if USE_VISUAL_BOARD == 1
     this->visual_board = VisualBoard();
+#endif
 
     if (Board::lookup_tables_initialized == false)
         Board::_initialize_lookup_tables();
@@ -395,13 +398,11 @@ void Board::_initialize_bitboards()
 
 void Board::_parse_board(string fen_board)
 {
-
     char pos_index = 0;
 
     // Parse _board string into boards
     for (int i = 0; i < fen_board.length(); i++)
     {
-
         char piece = fen_board[i];
 
         if (isdigit(piece))
@@ -427,6 +428,7 @@ void Board::_parse_board(string fen_board)
         }
     }
 
+#if USE_VISUAL_BOARD == 1
     this->visual_board.resetBoard();
     this->visual_board.updateBoard('P', white_pawns);
     this->visual_board.updateBoard('N', white_knights);
@@ -440,6 +442,7 @@ void Board::_parse_board(string fen_board)
     this->visual_board.updateBoard('r', black_rooks);
     this->visual_board.updateBoard('q', black_queens);
     this->visual_board.updateBoard('k', black_king);
+#endif
 }
 
 void Board::_parse_castling(string castling_fen)
@@ -457,14 +460,14 @@ void Board::_parse_castling(string castling_fen)
                 white_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '1');
             else
                 white_castles |=
-                    castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL;
+                    castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL; // Rooks
         }
         else
         {
             if (chess960_rule)
                 black_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '8');
             else
-                black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL;
+                black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL; // Rooks
         }
     }
 }
@@ -806,23 +809,19 @@ void Board::_update_engine_at_turn_start()
     // it
     pawn_uncheck_mask |= uncheck_mask;
 
-    if (PRINT_ENGINE_DATA)
+#if USE_VISUAL_BOARD == 1
+    if (PRINT_DEBUG_DATA)
     {
         this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
         this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
-        this->visual_board.printSpecificBoard('c', pawn_uncheck_mask, "Pawn uncheck mask");
     }
+#endif
 
     engine_data_updated = true;
 }
 
 void Board::_update_check_and_pins()
 {
-    // https://www.codeproject.com/Articles/5313417/Worlds-Fastest-board-Chess-Movegenerator
-    //  - We Define a checkmask
-    //  - We Define a pinmask
-    // Sliding pieces attacks: https://www.chessprogramming.org/Classical_Approach
-
     if (ally_king == 0UL)
     {
         check_state = false;
@@ -883,11 +882,6 @@ void Board::_update_pawn_check(int king_lkt_i)
 
     // Compute pawn attacks
     uint64_t attacking_pawn = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
-    // if (PRINT_ENGINE_DATA)
-    // {
-    //     this->visual_board.printSpecificBoard('T', uncheck_mask, "Uncheck mask");
-    //     this->visual_board.printSpecificBoard('Z', attacking_pawn, "Pawn attacks");
-    // }
     if (attacking_pawn)
     {
         check_state = true;
@@ -898,15 +892,6 @@ void Board::_update_pawn_check(int king_lkt_i)
         {
             if (white_turn)
             {
-                // if (PRINT_ENGINE_DATA)
-                // {
-                //     this->visual_board.printSpecificBoard('E', en_passant, "En passant");
-                //     this->visual_board.printSpecificBoard('T', en_passant << 8, "En passant");
-                //     this->visual_board.printSpecificBoard('A', attacking_pawn, "Attacking pawn");
-                //     cerr << "Attacking pawn: " << endl << std::bitset<64>(attacking_pawn) <<
-                //     endl; cerr << "En passant: " << endl << std::bitset<64>(en_passant << 8) <<
-                //     endl;
-                // }
                 if (attacking_pawn == (en_passant << 8))
                 {
                     // But only if no opponent diagonal sliding piece is hidden behind it
@@ -1138,17 +1123,12 @@ void Board::_find_moves()
         _find_black_king_moves();
     }
 
-    if (PRINT_TURNS)
-        this->visual_board.printBoard();
-
     this->moves_computed = true;
 }
 
 void Board::_find_white_pawns_moves(uint64_t src)
 {
     // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask &
-    // pin_mask
-    // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
 
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & capturable_by_white_pawns_mask;
@@ -1175,8 +1155,6 @@ void Board::_find_white_pawns_moves(uint64_t src)
 
 void Board::_find_white_knights_moves(uint64_t src)
 {
-    // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         knight_lookup[src_lkt_i] & not_white_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
@@ -1186,8 +1164,6 @@ void Board::_find_white_knights_moves(uint64_t src)
 
 void Board::_find_white_bishops_moves(uint64_t src)
 {
-    // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         not_white_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
@@ -1197,8 +1173,6 @@ void Board::_find_white_bishops_moves(uint64_t src)
 
 void Board::_find_white_rooks_moves(uint64_t src)
 {
-    // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         not_white_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
@@ -1208,8 +1182,6 @@ void Board::_find_white_rooks_moves(uint64_t src)
 
 void Board::_find_white_queens_moves(uint64_t src)
 {
-    // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) &
                            uncheck_mask & pin_masks[src_lkt_i];
@@ -1219,8 +1191,6 @@ void Board::_find_white_queens_moves(uint64_t src)
 
 void Board::_find_white_king_moves()
 {
-    // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     if (white_king)
     {
         int      src_lkt_i = _count_trailing_zeros(white_king);
@@ -1233,15 +1203,6 @@ void Board::_find_white_king_moves()
 
 void Board::_find_white_castle_moves(uint64_t rook)
 {
-
-    // if (PRINT_ENGINE_DATA)
-    // {
-    //     cerr << "White king: " << endl << std::bitset<64>(white_king) << endl;
-    //     cerr << "rook: " << endl << std::bitset<64>(rook) << endl;
-    //     cerr << "white_rooks: " << endl << std::bitset<64>(white_rooks) << endl;
-    //     cerr << "Check state: " << check_state << endl;
-    // }
-
     if (white_king && !check_state)
     {
         uint64_t      rook_path;
@@ -1261,12 +1222,6 @@ void Board::_find_white_castle_moves(uint64_t rook)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
             else
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_LEFT_ROOK);
-
-            // if (PRINT_ENGINE_DATA) {
-            //     cerr << "King final: " << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_KING)
-            //     << endl; cerr << "Rook final: " << endl <<
-            //     std::bitset<64>(BITMASK_CASTLE_WHITE_LEFT_ROOK) << endl;
-            // }
         }
         else
         {
@@ -1282,21 +1237,7 @@ void Board::_find_white_castle_moves(uint64_t rook)
                 rook_path = _compute_castling_positive_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
             else
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
-
-            // if (PRINT_ENGINE_DATA) {
-            //     cerr << "King final: " << endl <<
-            //     std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_KING) << endl; cerr << "Rook final: "
-            //     << endl << std::bitset<64>(BITMASK_CASTLE_WHITE_RIGHT_ROOK) << endl;
-            // }
         }
-
-        // if (PRINT_ENGINE_DATA) {
-        //     cerr << "King path: " << endl << std::bitset<64>(king_path) << endl;
-        //     cerr << "Rook path: " << endl << std::bitset<64>(rook_path) << endl;
-        //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
-        //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) <<
-        //     endl;
-        // }
 
         // Castle is legal if :
         // - No pieces are blocking both king and rook paths
@@ -1307,17 +1248,12 @@ void Board::_find_white_castle_moves(uint64_t rook)
             pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
-            if (PRINT_ATTACKS)
-                this->visual_board.updateBoard('o', rook);
         }
     }
 }
 
 void Board::_find_black_pawns_moves(uint64_t src)
 {
-    // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask &
-    // pin_mask
-    // TODO: Take care of checks and pins
     int src_lkt_i = _count_trailing_zeros(src);
 
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][1] & capturable_by_black_pawns_mask;
@@ -1344,8 +1280,6 @@ void Board::_find_black_pawns_moves(uint64_t src)
 
 void Board::_find_black_knights_moves(uint64_t src)
 {
-    // Generate knight moves: (knight position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         knight_lookup[src_lkt_i] & not_black_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
@@ -1355,8 +1289,6 @@ void Board::_find_black_knights_moves(uint64_t src)
 
 void Board::_find_black_bishops_moves(uint64_t src)
 {
-    // Generate bishop moves: (bishop position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         not_black_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
@@ -1366,8 +1298,6 @@ void Board::_find_black_bishops_moves(uint64_t src)
 
 void Board::_find_black_rooks_moves(uint64_t src)
 {
-    // Generate rook moves: (rook position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves =
         not_black_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
@@ -1377,8 +1307,6 @@ void Board::_find_black_rooks_moves(uint64_t src)
 
 void Board::_find_black_queens_moves(uint64_t src)
 {
-    // Generate queen moves: (queen position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) &
                            uncheck_mask & pin_masks[src_lkt_i];
@@ -1388,8 +1316,6 @@ void Board::_find_black_queens_moves(uint64_t src)
 
 void Board::_find_black_king_moves()
 {
-    // Generate king moves: (king position shifted) & ~ally_pieces & check_mask & pin_mask
-    // TODO: Take care of checks and pins
     if (black_king)
     {
         int      src_lkt_i = _count_trailing_zeros(black_king);
@@ -1402,14 +1328,6 @@ void Board::_find_black_king_moves()
 
 void Board::_find_black_castle_moves(uint64_t rook)
 {
-
-    // if (PRINT_ENGINE_DATA)
-    // {
-    //     cerr << "Black king: " << endl << std::bitset<64>(black_king) << endl;
-    //     cerr << "Rook: " << endl << std::bitset<64>(rook) << endl;
-    //     cerr << "Check state: " << check_state << endl;
-    // }
-
     if (black_king && !check_state)
     {
         uint64_t      rook_path;
@@ -1446,21 +1364,6 @@ void Board::_find_black_castle_moves(uint64_t rook)
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
         }
 
-        // if (PRINT_ENGINE_DATA) {
-        //     cerr << "king_path: " << endl << std::bitset<64>(king_path) << endl;
-        //     cerr << "rook_path: " << endl << std::bitset<64>(rook_path) << endl;
-        //     cerr << "All pieces mask: " << endl << std::bitset<64>(all_pieces_mask) << endl;
-        //     cerr << "Attacked cells mask: " << endl << std::bitset<64>(attacked_cells_mask) <<
-        //     endl; this->visual_board.printSpecificBoard('k', king_path, "King path");
-        //     this->visual_board.printSpecificBoard('r', rook_path, "Rook path");
-        //     this->visual_board.printSpecificBoard('#', all_pieces_mask, "All pieces mask");
-        //     this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells
-        //     mask"); this->visual_board.printSpecificBoard('I',
-        //     pin_masks[_count_trailing_zeros(rook)], "pin_masks[_count_trailing_zeros(rook)]");
-        //     cerr << "pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS: " <<
-        //     (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS) << endl;
-        // }
-
         // Castle is legal if :
         // - No pieces are blocking both king and rook paths
         // - No cells are attacked in the king path
@@ -1470,17 +1373,12 @@ void Board::_find_black_castle_moves(uint64_t rook)
             (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS))
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
-            if (PRINT_ATTACKS)
-                this->visual_board.updateBoard('o', rook);
         }
     }
 }
 
 void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
 {
-    if (PRINT_ATTACKS)
-        this->visual_board.updateBoard('o', dst);
-
     if (dst & BITMASK_LINE_81)
     {
         // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
@@ -1495,11 +1393,8 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
-    if (PRINT_ATTACKS)
-        this->visual_board.updateBoard('o', legal_moves);
-
-    uint64_t dst;
     // Find all individual bits in legal_moves
+    uint64_t dst;
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
@@ -1514,6 +1409,7 @@ void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 
 void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
 {
+    // Find all individual bits in bitboard
     uint64_t piece;
     while (bitboard)
     {
@@ -1547,10 +1443,6 @@ Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir, uint64_t
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
-    // VisualBoard vb = this->visual_board.clone();
-    // vb.updateBoard('*', sliding_lookup[src_lkt_i][dir]);
-    // vb.printBoard();
-
     // Find all pieces in the ray (Ignoring ally king when searching attacked cells)
     uint64_t blockers = attacks & (all_pieces_mask ^ piece_to_ignore);
     if (blockers)
@@ -1558,18 +1450,9 @@ Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir, uint64_t
         // Find the first blocker in the ray (the one with the smallest index)
         int src_lkt_i = _count_trailing_zeros(blockers);
 
-        // vb = this->visual_board.clone();
-        // vb.updateBoard('#', blockers);
-        // vb.updateBoard('X', sliding_lookup[src_lkt_i][dir]);
-        // vb.printBoard();
-
         // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
-
-    // vb = this->visual_board.clone();
-    // vb.updateBoard('X', attacks);
-    // vb.printBoard();
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
@@ -1581,10 +1464,6 @@ Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
-    // VisualBoard vb = this->visual_board.clone();
-    // vb.updateBoard('*', sliding_lookup[src_lkt_i][dir]);
-    // vb.printBoard();
-
     // Find all pieces in the ray (Ignoring ally king when searching attacked cells)
     uint64_t blockers = attacks & (all_pieces_mask ^ piece_to_ignore);
     if (blockers)
@@ -1593,18 +1472,9 @@ Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t
         uint64_t blocker = _get_most_significant_bit(blockers);
         int      src_lkt_i = _count_trailing_zeros(blocker);
 
-        // vb = this->visual_board.clone();
-        // vb.updateBoard('#', blockers);
-        // vb.updateBoard('X', sliding_lookup[src_lkt_i][dir]);
-        // vb.printBoard();
-
         // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
-
-    // vb = this->visual_board.clone();
-    // vb.updateBoard('X', attacks);
-    // vb.printBoard();
 
     // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
@@ -1617,26 +1487,8 @@ void Board::_compute_sliding_piece_positive_ray_checks_and_pins(
     int      king_lkt_i = _count_trailing_zeros(king_pos);
     uint64_t attacks = sliding_lookup[king_lkt_i][dir];
 
-    // cerr << "King pos: " << std::bitset<64>(king_pos) << endl;
-    // cerr << "King lkt i: " << king_lkt_i << endl;
-    // this->visual_board.printSpecificBoard('K', king_pos);
-
-    // VisualBoard vb = this->visual_board.clone();
-    // vb.updateBoard('*', sliding_lookup[king_lkt_i][dir]);
-    // vb.printBoard();
-
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
-
-    // if (dir == EAST)
-    // {
-    //     this->visual_board.printSpecificBoard('A', attacks,
-    //     "_compute_sliding_piece_negative_ray_checks_and_pins: attacks");
-    //     this->visual_board.printSpecificBoard('P', all_pieces_mask,
-    //     "_compute_sliding_piece_negative_ray_checks_and_pins: all_pieces_mask");
-    //     this->visual_board.printSpecificBoard('B', blockers,
-    //     "_compute_sliding_piece_negative_ray_checks_and_pins: blockers");
-    // }
 
     if (blockers)
     {
@@ -1644,34 +1496,12 @@ void Board::_compute_sliding_piece_positive_ray_checks_and_pins(
         uint64_t blocker = _get_least_significant_bit(blockers);
         int      blocker_lkt_i = _count_trailing_zeros(blocker);
 
-        // if (dir == EAST)
-        // {
-        //     this->visual_board.printSpecificBoard('b', blocker,
-        //     "_compute_sliding_piece_negative_ray_checks_and_pins: blockers");
-        //     this->visual_board.printSpecificBoard('p', potential_attacker,
-        //     "_compute_sliding_piece_negative_ray_checks_and_pins: potential_attacker");
-        //     this->visual_board.printSpecificBoard('A', blocker & potential_attacker,
-        //     "_compute_sliding_piece_negative_ray_checks_and_pins: blocker & potential_attacker");
-        // }
-
         // If the blocker is a potential attacker, there is check
         if (blocker & potential_attacker)
         {
             if (check_state)
                 double_check = true;
             check_state = true;
-
-            // if (dir == EAST)
-            // {
-            //     this->visual_board.printSpecificBoard('b', attacks,
-            //     "_compute_sliding_piece_negative_ray_checks_and_pins: attackss");
-            //     this->visual_board.printSpecificBoard('p', sliding_lookup[blocker_lkt_i][dir],
-            //     "_compute_sliding_piece_negative_ray_checks_and_pins:
-            //     sliding_lookup[blocker_lkt_i][dir]"); this->visual_board.printSpecificBoard('A',
-            //     attacks ^ sliding_lookup[blocker_lkt_i][dir],
-            //     "_compute_sliding_piece_negative_ray_checks_and_pins: attacks ^
-            //     sliding_lookup[blocker_lkt_i][dir]");
-            // }
 
             // Remove all squares behind the blocker
             uncheck_mask |= attacks ^ sliding_lookup[blocker_lkt_i][dir];
@@ -1695,11 +1525,6 @@ void Board::_compute_sliding_piece_positive_ray_checks_and_pins(
 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
-
-                    if (PRINT_ENGINE_DATA)
-                        this->visual_board.printSpecificBoard(
-                            'I', pin_masks[blocker_lkt_i], "PIN FOUND"
-                        );
                 }
             }
         }
@@ -1712,10 +1537,6 @@ void Board::_compute_sliding_piece_negative_ray_checks_and_pins(
 {
     int      king_lkt_i = _count_trailing_zeros(king_pos);
     uint64_t attacks = sliding_lookup[king_lkt_i][dir];
-
-    // VisualBoard vb = this->visual_board.clone();
-    // vb.updateBoard('*', sliding_lookup[king_lkt_i][dir]);
-    // vb.printBoard();
 
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
@@ -1755,11 +1576,6 @@ void Board::_compute_sliding_piece_negative_ray_checks_and_pins(
 
                     // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
-
-                    if (PRINT_ENGINE_DATA)
-                        this->visual_board.printSpecificBoard(
-                            'I', pin_masks[blocker_lkt_i], "PIN FOUND"
-                        );
                 }
             }
         }
@@ -1790,11 +1606,6 @@ bool Board::_is_sliding_piece_negative_diagonal_ray_behind(uint64_t pawn_pos, ra
     int      pawn_lkt_i = _count_trailing_zeros(pawn_pos);
     uint64_t attacks = sliding_lookup[pawn_lkt_i][dir];
 
-    // if (PRINT_ENGINE_DATA)
-    // {
-    //     this->visual_board.printSpecificBoard('A', attacks, "Behind pawn");
-    // }
-
     // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers)
@@ -1814,17 +1625,6 @@ uint64_t Board::_compute_castling_positive_path(uint64_t src, uint64_t dst)
     int src_lkt_i = _count_trailing_zeros(src);
     int dst_lkt_i = _count_trailing_zeros(dst);
 
-    // if (PRINT_ENGINE_DATA && (src & black_rooks)) {
-    //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
-    //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
-    //     cerr << "src_lkt_i: " << src_lkt_i << endl;
-    //     cerr << "dst_lkt_i: " << dst_lkt_i << endl;
-    //     cerr << "sliding_lookup[src_lkt_i][EAST]: " << endl <<
-    //     std::bitset<64>(sliding_lookup[src_lkt_i][EAST]) << endl; cerr <<
-    //     "sliding_lookup[dst_lkt_i][EAST]: " << endl <<
-    //     std::bitset<64>(sliding_lookup[dst_lkt_i][EAST]) << endl;
-    // }
-
     return sliding_lookup[src_lkt_i][EAST] ^ sliding_lookup[dst_lkt_i][EAST];
 }
 
@@ -1832,17 +1632,6 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 {
     int src_lkt_i = _count_trailing_zeros(src);
     int dst_lkt_i = _count_trailing_zeros(dst);
-
-    // if (PRINT_ENGINE_DATA && (src & black_rooks)) {
-    //     cerr << "src: " << endl << std::bitset<64>(src) << endl;
-    //     cerr << "dst: " << endl << std::bitset<64>(dst) << endl;
-    //     cerr << "src_lkt_i: " << src_lkt_i << endl;
-    //     cerr << "dst_lkt_i: " << dst_lkt_i << endl;
-    //     cerr << "sliding_lookup[src_lkt_i][WEST]: " << endl <<
-    //     std::bitset<64>(sliding_lookup[src_lkt_i][WEST]) << endl; cerr <<
-    //     "sliding_lookup[dst_lkt_i][WEST]: " << endl <<
-    //     std::bitset<64>(sliding_lookup[dst_lkt_i][WEST]) << endl;
-    // }
 
     return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
 }
@@ -1853,24 +1642,13 @@ float Board::_compute_game_state()
 {
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
-    {
-        if (PRINT_ENGINE_DATA)
-            cerr << "Draw: " << half_turn_rule << "/100 half-turns without capture or pawn move"
-                 << endl;
-
         return DRAW;
-    }
 
     // Convert this to PRE PROCESSING if ?
     if (codingame_rule)
     {
         if (game_turn > 125)
-        {
-            if (PRINT_ENGINE_DATA)
-                cerr << "Draw: " << game_turn << "/125 turns played" << endl;
-
             return DRAW;
-        }
     }
 
     vector<Move> moves = get_available_moves();
@@ -1880,9 +1658,6 @@ float Board::_compute_game_state()
     {
         if (get_check_state())
             return white_turn ? BLACK_WIN : WHITE_WIN;
-
-        if (PRINT_ENGINE_DATA)
-            cerr << "Stalemate" << endl;
         return DRAW;
     }
 
@@ -1902,16 +1677,10 @@ bool Board::_threefold_repetition_rule()
         if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
         {
             if (fen_found)
-            {
-                if (PRINT_ENGINE_DATA)
-                    cerr << "Threefold repetition rule: TRUE" << endl;
                 return true;
-            }
             fen_found = true;
         }
 
-    if (PRINT_ENGINE_DATA)
-        cerr << "Threefold repetition rule: FALSE" << endl;
     return false;
 }
 
@@ -1926,11 +1695,7 @@ bool Board::_insufficient_material_rule()
 
     // If there is multiple knights, it's not a material insufficient
     if (knights_count > 1)
-    {
-        if (PRINT_ENGINE_DATA)
-            cerr << "Insufficient material rule: FALSE" << endl;
         return false;
-    }
 
     int white_bishops_count = _count_bits(white_bishops);
     int black_bishops_count = _count_bits(black_bishops);
@@ -1938,23 +1703,13 @@ bool Board::_insufficient_material_rule()
 
     // If there is a knight and another piece, it's not a material insufficient
     if (knights_count == 1 && bishops_count > 0)
-    {
-        if (PRINT_ENGINE_DATA)
-            cerr << "Insufficient material rule: FALSE" << endl;
         return false;
-    }
 
     // If there is more than one bishop, on opposite colors, it's not a material insufficient
     uint64_t all_bishops = white_bishops | black_bishops;
     if ((all_bishops & BITMASK_WHITE_CELLS) && (all_bishops & BITMASK_BLACK_CELLS))
-    {
-        if (PRINT_ENGINE_DATA)
-            cerr << "Insufficient material rule: FALSE" << endl;
         return false;
-    }
 
-    if (PRINT_ENGINE_DATA)
-        cerr << "Insufficient material rule: TRUE" << endl;
     return true;
 }
 
@@ -1991,7 +1746,6 @@ void Board::_initialize_lookup_tables()
         }
     }
 
-    cerr << "!!!!!!!!!! Lookup tables initialized !!!!!!!!!!" << endl;
     Board::lookup_tables_initialized = true;
 }
 

@@ -105,13 +105,14 @@ def _challenge_all_stockfish(
         game_results[elo]["L"] += results["L"]
         game_results[elo]["D"] += results["D"]
 
-        if game_results[elo]["W"] + game_results[elo]["L"] == 0:
-            elo_winrates.append(0.5)
-        else:
-            elo_winrates.append(
-                game_results[elo]["W"]
-                / (game_results[elo]["W"] + game_results[elo]["L"])
-            )
+        game_count = (
+            game_results[elo]["W"] + game_results[elo]["L"] + game_results[elo]["D"]
+        )
+        elo_winrates.append(
+            (game_results[elo]["W"] + 0.5 * game_results[elo]["D"]) / game_count
+            if game_count
+            else 0.5
+        )
 
     # Create the dataset
     x_dots = np.array(elo_list).reshape(-1, 1)
@@ -154,7 +155,7 @@ def _elo_rating_ml(player: AbstractBot, elo_list: list):
 
     lines = []
     prediction_lines = []
-    for color in ["blue", "red", "orange", "purple", "green", "black"]:
+    for color in ["blue", "red", "orange"]:
         (line,) = ax.plot([], [], color=color)
         lines.append(line)
 
@@ -219,7 +220,7 @@ if __name__ == "__main__":
 
     # Create the bot using the name provided as an argument
     if args.bot_name[:2] == "sf":
-        p1 = StockfishBot(int(args.bot_name[2:]), time_per_turn=None)
+        p1 = StockfishBot(int(args.bot_name[2:]), time_per_turn=50)
     elif args.bot_name == "random":
         p1 = RandomBot()
     else:
@@ -228,7 +229,7 @@ if __name__ == "__main__":
     # Set random seed from current time
     random.seed(int(time.time()))
 
-    stockfish_elos = range(1000, 1700, 300)
+    stockfish_elos = range(1000, 2000, 50)
     _elo_rating_ml(p1, stockfish_elos)
 
     # Stub data

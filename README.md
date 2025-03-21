@@ -41,8 +41,8 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
 
 The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
-The actual best stable bot is BMmPv (board_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
-The actual bot in development is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual best stable bot is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual bot in development is BbMmPv-2 (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 
@@ -165,22 +165,15 @@ Despite the rules, the final position after castling is always the same:
 
 ### Python tools
 
-!!! NOT UP TO DATE !!!
-* What do I want from python ? :
-    - Integration test
-        * Create a random position, provide the FEN and a list of moves.
-        * Create a new type of standard input/output, where the C++ bot send all its available move. Python could asserts their validity
-    - Benchmark exe/bots - plots
+* What do I want from python :
     - Benchmark heuristic (See next sections)
         * Create a protocol and use stockfish for a MSE for example. (hard to normalize stockfish output ?)
         * Compare speed and results of all heuristic (First heuristic choice won't be much the same ?)
     - Evaluate a bot ELO (with stockfish)
-    - Create a dataset PO
-    - Python script that merge all specified files into 1 (For codingame bot programming)
 
 Info about Stockfish :
-    - Time constraints alter the ELO.
     - Under 10ms, ELO 1300 could be rated lower than 600
+    - Don't use Stockfish under 800 ELO ..
 
 #### Heuristics benchmarks
 
@@ -211,7 +204,9 @@ Inside the file :
 
 - Next steps :
 
-    * Create BbMmPv
+    * Board: Implement get_castling_rights()
+    * Python script that merge all specified files into 1 (For codingame bot programming)
+
     * Optimize BitBoard :
         * Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
             - Same shit than copying the board each turn...
@@ -226,13 +221,11 @@ Inside the file :
                 - Simulate N games and create an average time for all methods ?
             - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * Create BbMmPv-2, and compare with v1
-
     * In python script versus, write game results in a history file reserved for these opponents
     * ELO rating : take care of draws. Are ELO really being set ? Need versus 
     * Rework win ratio so it takes draws into count
 
-    * Implement iterative deepening in MinMaxAlphaBetaAgent
+    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
         - Think about 2 methods: for min node and max node
     * Create MinMaxAlphaBetaTransTableAgent
 
@@ -265,7 +258,7 @@ Inside the file :
 
 - Timing comparaison with Board.MinMaxAgent[50ms].PiecesHeuristic
     - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
-    - Board():                  From 80 ms to 1500 ms  -> 18x slower ..
+    - Board():                  From 80 ms to 1500 ms  -> 18x slower .. (1780 & 1165)
     - get_available_moves():    From 2350 ms to 268 ms ->  9x faster
     - apply_move():             From 32 ms to 100 ms   ->  3x slower
     - get_check_state():        From 18 ms to 18 ms    ->     Same
@@ -287,9 +280,7 @@ sf1000 100ms vs sf1000 10ms -> 60.0% win / 50 games
 sf1000 100ms vs sf1000 50ms -> 46.6% win / 50 games
 sf1000 100ms vs sf1000 None -> 47.3% win / 74 games
 sf1000 50ms  vs sf1000 None -> 48.3% win / 208 games
-
-mmid100      vs mmid50      -> 64% win / 70 games
-mmid100      vs mmid500     -> 22.2% win / 10 games
+sf1500 50ms  vs sf1500 None -> 107W 26D 127L / 260 games
 
 In conclusion, time per turn associated to Stockfish doesn't matter above 50ms
 

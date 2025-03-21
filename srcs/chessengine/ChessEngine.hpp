@@ -13,9 +13,9 @@ using namespace std;
 
 #define CHESS960_RULES 1
 
-#define PRINT_ENGINE_DATA 0
-#define PRINT_TURNS       0
-#define PRINT_ATTACKS     0
+#define USE_VISUAL_BOARD 0
+#define PRINT_DEBUG_DATA 0 & USE_VISUAL_BOARD
+#define PRINT_TURNS      0 & USE_VISUAL_BOARD
 
 #define EMPTY_CELL '-'
 

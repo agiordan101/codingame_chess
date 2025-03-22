@@ -211,16 +211,9 @@ Inside the file :
 
 - Next steps :
 
-    * Find a way to print history so i can create a unit test with several moves
-    * BbMmPv-rc est moins bon que BbMmPv: Probablement parce qu'il crash, la victoire est donc attribué l'adverssaire !
-        * Quel changement le fait crash ? Certainement le facon de créer une copie du board :
-            From : new_board = board->clone();
-            To :   new_board = *board;
-    
-    * dans versus.py il faut remettre la victoire à l'adverssaire lorsqu'un bot crash
-    * Pour quoi BbMmPv-rc et BbMmPv-2 ont un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
+    * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
-    * Ajouter un protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
+    * Ajouter une protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
     * Fix issue about non legal moves played !
        * k5rn/7p/1p4p1/2p1pp2/2P1P3/8/3N1PPP/2BBQKRN -> d8d2
        * k6r/5b2/1P6/1n2p2p/7b/8/1K6/5q2 -> d8d2

@@ -20,7 +20,7 @@ class MinMaxAgent : public AbstractAgent
         float   _ms_turn_stop;
         clock_t _start_time;
 
-        int _depth_max_reached;
+        int _depth_reached;
         int _nodes_explored;
 
         float minmax(Board *board, int max_depth, int depth);

@@ -1070,10 +1070,6 @@ void Board::_find_black_king_attacks()
 void Board::_find_moves()
 {
     // Reset move list
-    // TODO: Note that this function only erases the
-    //      elements, and that if the elements themselves are pointers, the
-    //      pointed-to memory is not touched in any way. Managing the pointer is
-    //      the user's responsibility.
     this->available_moves.clear();
 
     if (white_turn)

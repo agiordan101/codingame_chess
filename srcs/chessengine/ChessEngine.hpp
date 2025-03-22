@@ -142,7 +142,11 @@ inline void algebraic_to_coord(string algebraic, int *x, int *y)
 inline string coord_to_algebraic(int x, int y)
 {
     // 7, 7 -> "h1"
-    char algebraic[2] = {column_index_to_name(x), line_index_to_number(y)};
+    char algebraic[3];
+    algebraic[0] = (char)column_index_to_name(x);
+    algebraic[1] = (char)line_index_to_number(y);
+    algebraic[2] = '\0';
+
     return string(algebraic);
 }
 
@@ -159,22 +163,16 @@ inline string bitboard_to_algebraic(uint64_t bitboard)
 {
     // TODO: Hardcode all possibilities for faster execution
     // ...001011... -> "a8"
-    int      x = 0;
-    int      y = 0;
     uint64_t mask = 1UL;
     for (int i = 0; i < 64; i++)
     {
         if (bitboard & mask)
-        {
-            x = i % 8;
-            y = i / 8;
-            break;
-        }
+            return coord_to_algebraic(i % 8, i / 8);
 
         mask <<= 1;
     }
 
-    return coord_to_algebraic(x, y);
+    return "N/A";
 }
 
 /* BITWISE OPERATIONS */

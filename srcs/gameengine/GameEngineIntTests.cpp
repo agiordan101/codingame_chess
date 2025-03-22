@@ -49,7 +49,6 @@ void GameEngineIntTests::infinite_game_loop()
             exit(1);
         }
 
-        cerr << "move computed: " << this->_board->moves_computed << endl;
         vector<Move> moves = this->_board->get_available_moves();
 
         // Print move UCI

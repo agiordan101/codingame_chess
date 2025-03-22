@@ -56,7 +56,7 @@ vector<string> MinMaxAgent::get_stats()
 
     stats.push_back("depth=" + to_string(this->_depth_max_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << this->get_name() << ": stats=" << stats[0] << " " << stats[1] << endl;
+    cerr << "BbMmPv-3: stats=" << stats[0] << " " << stats[1] << endl;
     return stats;
 }
 

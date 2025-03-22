@@ -4,7 +4,7 @@ PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMmPv-2
+BOT_EXEC = BbMmPv-3
 
 flag = -g -O2 # -Wall -Wextra
 
@@ -81,3 +81,8 @@ runcg:
 ### Compile the actual bot (and run an engine to play against it ?)
 run:
 	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)
+
+### Just test come cpp behaviors
+poc:
+	g++ $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/main_poc
+	./bins/main_poc

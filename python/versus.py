@@ -109,14 +109,14 @@ if __name__ == "__main__":
     elif args.bot1_name[:2] == "sf":
         bot1 = StockfishBot(args.bot1_name[2:], 50)
     else:
-        bot1 = CGBot(args.bot1_name)
+        bot1 = CGBot("bins/" + args.bot1_name)
 
     if args.bot2_name == "random":
         bot2 = RandomBot()
     elif args.bot2_name[:2] == "sf":
         bot2 = StockfishBot(args.bot2_name[2:], 50)
     else:
-        bot2 = CGBot(args.bot2_name)
+        bot2 = CGBot("bins/" + args.bot2_name)
 
     # Set random seed from current time
     random.seed(int(time.time()))

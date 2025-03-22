@@ -73,6 +73,13 @@ Bot versions must be created on their tag commit. For example, an older version 
 All versions should have a ELO rating.
 All versions should be deployed in Codingame, with the resulting classement saved in this README.
 
+Before creating a new version :
+- Run all tests
+- Run format
+- Make sure it wins against the previous version
+- Change Agent name
+- Change Makefile exec name
+
 ## Project explanations
 
 ### Branches
@@ -204,14 +211,29 @@ Inside the file :
 
 - Next steps :
 
+    * Find a way to print history so i can create a unit test with several moves
+    * BbMmPv-rc est moins bon que BbMmPv: Probablement parce qu'il crash, la victoire est donc attribué l'adverssaire !
+        * Quel changement le fait crash ? Certainement le facon de créer une copie du board :
+            From : new_board = board->clone();
+            To :   new_board = *board;
+    
+    * dans versus.py il faut remettre la victoire à l'adverssaire lorsqu'un bot crash
+    * Pour quoi BbMmPv-rc et BbMmPv-2 ont un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
+
+    * Ajouter un protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
+    * Fix issue about non legal moves played !
+       * k5rn/7p/1p4p1/2p1pp2/2P1P3/8/3N1PPP/2BBQKRN -> d8d2
+       * k6r/5b2/1P6/1n2p2p/7b/8/1K6/5q2 -> d8d2
+       * nN4kn/8/8/5p2/2p2P2/8/8/4q1BK -> f1e1
+       * 1nk3Q1/6b1/8/1p2p3/2p1b3/8/3KP2P/1N3rN1 -> d8g8
+       * Looks like the last move is played. Could happen if the board hadn't been updated before generating moves. Possibly due to a wrong last move
+    * FIx issue about end game detection where the game should continue !
+      * 8/P1p1k1pp/R2p4/2b4P/2B4K/8/5rq1/8 b - - 17 44 -> Detected as DRAW
+
     * Board: Implement get_castling_rights()
     * Python script that merge all specified files into 1 (For codingame bot programming)
 
     * Optimize BitBoard :
-        * Create revert_last_move() method by saving a copy of the last board. Each recurcive instance of the MinMax function will need to revert ONE move, no more (while looping on the current available moves)
-            - Same shit than copying the board each turn...
-        * Improve Board::Board() !
-        * Test how much time we lose parsing the fen and recreating the board each turns
         * Switch some function pointer at engine start depending on the rule ?
             - It will speed up the engine
             - We won't use boards with different rules in the same executable
@@ -222,8 +244,17 @@ Inside the file :
             - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
     * In python script versus, write game results in a history file reserved for these opponents
-    * ELO rating : take care of draws. Are ELO really being set ? Need versus 
-    * Rework win ratio so it takes draws into count
+    * Find a way to print chess board in python.
+        Create with Mistral a game UI with button :
+           - Bot name selectors (With a human option)
+           - New game
+           - Previous move
+           - Next move
+           - Add in CG protocol:
+                Available UCI move with its score
+           - Show available moves
+           - Show move scores
+           - Show last move
 
     * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
         - Think about 2 methods: for min node and max node

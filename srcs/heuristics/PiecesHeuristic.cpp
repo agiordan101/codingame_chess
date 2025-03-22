@@ -2,11 +2,6 @@
 
 float PiecesHeuristic::evaluate(Board *board)
 {
-    // 8*1 + 2*3 + 2*3.2 + 2*5 + 9 = 41.4
-    // Divide by more than the actual max possible sum will stand out end games
-    const float max_value = 51;
-    float       evaluation = 0;
-
     float state = board->get_game_state();
     if (state != GAME_CONTINUE)
     {
@@ -29,24 +24,14 @@ float PiecesHeuristic::evaluate(Board *board)
     int black_rook_count = _count_bits(board->black_rooks);
     int black_queen_count = _count_bits(board->black_queens);
 
-    evaluation =
+    float evaluation =
         white_pawn_count - black_pawn_count + 3 * (white_knight_count - black_knight_count) +
         3.2 * (white_bishop_count - black_bishop_count) +
         5 * (white_rook_count - black_rook_count) + 9 * (white_queen_count - black_queen_count);
 
-    float policy;
-    if (evaluation > max_value)
-        policy = 0.95f;
-    else if (evaluation < -max_value)
-        policy = -0.95f;
-    else
-        policy = evaluation / max_value;
-
-    if (policy > 1)
-        cerr << get_name() << ": FEN: " << board->create_fen() << " | Pieces sum: " << evaluation
-             << " | Policy: " << policy << endl;
-
-    return policy;
+    if (evaluation > 0)
+        return 1 - 1.0 / (1 + evaluation);
+    return -1 - 1.0 / (-1 + evaluation);
 }
 
 string PiecesHeuristic::get_name()

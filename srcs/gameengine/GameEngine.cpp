@@ -46,7 +46,7 @@ void GameEngine::infinite_game_loop()
         if (game_state != GAME_CONTINUE)
         {
             cerr << "\nGameEngine: Game is over : " << game_state << endl;
-            this->_board->log();
+            this->_board->log(true);
             // if (this->_board)
             //     delete this->_board;
         }

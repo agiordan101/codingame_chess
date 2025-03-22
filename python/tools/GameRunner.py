@@ -24,8 +24,17 @@ class GameRunner:
 
             try:
                 board.push(chess.Move.from_uci(move))
-            except AssertionError as e:
-                print(f"AssertionError: {e}")
+            except Exception as e:
+                print(f"Exception: {e}")
+
+                # exit(0)
+
+                # Act like it's a draw
+                # return chess.Outcome(
+                #     termination=chess.Termination(2),
+                #     winner=None
+                # )
+
                 # Give the win to the other player
                 # winner=True when p1 wins
                 return chess.Outcome(

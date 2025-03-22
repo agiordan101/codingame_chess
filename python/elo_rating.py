@@ -224,7 +224,7 @@ if __name__ == "__main__":
     elif args.bot_name == "random":
         p1 = RandomBot()
     else:
-        p1 = CGBot(args.bot_name)
+        p1 = CGBot("bins/" + args.bot_name)
 
     # Set random seed from current time
     random.seed(int(time.time()))

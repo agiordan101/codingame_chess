@@ -164,7 +164,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create a list of CGBot instances from the provided bot names
-    bots = [CGBot(bot_name) for bot_name in args.bot_names]
+    bots = [CGBot("bins/" + bot_name) for bot_name in args.bot_names]
 
     # Set random seed from current time
     random.seed(int(time.time()))

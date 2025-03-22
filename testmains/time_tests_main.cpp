@@ -98,6 +98,8 @@ void test_dataset(string file_name)
 
         board = Board(position.fen);
 
+        // Board newboard = board;
+
         // heuristic->evaluate(&board);
 
         // board.get_available_moves();

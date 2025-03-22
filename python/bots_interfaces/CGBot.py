@@ -13,7 +13,7 @@ class CGBot(AbstractBot):
 
     def __init__(self, name: str):
         self.name = name
-        self.path = "bins/" + name
+        self.path = name
 
     def __str__(self) -> str:
         return self.name

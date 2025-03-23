@@ -56,10 +56,10 @@ vector<string> MinMaxAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmPv-5");
+    stats.push_back("version=BbMmPv-6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmPv-6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

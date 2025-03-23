@@ -79,6 +79,22 @@ Before creating a new version :
 - Change Agent name
 - Change Makefile exec name
 
+## Bot versions deployed in CodinGame
+
+BOSSES elo :
+
+- Wood 2 ligue - BOSS-1 - 28,13
+
+### BbMmPv-5
+
+Submit date: 23.03.2025 22H12
+CG elo: 27,18
+Ligue: Wood 2
+Rank: 1/315
+
+### BbMmPv-6
+
+
 ## Project explanations
 
 ### Branches

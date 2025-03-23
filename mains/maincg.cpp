@@ -1118,7 +1118,6 @@ string Board::create_fen(bool with_turns)
     // Write game turn
     fen_string += to_string(game_turn);
 
-    cerr << "FEN: " << fen_string << endl;
     return fen_string;
 }
 
@@ -1547,8 +1546,18 @@ void Board::_capture_white_pieces(uint64_t dst)
         // incremented at the end of the turn)
         half_turn_rule = -1;
 
-        // Remove the captured piece
         uint64_t not_dst_mask = ~dst;
+
+        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
+        // the rook
+        if (dst & white_castles)
+        {
+            white_castles &= not_dst_mask;
+            white_rooks &= not_dst_mask;
+            return;
+        }
+
+        // Remove the captured piece
         white_pawns &= not_dst_mask;
         white_knights &= not_dst_mask;
         white_bishops &= not_dst_mask;
@@ -1566,8 +1575,18 @@ void Board::_capture_black_pieces(uint64_t dst)
         // incremented at the end of the turn)
         half_turn_rule = -1;
 
-        // Remove the captured piece
         uint64_t not_dst_mask = ~dst;
+
+        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
+        // the rook
+        if (dst & black_castles)
+        {
+            black_castles &= not_dst_mask;
+            black_rooks &= not_dst_mask;
+            return;
+        }
+
+        // Remove the captured piece
         black_pawns &= not_dst_mask;
         black_knights &= not_dst_mask;
         black_bishops &= not_dst_mask;
@@ -2966,10 +2985,10 @@ vector<string> MinMaxAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmPv-5");
+    stats.push_back("version=BbMmPv-6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmPv-6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

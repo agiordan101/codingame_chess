@@ -12,14 +12,19 @@ class GameEngine
         void infinite_game_loop();
 
     private:
-        BotPlayer *_player;
-        bool       _lastmove;
-        bool       _fen;
-        bool       _moves;
-        bool       _draw;
-        bool       _game;
-        bool       _score;
+        // Inputs from CG protocol - First turn
+        bool crazy_house;
+        int  max_moves;
 
+        // Inputs from CG protocol - Other turns
+        bool _lastmove;
+        bool _fen;
+        bool _moves;
+        bool _draw;
+        bool _game;
+        bool _score;
+
+        BotPlayer   *_player;
         Move        *_cg_last_move;
         Board       *_cg_board;
         Board       *_board;

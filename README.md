@@ -211,6 +211,9 @@ Inside the file :
 
 - Next steps :
 
+    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
+        - Think about 2 methods: for min node and max node
+
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
     * Ajouter une protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
@@ -224,7 +227,6 @@ Inside the file :
       * 8/P1p1k1pp/R2p4/2b4P/2B4K/8/5rq1/8 b - - 17 44 -> Detected as DRAW
 
     * Board: Implement get_castling_rights()
-    * Python script that merge all specified files into 1 (For codingame bot programming)
 
     * Optimize BitBoard :
         * Switch some function pointer at engine start depending on the rule ?
@@ -249,8 +251,6 @@ Inside the file :
            - Show move scores
            - Show last move
 
-    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
-        - Think about 2 methods: for min node and max node
     * Create MinMaxAlphaBetaTransTableAgent
 
     * Transform game state from static define to enum
@@ -260,7 +260,11 @@ Inside the file :
     * You can offer a draw to your opponent by adding = right after the move, without a space.
     * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
 
-    * Regroup all .test. files into a tests folder
+    * Project architecture :
+        * Regroup all .test. files into a tests folder
+        * Remove AbstractPLayer
+        * Move ChessEngine.hpp in ./srcs
+
     * Add png in README.md
     * Setup git hooks:
         On commit:

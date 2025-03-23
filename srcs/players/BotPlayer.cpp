@@ -19,7 +19,7 @@ Move BotPlayer::choose_from(Board *board, vector<Move> moves)
     int   best_index = 0;
     float best_quality = qualities.at(0);
     float new_best_quality;
-    for (int i = 1; i < qualities.size(); i++)
+    for (size_t i = 1; i < qualities.size(); i++)
     {
         new_best_quality = (this->*best_heuristic_choose)(best_quality, qualities.at(i));
 

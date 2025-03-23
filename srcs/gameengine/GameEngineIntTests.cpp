@@ -44,7 +44,6 @@ void GameEngineIntTests::infinite_game_loop()
             this->_cg_board->log();
             cerr << "GameEngineIntTests: loop: Board from ChessEngine:" << endl;
             this->_board->log(true);
-            this->_board->log_history(3);
 
             exit(1);
         }

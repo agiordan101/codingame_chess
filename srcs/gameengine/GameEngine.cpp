@@ -60,8 +60,8 @@ void GameEngine::_parse_first_turn()
     int    constants_count;
     string name;
     string value;
-    bool   crazyHouse = false;
-    int    maxMoves = 0;
+    bool   crazy_house = false;
+    int    max_moves = 0;
 
     cin >> constants_count;
     cin.ignore();
@@ -72,10 +72,13 @@ void GameEngine::_parse_first_turn()
         cin.ignore();
 
         if (name == "crazyHouse")
-            crazyHouse = value == "1";
+            crazy_house = value == "1";
         else if (name == "maxMoves")
-            maxMoves = stoi(value);
+            max_moves = stoi(value);
     }
+
+    this->crazy_house = crazy_house;
+    this->max_moves = max_moves;
 }
 
 void GameEngine::_parse_turn()
@@ -101,7 +104,9 @@ void GameEngine::_parse_turn()
 
     if (this->_cg_board)
         delete this->_cg_board;
-    this->_cg_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
+    this->_cg_board = new Board(
+        board, color, castling, en_passant, half_move_clock, full_move, this->crazy_house
+    );
 
     cin.ignore();
 }

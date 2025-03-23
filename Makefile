@@ -4,9 +4,9 @@ PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMmPv-4
+BOT_EXEC = BbMmPv-5
 
-flag = -g -O2 # -Wall -Wextra
+flag = -g -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
 SRCS_PATH = srcs
 ALL_FILES = $(wildcard $(SRCS_PATH)/*/*.cpp)
@@ -70,17 +70,17 @@ perft:
 
 ### Compile the actual bot with a special GameEngine, to compare codingame chess engine and mine
 cgtest:
-	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ./bins/$(CG_EXEC)
-	cp ./bins/$(CG_EXEC) ../codingame-chess/$(CG_EXEC)
-
-### Compile the actual bot to run it against the codingame engine
-runcg:
-	g++ $(flag) mains/maincg.cpp $(BOT_SRCS) -o ./bins/$(CG_EXEC)
-	cp ./bins/$(CG_EXEC) ../codingame-chess/$(CG_EXEC)
+	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ../codingame-chess/$(CG_EXEC)
 
 ### Compile the actual bot (and run an engine to play against it ?)
 run:
 	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)
+
+### Group source code in one file and compile it (to run it against the codingame engine)
+buildcg:
+	python3 python/codingame_file_creator.py
+	clang-format -i -- mains/maincg.cpp
+	g++ $(flag) mains/maincg.cpp -o ../codingame-chess/$(CG_EXEC)
 
 ### Just test come cpp behaviors
 poc:

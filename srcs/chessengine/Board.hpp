@@ -92,7 +92,6 @@ class Board
         void         apply_move(Move move);
 
         void log(bool raw = false);
-        void log_history(int turns = -1);
 
         bool operator==(Board *test_board);
         bool moves_computed;

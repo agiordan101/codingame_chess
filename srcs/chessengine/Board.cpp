@@ -94,11 +94,9 @@ void Board::log(bool raw)
         this->visual_board.printRawBoard();
     else
         this->visual_board.printBoard();
+#else
+    raw = raw;
 #endif
-}
-
-void Board::log_history(int turns)
-{
 }
 
 void Board::apply_move(Move move)
@@ -401,7 +399,7 @@ void Board::_parse_board(string fen_board)
     char pos_index = 0;
 
     // Parse _board string into boards
-    for (int i = 0; i < fen_board.length(); i++)
+    for (size_t i = 0; i < fen_board.length(); i++)
     {
         char piece = fen_board[i];
 
@@ -452,7 +450,7 @@ void Board::_parse_castling(string castling_fen)
         return;
 
     // Parse castling fen 'AHah' into 0707 for example
-    for (int i = 0; i < castling_fen.length(); i++)
+    for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
         {
@@ -1759,10 +1757,10 @@ void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, 
 
     // Left capture
     if (x > 0 && y > 0)
-        pawn_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+        pawn_mask |= (position >> 9);
     // Right capture
     if (x < 7 && y > 0)
-        pawn_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+        pawn_mask |= (position >> 7);
 
     pawn_captures_lookup[lkt_i][0] = pawn_mask;
 
@@ -1771,10 +1769,10 @@ void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, 
 
     // Left capture
     if (x > 0 && y < 7)
-        pawn_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+        pawn_mask |= position << 7;
     // Right capture
     if (x < 7 && y < 7)
-        pawn_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+        pawn_mask |= position << 9;
 
     pawn_captures_lookup[lkt_i][1] = pawn_mask;
 }
@@ -1782,41 +1780,42 @@ void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, 
 void Board::_create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
     uint64_t knight_mask = 0UL;
-    if (x > 0)
+
+    if (y > 0)
+    {
+        // 2 left 1 down
+        if (x > 1)
+            knight_mask |= position >> 10;
+        // 2 right 1 down
+        if (x < 6)
+            knight_mask |= position >> 6;
+    }
+    if (y > 1)
     {
         // 2 up 1 left
-        if (y > 1)
-            knight_mask |= 1UL << ((y - 2) * 8 + (x - 1));
-        // 2 down 1 left
-        if (y < 6)
-            knight_mask |= 1UL << ((y + 2) * 8 + (x - 1));
+        if (x > 0)
+            knight_mask |= position >> 17;
+        // 2 up 1 right
+        if (x < 7)
+            knight_mask |= position >> 15;
     }
-    if (x > 1)
+    if (y < 6)
+    {
+        // 2 down 1 left
+        if (x > 0)
+            knight_mask |= position << 15;
+        // 2 down 1 right
+        if (x < 7)
+            knight_mask |= position << 17;
+    }
+    if (y < 7)
     {
         // 2 left 1 up
-        if (y > 0)
-            knight_mask |= 1UL << ((y - 1) * 8 + (x - 2));
-        // 2 left 1 down
-        if (y < 7)
-            knight_mask |= 1UL << ((y + 1) * 8 + (x - 2));
-    }
-    if (x < 6)
-    {
-        // 2 right 1 down
-        if (y > 0)
-            knight_mask |= 1UL << ((y - 1) * 8 + (x + 2));
+        if (x > 1)
+            knight_mask |= position << 6;
         // 2 right 1 up
-        if (y < 7)
-            knight_mask |= 1UL << ((y + 1) * 8 + (x + 2));
-    }
-    if (x < 7)
-    {
-        // 2 up 1 right
-        if (y > 1)
-            knight_mask |= 1UL << ((y - 2) * 8 + (x + 1));
-        // 2 down 1 right
-        if (y < 6)
-            knight_mask |= 1UL << ((y + 2) * 8 + (x + 1));
+        if (x < 6)
+            knight_mask |= position << 10;
     }
 
     knight_lookup[lkt_i] = knight_mask;
@@ -1896,30 +1895,30 @@ void Board::_create_king_lookup_table(int y, int x, uint64_t position, int lkt_i
     {
         // 1 up left
         if (y > 0)
-            king_mask |= 1UL << ((y - 1) * 8 + (x - 1));
+            king_mask |= position >> 9;
         // 1 left
-        king_mask |= 1UL << (y * 8 + (x - 1));
+        king_mask |= position >> 1;
         // 1 down left
         if (y < 7)
-            king_mask |= 1UL << ((y + 1) * 8 + (x - 1));
+            king_mask |= position << 7;
     }
     if (x < 7)
     {
         // 1 up right
         if (y > 0)
-            king_mask |= 1UL << ((y - 1) * 8 + (x + 1));
+            king_mask |= position >> 7;
         // 1 right
-        king_mask |= 1UL << (y * 8 + (x + 1));
+        king_mask |= position << 1;
         // 1 down right
         if (y < 7)
-            king_mask |= 1UL << ((y + 1) * 8 + (x + 1));
+            king_mask |= position << 9;
     }
     // 1 up
     if (y > 0)
-        king_mask |= 1UL << ((y - 1) * 8 + x);
+        king_mask |= position >> 8;
     // 1 down
     if (y < 7)
-        king_mask |= 1UL << ((y + 1) * 8 + x);
+        king_mask |= position << 8;
 
     king_lookup[lkt_i] = king_mask;
 }

@@ -14,7 +14,7 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
 {
     this->_start_time = clock();
 
-    for (int i = 0; i < moves.size(); i++)
+    for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
     // If the max_depth is too low, it would recalculate too much moves !
@@ -23,7 +23,7 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
     this->_nodes_explored = 0;
     while (!this->is_time_up())
     {
-        for (int i = 0; i < moves.size(); i++)
+        for (size_t i = 0; i < moves.size(); i++)
         {
             Board new_board = *board;
             new_board.apply_move(moves[i]);
@@ -53,9 +53,10 @@ vector<string> MinMaxAgent::get_stats()
 {
     vector<string> stats;
 
+    stats.push_back("version=BbMmPv-5");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "MmBbPv-4\t: stats=" << stats[0] << " " << stats[1] << endl;
+    cerr << "BbMmPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

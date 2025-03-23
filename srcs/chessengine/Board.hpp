@@ -82,7 +82,7 @@ class Board
         char          get_cell(int x, int y);
         float         get_game_state();
         bool          get_check_state();
-        int           get_castling_rights();
+        uint64_t      get_castling_rights();
         static string get_name();
 
         string create_fen(bool with_turns = true);

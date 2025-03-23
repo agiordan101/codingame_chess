@@ -191,9 +191,9 @@ char Board::get_cell(int x, int y)
     return _get_cell(pos_mask);
 }
 
-int Board::get_castling_rights()
+uint64_t Board::get_castling_rights()
 {
-    return 0;
+    return white_castles | black_castles;
 }
 
 vector<Move> Board::get_available_moves()
@@ -262,7 +262,7 @@ string Board::create_fen(bool with_turns)
     // Write castling
     if (white_castles || black_castles)
     {
-        if (chess960_rule)
+        if (this->chess960_rule)
             _create_fen_for_chess960_castling(fen, &fen_i);
         else
             _create_fen_for_standard_castling(fen, &fen_i);
@@ -294,6 +294,7 @@ string Board::create_fen(bool with_turns)
     // Write game turn
     fen_string += to_string(game_turn);
 
+    cerr << "FEN: " << fen_string << endl;
     return fen_string;
 }
 
@@ -301,7 +302,7 @@ Board *Board::clone()
 {
     // TODO: Create a new constructor, taking an instance in param, which then copy all the needed
     // data instead of creating and parsing FEN
-    Board *cloned_board = new Board(create_fen(), chess960_rule, codingame_rule);
+    Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
 
     // Copy history
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
@@ -449,7 +450,7 @@ void Board::_parse_castling(string castling_fen)
     if (castling_fen == "-")
         return;
 
-    // Parse castling fen 'AHah' into 0707 for example
+    // Parse castling fen 'AHah' into bitboards
     for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))

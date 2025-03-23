@@ -347,7 +347,7 @@ class Board
         char          get_cell(int x, int y);
         float         get_game_state();
         bool          get_check_state();
-        int           get_castling_rights();
+        uint64_t      get_castling_rights();
         static string get_name();
 
         string create_fen(bool with_turns = true);
@@ -815,9 +815,7 @@ void GameEngine::_parse_turn()
 
     if (this->_cg_board)
         delete this->_cg_board;
-    this->_cg_board = new Board(
-        board, color, castling, en_passant, half_move_clock, full_move, this->crazy_house
-    );
+    this->_cg_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
 
     cin.ignore();
 }
@@ -1017,9 +1015,9 @@ char Board::get_cell(int x, int y)
     return _get_cell(pos_mask);
 }
 
-int Board::get_castling_rights()
+uint64_t Board::get_castling_rights()
 {
-    return 0;
+    return white_castles | black_castles;
 }
 
 vector<Move> Board::get_available_moves()
@@ -1088,7 +1086,7 @@ string Board::create_fen(bool with_turns)
     // Write castling
     if (white_castles || black_castles)
     {
-        if (chess960_rule)
+        if (this->chess960_rule)
             _create_fen_for_chess960_castling(fen, &fen_i);
         else
             _create_fen_for_standard_castling(fen, &fen_i);
@@ -1120,6 +1118,7 @@ string Board::create_fen(bool with_turns)
     // Write game turn
     fen_string += to_string(game_turn);
 
+    cerr << "FEN: " << fen_string << endl;
     return fen_string;
 }
 
@@ -1127,7 +1126,7 @@ Board *Board::clone()
 {
     // TODO: Create a new constructor, taking an instance in param, which then copy all the needed
     // data instead of creating and parsing FEN
-    Board *cloned_board = new Board(create_fen(), chess960_rule, codingame_rule);
+    Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
 
     // Copy history
     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
@@ -1275,7 +1274,7 @@ void Board::_parse_castling(string castling_fen)
     if (castling_fen == "-")
         return;
 
-    // Parse castling fen 'AHah' into 0707 for example
+    // Parse castling fen 'AHah' into bitboards
     for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
@@ -2925,6 +2924,9 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
 {
     this->_start_time = clock();
 
+    // Debugging information for CG
+    cerr << std::bitset<64>(board->get_castling_rights()) << endl;
+
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
@@ -2964,10 +2966,10 @@ vector<string> MinMaxAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=MmBbPv-5");
+    stats.push_back("version=BbMmPv-5");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "MmBbPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

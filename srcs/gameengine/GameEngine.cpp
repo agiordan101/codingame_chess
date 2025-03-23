@@ -104,9 +104,7 @@ void GameEngine::_parse_turn()
 
     if (this->_cg_board)
         delete this->_cg_board;
-    this->_cg_board = new Board(
-        board, color, castling, en_passant, half_move_clock, full_move, this->crazy_house
-    );
+    this->_cg_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
 
     cin.ignore();
 }

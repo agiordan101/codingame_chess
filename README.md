@@ -71,7 +71,6 @@ Git tag should be created when bot is stable and a next version begin to be deve
 All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
 Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix (so benchmarks can conclude the fix has really improved the new bot version...)
 All versions should have a ELO rating.
-All versions should be deployed in Codingame, with the resulting classement saved in this README.
 
 Before creating a new version :
 - Run all tests
@@ -210,6 +209,9 @@ Inside the file :
 ## Roadmap
 
 - Next steps :
+
+    * There is a bug with castle move generation.
+        A lot of failure in CG come from castling on an empty square, ally piece etc.
 
     * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
         - Think about 2 methods: for min node and max node

@@ -105,7 +105,7 @@ void Board::apply_move(Move move)
         _update_engine_at_turn_start();
 
     // TODO: Sort them by probability to optimize the if-else chain
-    char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
+    char piece = move.piece == EMPTY_CELL ? get_cell(move.src) : move.piece;
     if (piece == 'P')
         _move_white_pawn(move.src, move.dst, move.promotion);
     else if (piece == 'N')
@@ -184,11 +184,35 @@ bool Board::get_check_state()
     return this->check_state;
 }
 
-char Board::get_cell(int x, int y)
+char Board::get_cell(uint64_t mask)
 {
-    uint64_t pos_mask = 1UL << (y * 8 + x);
+    // TODO: Order by probability to appear
+    if (white_pawns & mask)
+        return 'P';
+    if (white_knights & mask)
+        return 'N';
+    if (white_bishops & mask)
+        return 'B';
+    if (white_rooks & mask)
+        return 'R';
+    if (white_queens & mask)
+        return 'Q';
+    if (white_king & mask)
+        return 'K';
+    if (black_pawns & mask)
+        return 'p';
+    if (black_knights & mask)
+        return 'n';
+    if (black_bishops & mask)
+        return 'b';
+    if (black_rooks & mask)
+        return 'r';
+    if (black_queens & mask)
+        return 'q';
+    if (black_king & mask)
+        return 'k';
 
-    return _get_cell(pos_mask);
+    return EMPTY_CELL;
 }
 
 uint64_t Board::get_castling_rights()
@@ -471,36 +495,6 @@ void Board::_parse_castling(string castling_fen)
 }
 
 // - Accessibility / Getters -
-
-char Board::_get_cell(uint64_t mask)
-{
-    if (white_pawns & mask)
-        return 'P';
-    if (white_knights & mask)
-        return 'N';
-    if (white_bishops & mask)
-        return 'B';
-    if (white_rooks & mask)
-        return 'R';
-    if (white_queens & mask)
-        return 'Q';
-    if (white_king & mask)
-        return 'K';
-    if (black_pawns & mask)
-        return 'p';
-    if (black_knights & mask)
-        return 'n';
-    if (black_bishops & mask)
-        return 'b';
-    if (black_rooks & mask)
-        return 'r';
-    if (black_queens & mask)
-        return 'q';
-    if (black_king & mask)
-        return 'k';
-
-    return EMPTY_CELL;
-}
 
 void Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
 {

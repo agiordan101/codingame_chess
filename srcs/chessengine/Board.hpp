@@ -79,7 +79,11 @@ class Board
         {
             return white_turn;
         }
-        char          get_cell(int x, int y);
+        inline char get_cell(int x, int y)
+        {
+            return get_cell(1UL << (y * 8 + x));
+        }
+        char          get_cell(uint64_t mask);
         float         get_game_state();
         bool          get_check_state();
         uint64_t      get_castling_rights();
@@ -163,7 +167,6 @@ class Board
         void _parse_castling(string castling_fen);
 
         // - Accessibility / Getters -
-        char _get_cell(uint64_t mask);
         void _create_fen_for_standard_castling(char *fen, int *fen_i);
         void _create_fen_for_chess960_castling(char *fen, int *fen_i);
 

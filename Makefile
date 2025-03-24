@@ -4,7 +4,7 @@ PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMmabPv-1
+BOT_EXEC = BbMmabttPv-rc
 
 flag = -g -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -25,6 +25,8 @@ BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxAlphaBetaTransTableAgent.cpp\
+	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
@@ -32,6 +34,8 @@ BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxAlphaBetaTransTableAgent.cpp\
+	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main

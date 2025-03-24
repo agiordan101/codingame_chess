@@ -81,6 +81,15 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
+### BbMmabPv-1
+
+* Submit date: 23.03.2025 23H28
+* Overall ranking : 34/374
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 34/60
+    * CG elo: 19,13
+    * Top 1 elo: 44,9
+
 ### BbMmPv-6
 
 * Submit date: 23.03.2025 23H28
@@ -184,11 +193,11 @@ Despite the rules, the final position after castling is always the same:
 
 #### MinMax algorithm
 
-    - MinMax: Alternatively choose the min and the max value returned by the heuristic function
-    - Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
-    - Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
-    - Transposition table: Hashing the position we can create an unique index to lookup a table (Collisions may appear depending on the hash function). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
-    - Hash function -  :
+- MinMax: Alternatively choose the min and the max value returned by the heuristic function
+- Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
+- Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
+- Transposition table: Hashing the position we can create an unique index to lookup a table (With the depth of the calculation! it is improtant). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
+- Hash function -  :
 
 ### Python tools
 

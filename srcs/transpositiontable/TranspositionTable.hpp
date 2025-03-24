@@ -12,16 +12,16 @@ typedef struct MinMaxNode
         // Primary information, filled the first time
         int   zobrist_key;
         int   depth;
-        bool  leaf_node;    // To not expand it
+        bool  leaf_node; // To not expand it
         float quality;
 
         // Secondary information, filled the second time, while expanding the node
-        vector<Move>  child_moves;          // To not have to recompute them
-        vector<float> child_qualities;      // To order moves by quality (Reorder them each turn)
-        vector<int>   child_zobrist_keys;   // To not have to recompute them ?
+        vector<Move>  child_moves;        // To not have to recompute them
+        vector<float> child_qualities;    // To order moves by quality (Reorder them each turn)
+        vector<int>   child_zobrist_keys; // To not have to recompute them ?
 
-        float alpha;
-        float beta;
+        float  alpha;
+        float  beta;
         string best_move; // Why ?
 } s_MinMaxNode;
 
@@ -33,7 +33,7 @@ class TranspositionTable
         s_MinMaxNode *_table;
 
         int _black_turn_hash;
-        int _random_hashs[8][8][12];
+        int _random_hashs[64][12];
         int _castling_right_hashs[16]; // 4 bits for each castling right = 2^4 = 16
 
         int _inserted_node_count;

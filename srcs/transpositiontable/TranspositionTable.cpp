@@ -15,10 +15,9 @@ TranspositionTable::TranspositionTable()
     // Generate random hashes
     this->_black_turn_hash = rand();
 
-    for (int y = 0; y < 8; y++)
-        for (int x = 0; x < 8; x++)
-            for (int p = 0; p < 12; p++)
-                this->_random_hashs[y][x][p] = rand();
+    for (int i = 0; i < 64; i++)
+        for (int p = 0; p < 12; p++)
+            this->_random_hashs[i][p] = rand();
 
     for (int i = 0; i < 16; i++)
         this->_castling_right_hashs[i] = rand();
@@ -36,15 +35,14 @@ int TranspositionTable::create_zobrist_key(Board *board)
         hash ^= this->_black_turn_hash;
     }
 
-    for (int y = 0; y < 8; y++)
+    uint64_t mask = 1UL;
+    for (int i = 0; i < 64; i++)
     {
-        for (int x = 0; x < 8; x++)
+        int piece = board->get_cell(mask);
+        if (piece != EMPTY_CELL)
         {
-            int piece = board->get_cell(x, y);
-            if (piece != EMPTY_CELL)
-            {
-                hash ^= this->_random_hashs[y][x][piece];
-            }
+            uint64_t mask_i = _count_trailing_zeros(mask);
+            hash ^= this->_random_hashs[mask_i][piece];
         }
     }
 
@@ -56,20 +54,24 @@ int TranspositionTable::create_zobrist_key(Board *board)
 
 int TranspositionTable::update_key(Board *board, Move *move, int zobrist_key)
 {
-    //TODO: Don't pass board.
-    // Move own src piece and we can send the dst piece
-    int src_piece = board->get_cell(move->src_x, move->src_y);
-    int dst_piece = board->get_cell(move->dst_x, move->dst_y);
+    // TODO: Don't pass board.
+    //  Move own src piece and we can send the dst piece
+    // TODO: Use char instead of int
+    int src_piece = move->piece;
+    int dst_piece = board->get_cell(move->dst);
+
+    uint64_t src_i = _count_trailing_zeros(move->src);
+    uint64_t dst_i = _count_trailing_zeros(move->dst);
 
     // "Revert" the src piece/square pair from the key
-    zobrist_key ^= this->_random_hashs[move->src_y][move->src_x][src_piece];
+    zobrist_key ^= this->_random_hashs[src_i][src_piece];
 
     // "Insert" the new dst piece/square pair in the key
-    zobrist_key ^= this->_random_hashs[move->dst_y][move->dst_x][src_piece];
+    zobrist_key ^= this->_random_hashs[dst_i][src_piece];
 
     // If a piece is taken in the destination cell, "revert" its piece/square pair from the key
     if (dst_piece != EMPTY_CELL)
-        zobrist_key ^= this->_random_hashs[move->dst_y][move->dst_x][dst_piece];
+        zobrist_key ^= this->_random_hashs[dst_i][dst_piece];
 
     return zobrist_key;
 }

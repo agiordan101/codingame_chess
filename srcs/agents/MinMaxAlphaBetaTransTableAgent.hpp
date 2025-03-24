@@ -6,7 +6,6 @@
 
 class MinMaxAlphaBetaTransTableAgent : public AbstractAgent
 {
-
     public:
         MinMaxAlphaBetaTransTableAgent(AbstractHeuristic *heuristic, int ms_constraint);
         virtual void
@@ -22,12 +21,17 @@ class MinMaxAlphaBetaTransTableAgent : public AbstractAgent
         float   _ms_turn_stop;
         clock_t _start_time;
 
-        int _depth_max_reached;
+        int _depth_reached;
         int _nodes_explored;
 
-        float minmax(Board *board, int max_depth, int depth, int zobrist_key);
-        float max_node(Board *board, int max_depth, int depth, s_MinMaxNode *node);
-        float min_node(Board *board, int max_depth, int depth, s_MinMaxNode *node);
+        float
+        minmax(Board *board, int max_depth, int depth, float alpha, float beta, int zobrist_key);
+        float max_node(
+            Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+        );
+        float min_node(
+            Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+        );
 
         bool  is_time_up();
         float elapsed_time();

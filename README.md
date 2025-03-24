@@ -81,18 +81,23 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-BOSSES elo :
+### BbMmPv-6
 
-- Wood 2 ligue - BOSS-1 - 28,13
+* Submit date: 23.03.2025 23H28
+* Overall ranking : 42/374
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 42/60
+    * CG elo: 15,78
+    * Top 1 elo: 44,9
 
 ### BbMmPv-5
 
-Submit date: 23.03.2025 22H12
-CG elo: 27,18
-Ligue: Wood 2
-Rank: 1/315
-
-### BbMmPv-6
+* Submit date: 23.03.2025 22H12
+* Overall ranking : 61/374
+* Ligue: Wood 2
+    * Rank: 1/315
+    * CG elo: 27,18
+    * BOSS-1 elo: 28,13
 
 
 ## Project explanations

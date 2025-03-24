@@ -1098,16 +1098,16 @@ void Board::_find_moves()
                 white_pawns, [this](uint64_t param) { _find_white_pawns_moves(param); }
             );
             _apply_function_on_all_pieces(
-                white_knights, [this](uint64_t param) { _find_white_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_bishops, [this](uint64_t param) { _find_white_bishops_moves(param); }
+                white_queens, [this](uint64_t param) { _find_white_queens_moves(param); }
             );
             _apply_function_on_all_pieces(
                 white_rooks, [this](uint64_t param) { _find_white_rooks_moves(param); }
             );
             _apply_function_on_all_pieces(
-                white_queens, [this](uint64_t param) { _find_white_queens_moves(param); }
+                white_bishops, [this](uint64_t param) { _find_white_bishops_moves(param); }
+            );
+            _apply_function_on_all_pieces(
+                white_knights, [this](uint64_t param) { _find_white_knights_moves(param); }
             );
             _apply_function_on_all_pieces(
                 white_castles, [this](uint64_t param) { _find_white_castle_moves(param); }
@@ -1123,16 +1123,16 @@ void Board::_find_moves()
                 black_pawns, [this](uint64_t param) { _find_black_pawns_moves(param); }
             );
             _apply_function_on_all_pieces(
-                black_knights, [this](uint64_t param) { _find_black_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_bishops, [this](uint64_t param) { _find_black_bishops_moves(param); }
+                black_queens, [this](uint64_t param) { _find_black_queens_moves(param); }
             );
             _apply_function_on_all_pieces(
                 black_rooks, [this](uint64_t param) { _find_black_rooks_moves(param); }
             );
             _apply_function_on_all_pieces(
-                black_queens, [this](uint64_t param) { _find_black_queens_moves(param); }
+                black_bishops, [this](uint64_t param) { _find_black_bishops_moves(param); }
+            );
+            _apply_function_on_all_pieces(
+                black_knights, [this](uint64_t param) { _find_black_knights_moves(param); }
             );
             _apply_function_on_all_pieces(
                 black_castles, [this](uint64_t param) { _find_black_castle_moves(param); }

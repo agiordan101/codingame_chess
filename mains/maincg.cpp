@@ -586,17 +586,17 @@ class AbstractAgent
 #endif
 
 /*
-        Content of 'srcs/agents/MinMaxAgent.hpp'
+        Content of 'srcs/agents/MinMaxAlphaBetaAgent.hpp'
 */
 
 #ifndef MINMAXITERDEEPAGENT_HPP
 #define MINMAXITERDEEPAGENT_HPP
 
-class MinMaxAgent : public AbstractAgent
+class MinMaxAlphaBetaAgent : public AbstractAgent
 {
 
     public:
-        MinMaxAgent(AbstractHeuristic *heuristic, int ms_constraint);
+        MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint);
         virtual void
         get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
         virtual string get_name() override;
@@ -612,9 +612,13 @@ class MinMaxAgent : public AbstractAgent
         int _depth_reached;
         int _nodes_explored;
 
-        float minmax(Board *board, int max_depth, int depth);
-        float max_node(Board *board, vector<Move> *moves, int max_depth, int depth);
-        float min_node(Board *board, vector<Move> *moves, int max_depth, int depth);
+        float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
+        float max_node(
+            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+        );
+        float min_node(
+            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+        );
 
         bool  is_time_up();
         float elapsed_time();
@@ -1922,16 +1926,16 @@ void Board::_find_moves()
                 white_pawns, [this](uint64_t param) { _find_white_pawns_moves(param); }
             );
             _apply_function_on_all_pieces(
-                white_knights, [this](uint64_t param) { _find_white_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_bishops, [this](uint64_t param) { _find_white_bishops_moves(param); }
+                white_queens, [this](uint64_t param) { _find_white_queens_moves(param); }
             );
             _apply_function_on_all_pieces(
                 white_rooks, [this](uint64_t param) { _find_white_rooks_moves(param); }
             );
             _apply_function_on_all_pieces(
-                white_queens, [this](uint64_t param) { _find_white_queens_moves(param); }
+                white_bishops, [this](uint64_t param) { _find_white_bishops_moves(param); }
+            );
+            _apply_function_on_all_pieces(
+                white_knights, [this](uint64_t param) { _find_white_knights_moves(param); }
             );
             _apply_function_on_all_pieces(
                 white_castles, [this](uint64_t param) { _find_white_castle_moves(param); }
@@ -1947,16 +1951,16 @@ void Board::_find_moves()
                 black_pawns, [this](uint64_t param) { _find_black_pawns_moves(param); }
             );
             _apply_function_on_all_pieces(
-                black_knights, [this](uint64_t param) { _find_black_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_bishops, [this](uint64_t param) { _find_black_bishops_moves(param); }
+                black_queens, [this](uint64_t param) { _find_black_queens_moves(param); }
             );
             _apply_function_on_all_pieces(
                 black_rooks, [this](uint64_t param) { _find_black_rooks_moves(param); }
             );
             _apply_function_on_all_pieces(
-                black_queens, [this](uint64_t param) { _find_black_queens_moves(param); }
+                black_bishops, [this](uint64_t param) { _find_black_bishops_moves(param); }
+            );
+            _apply_function_on_all_pieces(
+                black_knights, [this](uint64_t param) { _find_black_knights_moves(param); }
             );
             _apply_function_on_all_pieces(
                 black_castles, [this](uint64_t param) { _find_black_castle_moves(param); }
@@ -2926,10 +2930,10 @@ bool Move::_is_move_in_movelst(Move *move, vector<Move> movelst)
 };
 
 /*
-        Content of 'srcs/agents/MinMaxAgent.cpp'
+        Content of 'srcs/agents/MinMaxAlphaBetaAgent.cpp'
 */
 
-MinMaxAgent::MinMaxAgent(AbstractHeuristic *heuristic, int ms_constraint)
+MinMaxAlphaBetaAgent::MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint)
 {
     this->_heuristic = heuristic;
     this->_ms_constraint = ms_constraint;
@@ -2939,7 +2943,7 @@ MinMaxAgent::MinMaxAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_start_time = 0;
 }
 
-void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
+void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
     this->_start_time = clock();
 
@@ -2960,7 +2964,7 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
             Board new_board = *board;
             new_board.apply_move(moves[i]);
 
-            float move_quality = this->minmax(&new_board, max_depth, 1);
+            float move_quality = this->minmax(&new_board, max_depth, 1, -1, 1);
 
             // If time is up, it shouldn't update the current move quality, because we can't say how
             // much children it has explored So it would end up having a random quality
@@ -2977,28 +2981,28 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
 
     float dtime = elapsed_time();
     if (dtime >= _ms_constraint)
-        cerr << "MinMaxAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
-             << endl;
+        cerr << "MinMaxAlphaBetaAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
+             << "ms" << endl;
 }
 
-vector<string> MinMaxAgent::get_stats()
+vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmPv-6");
+    stats.push_back("version=BbMmabPv-1");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmPv-6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-1\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
-string MinMaxAgent::get_name()
+string MinMaxAlphaBetaAgent::get_name()
 {
-    return Board::get_name() + ".MinMaxAgent[" + to_string(this->_ms_constraint) + "ms]." +
+    return Board::get_name() + ".MinMaxAlphaBetaAgent[" + to_string(this->_ms_constraint) + "ms]." +
            this->_heuristic->get_name();
 }
 
-float MinMaxAgent::minmax(Board *board, int max_depth, int depth)
+float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float alpha, float beta)
 {
     this->_nodes_explored++;
 
@@ -3012,17 +3016,19 @@ float MinMaxAgent::minmax(Board *board, int max_depth, int depth)
     float best_quality;
     if (board->is_white_turn())
     {
-        best_quality = this->max_node(board, &moves, max_depth, depth);
+        best_quality = this->max_node(board, &moves, max_depth, depth, alpha, beta);
     }
     else
     {
-        best_quality = this->min_node(board, &moves, max_depth, depth);
+        best_quality = this->min_node(board, &moves, max_depth, depth, alpha, beta);
     }
 
     return best_quality;
 }
 
-float MinMaxAgent::max_node(Board *board, vector<Move> *moves, int max_depth, int depth)
+float MinMaxAlphaBetaAgent::max_node(
+    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+)
 {
     // White wants to maximize the heuristic value
     float best_quality = -1;
@@ -3031,18 +3037,30 @@ float MinMaxAgent::max_node(Board *board, vector<Move> *moves, int max_depth, in
         Board new_board = *board;
         new_board.apply_move(move);
 
-        float child_quality = this->minmax(&new_board, max_depth, depth + 1);
+        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
+
+        // Stop the search if we run out of time, the actual branch won't be used anyway
+        if (this->is_time_up())
+            break;
 
         best_quality = max(best_quality, child_quality);
 
-        if (this->is_time_up())
-            break;
+        // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
+        // - Beta cut : If we're in a max node and the current child max quality is higher than a
+        // brother node
+        if (beta <= best_quality)
+            return best_quality;
+
+        // Update alpha for the next brother nodes
+        alpha = max(alpha, best_quality);
     }
 
     return best_quality;
 }
 
-float MinMaxAgent::min_node(Board *board, vector<Move> *moves, int max_depth, int depth)
+float MinMaxAlphaBetaAgent::min_node(
+    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+)
 {
     // Black wants to minimize the heuristic value
     float best_quality = 1;
@@ -3051,23 +3069,33 @@ float MinMaxAgent::min_node(Board *board, vector<Move> *moves, int max_depth, in
         Board new_board = *board;
         new_board.apply_move(move);
 
-        float child_quality = this->minmax(&new_board, max_depth, depth + 1);
+        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
+
+        // Stop the search if we run out of time, the actual branch won't be used anyway
+        if (this->is_time_up())
+            break;
 
         best_quality = min(best_quality, child_quality);
 
-        if (this->is_time_up())
-            break;
+        // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
+        // - Alpha cut : If we're in a min node and the current child min quality is lower than a
+        // brother node
+        if (alpha >= best_quality)
+            return best_quality;
+
+        // Update beta for the next brother nodes
+        beta = min(beta, best_quality);
     }
 
     return best_quality;
 }
 
-bool MinMaxAgent::is_time_up()
+bool MinMaxAlphaBetaAgent::is_time_up()
 {
     return this->elapsed_time() >= this->_ms_turn_stop;
 }
 
-float MinMaxAgent::elapsed_time()
+float MinMaxAlphaBetaAgent::elapsed_time()
 {
     return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
 }
@@ -3183,6 +3211,6 @@ using namespace std;
 int main()
 {
     GameEngine *game_engine =
-        new GameEngine(new BotPlayer(new MinMaxAgent(new PiecesHeuristic(), 50)));
+        new GameEngine(new BotPlayer(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 50)));
     game_engine->infinite_game_loop();
 }

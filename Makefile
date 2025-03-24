@@ -4,7 +4,7 @@ PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMmabPv-1
+BOT_EXEC = BbMmabttPv-rc
 
 flag = -g -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -25,6 +25,8 @@ BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxAlphaBetaTransTableAgent.cpp\
+	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
@@ -32,6 +34,8 @@ BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/players/BotPlayer.cpp\
 	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
+	$(SRCS_PATH)/agents/MinMaxAlphaBetaTransTableAgent.cpp\
+	$(SRCS_PATH)/transpositiontable/TranspositionTable.cpp\
 	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
@@ -54,25 +58,25 @@ test: utest datasettest perft cgtest
 
 ### Compile unit tests main
 utest:
-	@g++ testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
+	@g++ $(flag) testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(TEST_EXEC)
 	@./bins/$(TEST_EXEC)
 
 datasettest:
-	@g++ testmains/dataset_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
+	@g++ $(flag) testmains/dataset_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(DATASETTEST_EXEC)
 	@./bins/$(DATASETTEST_EXEC)
 
 timetest:
-	@g++ testmains/time_tests_main.cpp $(BOT_SRCS) -o ./bins/$(TIMETEST_EXEC)
+	@g++ $(flag) testmains/time_tests_main.cpp $(BOT_SRCS) -o ./bins/$(TIMETEST_EXEC)
 	@./bins/$(TIMETEST_EXEC)
 
 ### Compile perft test main
 perft:
-	@g++ testmains/perft_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
+	@g++ $(flag) testmains/perft_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
 	@./bins/$(PERFT_EXEC)
 
 ### Compile the actual bot with a special GameEngine, to compare codingame chess engine and mine
 cgtest:
-	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ../codingame-chess/$(CG_EXEC)
+	g++ $(flag) testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ../codingame-chess/$(CG_EXEC)
 
 ### Compile the actual bot (and run an engine to play against it ?)
 run:

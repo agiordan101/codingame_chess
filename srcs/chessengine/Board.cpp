@@ -1,10 +1,16 @@
 #include "Board.hpp"
 
-bool     Board::lookup_tables_initialized = false;
+bool Board::static_variables_initialized = false;
+
 uint64_t Board::pawn_captures_lookup[64][2];
 uint64_t Board::knight_lookup[64];
 uint64_t Board::sliding_lookup[64][8];
 uint64_t Board::king_lookup[64];
+
+int Board::_black_turn_hash;
+int Board::_piece_hashs[64][12];
+int Board::_castling_right_hashs[64]; // 64 to keep things simple, but we only need the first and
+                                      // last lines (16 cells in theory)
 
 // --- PUBLIC METHODS ---
 
@@ -105,39 +111,37 @@ void Board::apply_move(Move move)
         _update_engine_at_turn_start();
 
     // TODO: Sort them by probability to optimize the if-else chain
-    char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
+    char piece = move.piece == EMPTY_CELL ? get_cell(move.src) : move.piece;
     if (piece == 'P')
         _move_white_pawn(move.src, move.dst, move.promotion);
     else if (piece == 'N')
-        _apply_regular_white_move(move.src, move.dst, &white_knights);
+        _apply_regular_white_move('N', move.src, move.dst, &white_knights);
     else if (piece == 'B')
-        _apply_regular_white_move(move.src, move.dst, &white_bishops);
+        _apply_regular_white_move('B', move.src, move.dst, &white_bishops);
     else if (piece == 'R')
     {
-        _apply_regular_white_move(move.src, move.dst, &white_rooks);
-
-        // Disable castling for this rook
-        white_castles &= ~move.src;
+        _apply_regular_white_move('R', move.src, move.dst, &white_rooks);
+        if (move.src & white_castles)
+            _remove_castling_right_from(&white_castles, move.src);
     }
     else if (piece == 'Q')
-        _apply_regular_white_move(move.src, move.dst, &white_queens);
+        _apply_regular_white_move('Q', move.src, move.dst, &white_queens);
     else if (piece == 'K')
         _move_white_king(move.src, move.dst, move.castle_info);
     else if (piece == 'p')
         _move_black_pawn(move.src, move.dst, move.promotion);
     else if (piece == 'n')
-        _apply_regular_black_move(move.src, move.dst, &black_knights);
+        _apply_regular_black_move('n', move.src, move.dst, &black_knights);
     else if (piece == 'b')
-        _apply_regular_black_move(move.src, move.dst, &black_bishops);
+        _apply_regular_black_move('b', move.src, move.dst, &black_bishops);
     else if (piece == 'r')
     {
-        _apply_regular_black_move(move.src, move.dst, &black_rooks);
-
-        // Disable castling for this rook
-        black_castles &= ~move.src;
+        _apply_regular_black_move('r', move.src, move.dst, &black_rooks);
+        if (move.src & black_castles)
+            _remove_castling_right_from(&black_castles, move.src);
     }
     else if (piece == 'q')
-        _apply_regular_black_move(move.src, move.dst, &black_queens);
+        _apply_regular_black_move('q', move.src, move.dst, &black_queens);
     else if (piece == 'k')
         _move_black_king(move.src, move.dst, move.castle_info);
 
@@ -184,16 +188,45 @@ bool Board::get_check_state()
     return this->check_state;
 }
 
-char Board::get_cell(int x, int y)
+char Board::get_cell(uint64_t mask)
 {
-    uint64_t pos_mask = 1UL << (y * 8 + x);
+    // TODO: Order by probability to appear
+    if (white_pawns & mask)
+        return 'P';
+    if (white_knights & mask)
+        return 'N';
+    if (white_bishops & mask)
+        return 'B';
+    if (white_rooks & mask)
+        return 'R';
+    if (white_queens & mask)
+        return 'Q';
+    if (white_king & mask)
+        return 'K';
+    if (black_pawns & mask)
+        return 'p';
+    if (black_knights & mask)
+        return 'n';
+    if (black_bishops & mask)
+        return 'b';
+    if (black_rooks & mask)
+        return 'r';
+    if (black_queens & mask)
+        return 'q';
+    if (black_king & mask)
+        return 'k';
 
-    return _get_cell(pos_mask);
+    return EMPTY_CELL;
 }
 
 uint64_t Board::get_castling_rights()
 {
     return white_castles | black_castles;
+}
+
+int Board::get_zobrist_key()
+{
+    return this->zobrist_key;
 }
 
 vector<Move> Board::get_available_moves()
@@ -211,7 +244,7 @@ vector<Move> Board::get_available_moves()
 
 string Board::get_name()
 {
-    return "BitBoard";
+    return "BitBoardZk";
 }
 
 string Board::create_fen(bool with_turns)
@@ -329,12 +362,16 @@ void Board::_main_parsing(
     bool   _codingame_rule
 )
 {
+    if (Board::static_variables_initialized == false)
+    {
+        Board::_initialize_lookup_tables();
+        Board::_initialize_zobrist_hashes();
+        Board::static_variables_initialized = true;
+    }
+
 #if USE_VISUAL_BOARD == 1
     this->visual_board = VisualBoard();
 #endif
-
-    if (Board::lookup_tables_initialized == false)
-        Board::_initialize_lookup_tables();
 
     // Initialize private variables
     chess960_rule = _chess960_rule;
@@ -350,6 +387,8 @@ void Board::_main_parsing(
     next_turn_en_passant = 0UL;
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
+
+    _create_zobrist_key();
 
     // Initialize internal data
     moves_computed = false;
@@ -470,37 +509,32 @@ void Board::_parse_castling(string castling_fen)
     }
 }
 
-// - Accessibility / Getters -
-
-char Board::_get_cell(uint64_t mask)
+void Board::_create_zobrist_key()
 {
-    if (white_pawns & mask)
-        return 'P';
-    if (white_knights & mask)
-        return 'N';
-    if (white_bishops & mask)
-        return 'B';
-    if (white_rooks & mask)
-        return 'R';
-    if (white_queens & mask)
-        return 'Q';
-    if (white_king & mask)
-        return 'K';
-    if (black_pawns & mask)
-        return 'p';
-    if (black_knights & mask)
-        return 'n';
-    if (black_bishops & mask)
-        return 'b';
-    if (black_rooks & mask)
-        return 'r';
-    if (black_queens & mask)
-        return 'q';
-    if (black_king & mask)
-        return 'k';
+    // cerr << "Creating zobrist key" << endl;
+    this->zobrist_key = 0;
 
-    return EMPTY_CELL;
+    if (!white_turn)
+    {
+        this->zobrist_key ^= _black_turn_hash;
+    }
+
+    uint64_t mask = 1UL;
+    for (int i = 0; i < 64; i++)
+    {
+        piece_zobrist_index_e piece_zi = _get_piece_zobrist_index(mask);
+        if (piece_zi != ZOBRIST_NOPIECE)
+            _update_zobrist_key(mask, piece_zi);
+
+        mask <<= 1;
+    }
+
+    // XOR hashes corresponding to the available rooks for castling
+    _update_zobrist_key_castling_rights(white_castles | black_castles);
+    // cerr << "Created zobrist key = " << this->zobrist_key << endl;
 }
+
+// - Accessibility / Getters -
 
 void Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
 {
@@ -554,24 +588,51 @@ void Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
     }
 }
 
-// - Move application -
-
-void Board::_apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
+piece_zobrist_index_e Board::_get_piece_zobrist_index(uint64_t mask)
 {
-    _capture_black_pieces(dst);
+    // TODO: Order by probability to appear
+    if (white_pawns & mask)
+        return ZOBRIST_WHITEPAWN;
+    if (white_knights & mask)
+        return ZOBRIST_WHITEKNIGHT;
+    if (white_bishops & mask)
+        return ZOBRIST_WHITEBISHOP;
+    if (white_rooks & mask)
+        return ZOBRIST_WHITEROOK;
+    if (white_queens & mask)
+        return ZOBRIST_WHITEQUEEN;
+    if (white_king & mask)
+        return ZOBRIST_WHITEKING;
+    if (black_pawns & mask)
+        return ZOBRIST_BLACKPAWN;
+    if (black_knights & mask)
+        return ZOBRIST_BLACKKNIGHT;
+    if (black_bishops & mask)
+        return ZOBRIST_BLACKBISHOP;
+    if (black_rooks & mask)
+        return ZOBRIST_BLACKROOK;
+    if (black_queens & mask)
+        return ZOBRIST_BLACKQUEEN;
+    if (black_king & mask)
+        return ZOBRIST_BLACKKING;
 
-    // Remove the piece from its actual cell, and add the piece to the destination cell
-    *piece_mask &= ~src;
-    *piece_mask |= dst;
+    return ZOBRIST_NOPIECE;
 }
 
-void Board::_apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
+// - Move application -
+
+void Board::_apply_regular_white_move(char piece, uint64_t src, uint64_t dst, uint64_t *piece_mask)
+{
+    _capture_black_pieces(dst);
+    _remove_piece_from(piece_mask, src, piece);
+    _add_piece_to(piece_mask, dst, piece);
+}
+
+void Board::_apply_regular_black_move(char piece, uint64_t src, uint64_t dst, uint64_t *piece_mask)
 {
     _capture_white_pieces(dst);
-
-    // Remove the piece from its actual cell, and add the piece to the destination cell
-    *piece_mask &= ~src;
-    *piece_mask |= dst;
+    _remove_piece_from(piece_mask, src, piece);
+    _add_piece_to(piece_mask, dst, piece);
 }
 
 void Board::_move_white_pawn(uint64_t src, uint64_t dst, char promotion)
@@ -582,30 +643,32 @@ void Board::_move_white_pawn(uint64_t src, uint64_t dst, char promotion)
 
     // If the pawn move is an en passant, capture the opponent pawn
     if (dst == en_passant)
-        black_pawns &= (~en_passant) << 8;
+        _remove_piece_from(&black_pawns, en_passant << 8, ZOBRIST_BLACKPAWN);
 
     // If the pawn moves 2 squares, we generate an en-passant
     if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
         next_turn_en_passant = src >> 8;
 
+    // Capture enemy piece is needed
     _capture_black_pieces(dst);
 
     // Remove the piece from its actual cell
-    white_pawns &= ~src;
+    _remove_piece_from(&white_pawns, src, ZOBRIST_WHITEPAWN);
 
     // TODO: Sort them by probability to optimize the if-else chain
+    // TODO: Add a first "if(promotion)" to avoid multiple ifs each turns
     // Add the piece to the destination cell
     char final_piece = promotion ? toupper(promotion) : 'P';
     if (final_piece == 'P')
-        white_pawns |= dst;
+        _add_piece_to(&white_pawns, dst, ZOBRIST_WHITEPAWN);
     else if (final_piece == 'N')
-        white_knights |= dst;
+        _add_piece_to(&white_knights, dst, ZOBRIST_WHITEKNIGHT);
     else if (final_piece == 'B')
-        white_bishops |= dst;
+        _add_piece_to(&white_bishops, dst, ZOBRIST_WHITEBISHOP);
     else if (final_piece == 'R')
-        white_rooks |= dst;
+        _add_piece_to(&white_rooks, dst, ZOBRIST_WHITEROOK);
     else if (final_piece == 'Q')
-        white_queens |= dst;
+        _add_piece_to(&white_queens, dst, ZOBRIST_WHITEQUEEN);
 }
 
 void Board::_move_black_pawn(uint64_t src, uint64_t dst, char promotion)
@@ -616,34 +679,37 @@ void Board::_move_black_pawn(uint64_t src, uint64_t dst, char promotion)
 
     // If the pawn move is an en passant, capture the opponent pawn
     if (dst == en_passant)
-        white_pawns &= (~en_passant) >> 8;
+        _remove_piece_from(&white_pawns, en_passant >> 8, ZOBRIST_WHITEPAWN);
 
     // If the pawn moves 2 squares, we generate an en-passant
     if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
         next_turn_en_passant = src << 8;
 
+    // Capture enemy piece is needed
     _capture_white_pieces(dst);
 
     // Remove the piece from its actual cell
-    black_pawns &= ~src;
+    _remove_piece_from(&black_pawns, src, ZOBRIST_BLACKPAWN);
 
     // TODO: Sort them by probability to optimize the if-else chain
+    // TODO: Add a first "if(promotion)" to avoid multiple ifs each turns
     // Add the piece to the destination cell
     char final_piece = promotion ? promotion : 'p';
     if (final_piece == 'p')
-        black_pawns |= dst;
+        _add_piece_to(&black_pawns, dst, ZOBRIST_BLACKPAWN);
     else if (final_piece == 'n')
-        black_knights |= dst;
+        _add_piece_to(&black_knights, dst, ZOBRIST_BLACKKNIGHT);
     else if (final_piece == 'b')
-        black_bishops |= dst;
+        _add_piece_to(&black_bishops, dst, ZOBRIST_BLACKBISHOP);
     else if (final_piece == 'r')
-        black_rooks |= dst;
+        _add_piece_to(&black_rooks, dst, ZOBRIST_BLACKROOK);
     else if (final_piece == 'q')
-        black_queens |= dst;
+        _add_piece_to(&black_queens, dst, ZOBRIST_BLACKQUEEN);
 }
 
 void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
 {
+    // When move is created from UCI, there is no castle information, so we need to compute it
     if (castle_info == NOINFO)
     {
         if ((src & white_king) && (dst & white_rooks))
@@ -658,23 +724,32 @@ void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     {
         _capture_black_pieces(dst);
 
-        // Remove the piece from its actual cell, and add the piece to the destination cell
-        white_king = dst;
+        // Regular white king move
+        _remove_piece_from(&white_king, src, ZOBRIST_WHITEKING);
+        _add_piece_to(&white_king, dst, ZOBRIST_WHITEKING);
     }
     else if (castle_info == WHITELEFT)
     {
-        white_rooks &= ~dst;
-        white_king = BITMASK_CASTLE_WHITE_LEFT_KING;
-        white_rooks |= BITMASK_CASTLE_WHITE_LEFT_ROOK;
+        // White king castling left
+        _remove_piece_from(&white_king, src, ZOBRIST_WHITEKING);
+        _add_piece_to(&white_king, BITMASK_CASTLE_WHITE_LEFT_KING, ZOBRIST_WHITEKING);
+
+        // White rook doing a "left castle"
+        _remove_piece_from(&white_rooks, dst, ZOBRIST_WHITEROOK);
+        _add_piece_to(&white_rooks, BITMASK_CASTLE_WHITE_LEFT_ROOK, ZOBRIST_WHITEROOK);
     }
     else if (castle_info == WHITERIGHT)
     {
-        white_rooks &= ~dst;
-        white_king = BITMASK_CASTLE_WHITE_RIGHT_KING;
-        white_rooks |= BITMASK_CASTLE_WHITE_RIGHT_ROOK;
+        // White king castling right
+        _remove_piece_from(&white_king, src, ZOBRIST_WHITEKING);
+        _add_piece_to(&white_king, BITMASK_CASTLE_WHITE_RIGHT_KING, ZOBRIST_WHITEKING);
+
+        // White rook doing a "right castle"
+        _remove_piece_from(&white_rooks, dst, ZOBRIST_WHITEROOK);
+        _add_piece_to(&white_rooks, BITMASK_CASTLE_WHITE_RIGHT_ROOK, ZOBRIST_WHITEROOK);
     }
 
-    white_castles = 0UL;
+    _remove_castling_rights_from(&white_castles);
 }
 
 void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
@@ -694,23 +769,32 @@ void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     {
         _capture_white_pieces(dst);
 
-        // Remove the piece from its actual cell, and add the piece to the destination cell
-        black_king = dst;
+        // Regular black king move
+        _remove_piece_from(&black_king, src, ZOBRIST_BLACKKING);
+        _add_piece_to(&black_king, dst, ZOBRIST_BLACKKING);
     }
     else if (castle_info == BLACKLEFT)
     {
-        black_rooks &= ~dst;
-        black_king = BITMASK_CASTLE_BLACK_LEFT_KING;
-        black_rooks |= BITMASK_CASTLE_BLACK_LEFT_ROOK;
+        // Black king castling left
+        _remove_piece_from(&black_king, src, ZOBRIST_BLACKKING);
+        _add_piece_to(&black_king, BITMASK_CASTLE_BLACK_LEFT_KING, ZOBRIST_BLACKKING);
+
+        // Black rook doing a "left castle"
+        _remove_piece_from(&black_rooks, dst, ZOBRIST_BLACKROOK);
+        _add_piece_to(&black_rooks, BITMASK_CASTLE_BLACK_LEFT_ROOK, ZOBRIST_BLACKROOK);
     }
     else if (castle_info == BLACKRIGHT)
     {
-        black_rooks &= ~dst;
-        black_king = BITMASK_CASTLE_BLACK_RIGHT_KING;
-        black_rooks |= BITMASK_CASTLE_BLACK_RIGHT_ROOK;
+        // Black king castling right
+        _remove_piece_from(&black_king, src, ZOBRIST_BLACKKING);
+        _add_piece_to(&black_king, BITMASK_CASTLE_BLACK_RIGHT_KING, ZOBRIST_BLACKKING);
+
+        // Black rook doing a "right castle"
+        _remove_piece_from(&black_rooks, dst, ZOBRIST_BLACKROOK);
+        _add_piece_to(&black_rooks, BITMASK_CASTLE_BLACK_RIGHT_ROOK, ZOBRIST_BLACKROOK);
     }
 
-    black_castles = 0UL;
+    _remove_castling_rights_from(&black_castles);
 }
 
 void Board::_capture_white_pieces(uint64_t dst)
@@ -722,23 +806,23 @@ void Board::_capture_white_pieces(uint64_t dst)
         // incremented at the end of the turn)
         half_turn_rule = -1;
 
-        uint64_t not_dst_mask = ~dst;
-
-        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
-        // the rook
+        // Remove the captured white piece
         if (dst & white_castles)
         {
-            white_castles &= not_dst_mask;
-            white_rooks &= not_dst_mask;
-            return;
+            // Detect if a rook on an available castle cell is captured
+            _remove_castling_right_from(&white_castles, dst);
+            _remove_piece_from(&white_rooks, dst, ZOBRIST_WHITEROOK);
         }
-
-        // Remove the captured piece
-        white_pawns &= not_dst_mask;
-        white_knights &= not_dst_mask;
-        white_bishops &= not_dst_mask;
-        white_rooks &= not_dst_mask;
-        white_queens &= not_dst_mask;
+        else if (dst & white_pawns)
+            _remove_piece_from(&white_pawns, dst, ZOBRIST_WHITEPAWN);
+        else if (dst & white_knights)
+            _remove_piece_from(&white_knights, dst, ZOBRIST_WHITEKNIGHT);
+        else if (dst & white_bishops)
+            _remove_piece_from(&white_bishops, dst, ZOBRIST_WHITEBISHOP);
+        else if (dst & white_rooks)
+            _remove_piece_from(&white_rooks, dst, ZOBRIST_WHITEROOK);
+        else if (dst & white_queens)
+            _remove_piece_from(&white_queens, dst, ZOBRIST_WHITEQUEEN);
     }
 }
 
@@ -751,24 +835,87 @@ void Board::_capture_black_pieces(uint64_t dst)
         // incremented at the end of the turn)
         half_turn_rule = -1;
 
-        uint64_t not_dst_mask = ~dst;
-
-        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
-        // the rook
+        // Remove the captured piece
         if (dst & black_castles)
         {
-            black_castles &= not_dst_mask;
-            black_rooks &= not_dst_mask;
-            return;
+            // Detect if a rook on an available castle cell is captured
+            _remove_castling_right_from(&black_castles, dst);
+            _remove_piece_from(&black_rooks, dst, ZOBRIST_BLACKROOK);
         }
-
-        // Remove the captured piece
-        black_pawns &= not_dst_mask;
-        black_knights &= not_dst_mask;
-        black_bishops &= not_dst_mask;
-        black_rooks &= not_dst_mask;
-        black_queens &= not_dst_mask;
+        else if (dst & black_pawns)
+            _remove_piece_from(&black_pawns, dst, ZOBRIST_BLACKPAWN);
+        else if (dst & black_knights)
+            _remove_piece_from(&black_knights, dst, ZOBRIST_BLACKKNIGHT);
+        else if (dst & black_bishops)
+            _remove_piece_from(&black_bishops, dst, ZOBRIST_BLACKBISHOP);
+        else if (dst & black_rooks)
+            _remove_piece_from(&black_rooks, dst, ZOBRIST_BLACKROOK);
+        else if (dst & black_queens)
+            _remove_piece_from(&black_queens, dst, ZOBRIST_BLACKQUEEN);
     }
+}
+
+void Board::_remove_piece_from(uint64_t *piece_mask, uint64_t cell, char piece)
+{
+    piece_zobrist_index_e piece_i = convert_char_to_zobrist_index(piece);
+
+    _remove_piece_from(piece_mask, cell, piece_i);
+}
+
+void Board::_remove_piece_from(uint64_t *piece_mask, uint64_t cell, piece_zobrist_index_e piece_i)
+{
+    // Remove piece from its actual cell
+    *piece_mask &= ~cell;
+
+    // And propagate the change on the zobrist key
+    _update_zobrist_key(cell, piece_i);
+}
+
+void Board::_add_piece_to(uint64_t *piece_mask, uint64_t cell, char piece)
+{
+    piece_zobrist_index_e piece_i = convert_char_to_zobrist_index(piece);
+
+    _add_piece_to(piece_mask, cell, piece_i);
+}
+
+void Board::_add_piece_to(uint64_t *piece_mask, uint64_t cell, piece_zobrist_index_e piece_i)
+{
+    // Add piece to the destination cell
+    *piece_mask |= cell;
+
+    // And propagate the change on the zobrist key
+    _update_zobrist_key(cell, piece_i);
+}
+
+void Board::_update_zobrist_key(uint64_t cell, piece_zobrist_index_e piece_i)
+{
+    int dst_i = _count_trailing_zeros(cell);
+    this->zobrist_key ^= _piece_hashs[dst_i][piece_i];
+}
+
+void Board::_remove_castling_rights_from(uint64_t *castling_rights)
+{
+    _update_zobrist_key_castling_rights(*castling_rights);
+    *castling_rights = 0UL;
+}
+
+void Board::_remove_castling_right_from(uint64_t *castling_rights, uint64_t rook)
+{
+    _update_zobrist_key_castling_right(rook);
+    *castling_rights &= ~rook;
+}
+
+void Board::_update_zobrist_key_castling_rights(uint64_t rooks)
+{
+    _apply_function_on_all_pieces(
+        rooks, [this](uint64_t rook) { _update_zobrist_key_castling_right(rook); }
+    );
+}
+
+void Board::_update_zobrist_key_castling_right(uint64_t rook)
+{
+    int rook_i = _count_trailing_zeros(rook);
+    this->zobrist_key ^= _castling_right_hashs[rook_i];
 }
 
 // - Engine updates -
@@ -986,6 +1133,7 @@ void Board::_update_engine_at_turn_end()
     next_turn_en_passant = 0UL;
 
     half_turn_rule += 1;
+    this->zobrist_key ^= _black_turn_hash;
 
     // Only increment game turn after black turn
     if (!white_turn)
@@ -1763,8 +1911,6 @@ void Board::_initialize_lookup_tables()
             pos_mask <<= 1;
         }
     }
-
-    Board::lookup_tables_initialized = true;
 }
 
 void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i)
@@ -1941,4 +2087,21 @@ void Board::_create_king_lookup_table(int y, int x, uint64_t position, int lkt_i
         king_mask |= position << 8;
 
     king_lookup[lkt_i] = king_mask;
+}
+
+// --- STATIC ZOBRIST HASHING METHODS ---
+
+void Board::_initialize_zobrist_hashes()
+{
+    cerr << "Initializing zobrist hashes..." << endl;
+
+    _black_turn_hash = rand();
+
+    for (int i = 0; i < 64; i++)
+    {
+        for (int p = 0; p < 12; p++)
+            _piece_hashs[i][p] = rand();
+
+        _castling_right_hashs[i] = rand();
+    }
 }

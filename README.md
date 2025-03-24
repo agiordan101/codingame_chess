@@ -41,8 +41,8 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
 
 The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
-The actual best stable bot is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
-The actual bot in development is BbMmPv-2 (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual best stable bot is BbMmabPv-1 (bitboard_minmaxalphabeta[50]_piecevalues). With ELO rating of ????
+The actual bot in development is BbMmabttPv-1 (bitboard_minmaxalphabetatranstable[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 
@@ -80,6 +80,15 @@ Before creating a new version :
 - Change Makefile exec name
 
 ## Bot versions deployed in CodinGame
+
+### BbMmabPv-1
+
+* Submit date: 23.03.2025 23H28
+* Overall ranking : 34/374
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 34/60
+    * CG elo: 19,13
+    * Top 1 elo: 44,9
 
 ### BbMmPv-6
 
@@ -184,11 +193,11 @@ Despite the rules, the final position after castling is always the same:
 
 #### MinMax algorithm
 
-    - MinMax: Alternatively choose the min and the max value returned by the heuristic function
-    - Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
-    - Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
-    - Transposition table: Hashing the position we can create an unique index to lookup a table (Collisions may appear depending on the hash function). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
-    - Hash function -  :
+- MinMax: Alternatively choose the min and the max value returned by the heuristic function
+- Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
+- Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
+- Transposition table: Hashing the position we can create an unique index to lookup a table (With the depth of the calculation! it is improtant). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
+- Hash function -  :
 
 ### Python tools
 
@@ -230,12 +239,6 @@ Inside the file :
 ## Roadmap
 
 - Next steps :
-
-    * There is a bug with castle move generation.
-        A lot of failure in CG come from castling on an empty square, ally piece etc.
-
-    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
-        - Think about 2 methods: for min node and max node
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
@@ -336,6 +339,11 @@ sf1500 50ms  vs sf1500 None -> 107W 26D 127L / 260 games
 In conclusion, time per turn associated to Stockfish doesn't matter above 50ms
 
 BbMm50Pv    vs  BMm50Pv -> 66% win / 200 games
+
+
+BbMmabttPv-rc basic                     vs BbMmabPv-1 -> 0.403 / 284 games
+BbMmabttPv-rc move ordering             vs BbMmabPv-1 -> 0.452 / 284 games
+BbMmabttPv-rc move ordering & ab save   vs BbMmabPv-1 ->  /  games
 
 ## Externals C++ libraries
 

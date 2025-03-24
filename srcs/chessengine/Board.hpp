@@ -79,10 +79,15 @@ class Board
         {
             return white_turn;
         }
-        char          get_cell(int x, int y);
+        inline char get_cell(int x, int y)
+        {
+            return get_cell(1UL << (y * 8 + x));
+        }
+        char          get_cell(uint64_t mask);
         float         get_game_state();
         bool          get_check_state();
         uint64_t      get_castling_rights();
+        int           get_zobrist_key();
         static string get_name();
 
         string create_fen(bool with_turns = true);
@@ -108,6 +113,8 @@ class Board
         vector<Move> available_moves;
         float        game_state;
         bool         game_state_computed;
+
+        int zobrist_key;
 
         // Engine variables
         uint64_t white_pieces_mask;     // All white pieces on the board
@@ -161,21 +168,35 @@ class Board
         void _initialize_bitboards();
         void _parse_board(string fen_board);
         void _parse_castling(string castling_fen);
+        void _create_zobrist_key();
 
         // - Accessibility / Getters -
-        char _get_cell(uint64_t mask);
-        void _create_fen_for_standard_castling(char *fen, int *fen_i);
-        void _create_fen_for_chess960_castling(char *fen, int *fen_i);
+        void                  _create_fen_for_standard_castling(char *fen, int *fen_i);
+        void                  _create_fen_for_chess960_castling(char *fen, int *fen_i);
+        piece_zobrist_index_e _get_piece_zobrist_index(uint64_t mask);
 
         // - Move application -
-        void _apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
-        void _apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void
+        _apply_regular_white_move(char piece, uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void
+        _apply_regular_black_move(char piece, uint64_t src, uint64_t dst, uint64_t *piece_mask);
         void _move_white_pawn(uint64_t src, uint64_t dst, char promotion);
         void _move_black_pawn(uint64_t src, uint64_t dst, char promotion);
         void _move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
         void _move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
         void _capture_white_pieces(uint64_t dst);
         void _capture_black_pieces(uint64_t dst);
+
+        void _remove_piece_from(uint64_t *piece_mask, uint64_t cell, char piece);
+        void _remove_piece_from(uint64_t *piece_mask, uint64_t cell, piece_zobrist_index_e piece_i);
+        void _add_piece_to(uint64_t *piece_mask, uint64_t cell, char piece);
+        void _add_piece_to(uint64_t *piece_mask, uint64_t cell, piece_zobrist_index_e piece_i);
+        void _update_zobrist_key(uint64_t cell, piece_zobrist_index_e piece_i);
+
+        void _remove_castling_rights_from(uint64_t *castling_rights);
+        void _remove_castling_right_from(uint64_t *castling_rights, uint64_t rook);
+        void _update_zobrist_key_castling_rights(uint64_t rooks);
+        void _update_zobrist_key_castling_right(uint64_t rook);
 
         // - Engine updates -
         void _update_engine_at_turn_end();
@@ -244,9 +265,9 @@ class Board
         bool  _threefold_repetition_rule();
         bool  _insufficient_material_rule();
 
-        // STATIC LOOKUP TABLES
+        // --- STATIC LOOKUP TABLE ---
 
-        static bool     lookup_tables_initialized;
+        static bool     static_variables_initialized;
         static uint64_t pawn_captures_lookup[64][2]; // 0: white, 1: black
         static uint64_t knight_lookup[64];
         static uint64_t sliding_lookup[64][8]; // 0: N, 1: NE, 2: E, 3: SE, 4: S, 5: SW, 6: W, 7: NW
@@ -257,6 +278,15 @@ class Board
         static void _create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i);
         static void _create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i);
         static void _create_king_lookup_table(int y, int x, uint64_t position, int lkt_i);
+
+        // --- STATIC ZOBRIST HASHING ---
+
+        static int _black_turn_hash;
+        static int _piece_hashs[64][12];
+        static int _castling_right_hashs[64]; // 64 to keep things simple, but we only need the
+                                              // first and last lines (16 cells in theory)
+
+        static void _initialize_zobrist_hashes();
 };
 
 #endif

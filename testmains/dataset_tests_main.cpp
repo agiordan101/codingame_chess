@@ -56,7 +56,7 @@ int compare_string_lists(vector<string> &list1, vector<string> &list2)
     sort(list1.begin(), list1.end());
     sort(list2.begin(), list2.end());
 
-    for (int i = 0; i < list1.size(); i++)
+    for (size_t i = 0; i < list1.size(); i++)
         if (list1[i] != list2[i])
             return 0;
 

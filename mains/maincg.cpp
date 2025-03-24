@@ -428,7 +428,7 @@ class Board
         void _parse_castling(string castling_fen);
 
         // - Accessibility / Getters -
-        char _get_cell(uint64_t mask);
+        char get_cell(uint64_t mask);
         void _create_fen_for_standard_castling(char *fen, int *fen_i);
         void _create_fen_for_chess960_castling(char *fen, int *fen_i);
 
@@ -933,7 +933,7 @@ void Board::apply_move(Move move)
         _update_engine_at_turn_start();
 
     // TODO: Sort them by probability to optimize the if-else chain
-    char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
+    char piece = move.piece == EMPTY_CELL ? get_cell(move.src) : move.piece;
     if (piece == 'P')
         _move_white_pawn(move.src, move.dst, move.promotion);
     else if (piece == 'N')
@@ -1016,7 +1016,7 @@ char Board::get_cell(int x, int y)
 {
     uint64_t pos_mask = 1UL << (y * 8 + x);
 
-    return _get_cell(pos_mask);
+    return get_cell(pos_mask);
 }
 
 uint64_t Board::get_castling_rights()
@@ -1300,7 +1300,7 @@ void Board::_parse_castling(string castling_fen)
 
 // - Accessibility / Getters -
 
-char Board::_get_cell(uint64_t mask)
+char Board::get_cell(uint64_t mask)
 {
     if (white_pawns & mask)
         return 'P';

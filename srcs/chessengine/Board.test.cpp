@@ -335,6 +335,230 @@ int apply_move_testLauncher()
 
 #pragma endregion apply_move
 
+#pragma region get_zobrist_key
+
+int get_zobrist_key_compareKeys(
+    int testIndex, Board *tested_board, Board *requested_board, Move *moves[30], int moves_count
+)
+{
+    Board initial_board = *tested_board;
+
+    for (int i = 0; i < moves_count; i++)
+        tested_board->apply_move(*moves[i]);
+
+    int key1 = tested_board->get_zobrist_key();
+    int key2 = requested_board->get_zobrist_key();
+    if (key1 != key2)
+    {
+        cerr << "\n---------- Board - get_zobrist_key_compareKeys() - Test " << testIndex
+             << " - !!! FAILURE !!! ----------" << endl;
+        cerr << "\n- Initial board : Zobrist key = " << initial_board.get_zobrist_key() << endl;
+        initial_board.log();
+
+        cerr << "The zobrist keys of these two boards are different : " << endl;
+        cerr << "\n- Final board : Zobrist key = " << key1 << endl;
+        tested_board->log();
+        cerr << "\n- Requested board : Zobrist key = " << key2 << endl;
+        requested_board->log();
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int get_zobrist_key_testLauncher()
+{
+    int   successCount = 0;
+    Move *moves[20];
+
+    // White regular moves with castling rights
+    moves[0] = new Move("a1b2");
+    successCount += get_zobrist_key_compareKeys(
+        1, new Board("r3k2r/8/8/8/8/8/8/QR2K2K w ahBH - 0 1"),
+        new Board("r3k2r/8/8/8/8/8/1Q6/1R2K2K b ahBH - 1 1"), moves, 1
+    );
+
+    // White pawn advances 1
+    moves[0] = new Move("a2a3");
+    successCount += get_zobrist_key_compareKeys(
+        2, new Board("8/8/8/8/8/8/P7/8 w - - 0 1"), new Board("8/8/8/8/8/P7/8/8 b - - 1 1"), moves,
+        1
+    );
+
+    // White pawn advances 2
+    moves[0] = new Move("a2a4");
+    successCount += get_zobrist_key_compareKeys(
+        3, new Board("8/8/8/8/8/8/P7/8 w - - 0 1"), new Board("8/8/8/8/P7/8/8/8 b - a3 1 1"), moves,
+        1
+    );
+
+    // White pawn captures
+    moves[0] = new Move("a2b3");
+    successCount += get_zobrist_key_compareKeys(
+        4, new Board("8/8/8/8/8/1p6/P7/8 w - - 0 1"), new Board("8/8/8/8/8/1P6/8/8 b - - 1 1"),
+        moves, 1
+    );
+
+    // White pawn captures and promotes to Queen
+    moves[0] = new Move("b7a8q");
+    successCount += get_zobrist_key_compareKeys(
+        5, new Board("r7/1P6/8/8/8/8/8/8 w - - 0 1"), new Board("Q7/8/8/8/8/8/8/8 b - - 1 1"),
+        moves, 1
+    );
+
+    // White pawn promotes to Rook
+    moves[0] = new Move("a7a8r");
+    successCount += get_zobrist_key_compareKeys(
+        6, new Board("8/P7/8/8/8/8/8/8 w - - 0 1"), new Board("R7/8/8/8/8/8/8/8 b - - 1 1"), moves,
+        1
+    );
+
+    // White pawn takes en passant
+    moves[0] = new Move("b5a6");
+    successCount += get_zobrist_key_compareKeys(
+        7, new Board("8/8/8/pP6/8/8/8/8 w - a6 0 1"), new Board("8/8/P7/8/8/8/8/8 b - - 1 1"),
+        moves, 1
+    );
+
+    // White king castles right
+    moves[0] = new Move("e1h1");
+    successCount += get_zobrist_key_compareKeys(
+        8, new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"), new Board("8/8/8/8/8/8/8/R4RK1 b - - 1 1"),
+        moves, 1
+    );
+
+    // White king castles left
+    moves[0] = new Move("e1a1");
+    successCount += get_zobrist_key_compareKeys(
+        9, new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"), new Board("8/8/8/8/8/8/8/2KR3R b - - 1 1"),
+        moves, 1
+    );
+
+    // White king moves (with castling rights)
+    moves[0] = new Move("e1e2");
+    successCount += get_zobrist_key_compareKeys(
+        10, new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"), new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
+        moves, 1
+    );
+
+    // White king moves (without castling rights)
+    moves[0] = new Move("e1e2");
+    successCount += get_zobrist_key_compareKeys(
+        11, new Board("8/8/8/8/8/8/8/R3K2R w - - 0 1"), new Board("8/8/8/8/8/8/4K3/R6R b - - 1 1"),
+        moves, 1
+    );
+
+    // White rook moves (with castling rights)
+    moves[0] = new Move("a1a2");
+    successCount += get_zobrist_key_compareKeys(
+        12, new Board("8/8/8/8/8/8/8/R3K2R w AH - 0 1"), new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
+        moves, 1
+    );
+
+    // White rook moves (without castling rights)
+    moves[0] = new Move("a1a2");
+    successCount += get_zobrist_key_compareKeys(
+        13, new Board("8/8/8/8/8/8/8/R3K2R w H - 0 1"), new Board("8/8/8/8/8/8/R7/4K2R b H - 1 1"),
+        moves, 1
+    );
+
+    // Black regular moves with castling rights
+    moves[0] = new Move("e8e7");
+    successCount += get_zobrist_key_compareKeys(
+        14, new Board("4q3/8/8/8/8/8/8/8 b - - 1 1"), new Board("8/4q3/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black pawn advances 1
+    moves[0] = new Move("a7a6");
+    successCount += get_zobrist_key_compareKeys(
+        15, new Board("8/p7/8/8/8/8/8/8 b - - 1 1"), new Board("8/8/p7/8/8/8/8/8 w - - 2 2"), moves,
+        1
+    );
+
+    // Black pawn advances 2
+    moves[0] = new Move("a7a5");
+    successCount += get_zobrist_key_compareKeys(
+        16, new Board("8/p7/8/8/8/8/8/8 b - - 1 1"), new Board("8/8/8/p7/8/8/8/8 w - a6 2 2"),
+        moves, 1
+    );
+
+    // Black pawn captures
+    moves[0] = new Move("a7b6");
+    successCount += get_zobrist_key_compareKeys(
+        17, new Board("8/p7/1P6/8/8/8/8/8 b - - 1 1"), new Board("8/8/1p6/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black pawn captures and promotes to Queen
+    moves[0] = new Move("a2b1q");
+    successCount += get_zobrist_key_compareKeys(
+        18, new Board("8/8/8/8/8/8/p7/1R6 b - - 1 1"), new Board("8/8/8/8/8/8/8/1q6 w - - 0 2"),
+        moves, 1
+    );
+
+    // Black pawn promotes to Rook
+    moves[0] = new Move("a2a1r");
+    successCount += get_zobrist_key_compareKeys(
+        19, new Board("8/8/8/8/8/8/p7/8 b - - 1 1"), new Board("8/8/8/8/8/8/8/r7 w - - 2 2"), moves,
+        1
+    );
+
+    // Black pawn takes en passant
+    moves[0] = new Move("c4b3");
+    successCount += get_zobrist_key_compareKeys(
+        20, new Board("8/8/8/8/1Pp5/8/8/8 b - b3 1 1"), new Board("8/8/8/8/8/1p6/8/8 w - - 0 2"),
+        moves, 1
+    );
+
+    // Black king castles right
+    moves[0] = new Move("e8h8");
+    successCount += get_zobrist_key_compareKeys(
+        21, new Board("r3k2r/8/8/8/8/8/8/8 b ah - 1 1"), new Board("r4rk1/8/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black king castles left
+    moves[0] = new Move("e8a8");
+    successCount += get_zobrist_key_compareKeys(
+        22, new Board("r3k2r/8/8/8/8/8/8/8 b ah - 1 1"), new Board("2kr3r/8/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black king moves (with castling rights)
+    moves[0] = new Move("e8e7");
+    successCount += get_zobrist_key_compareKeys(
+        23, new Board("r3k2r/8/8/8/8/8/8/8 b ah - 1 1"), new Board("r6r/4k3/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black king moves (without castling rights)
+    moves[0] = new Move("e8e7");
+    successCount += get_zobrist_key_compareKeys(
+        24, new Board("r3k2r/8/8/8/8/8/8/8 b - - 1 1"), new Board("r6r/4k3/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    // Black rook moves (with castling rights)
+    moves[0] = new Move("a8a7");
+    successCount += get_zobrist_key_compareKeys(
+        25, new Board("r3k2r/8/8/8/8/8/8/8 b ah - 1 1"), new Board("4k2r/r7/8/8/8/8/8/8 w h - 2 2"),
+        moves, 1
+    );
+
+    // Black rook moves (without castling rights)
+    moves[0] = new Move("a8a7");
+    successCount += get_zobrist_key_compareKeys(
+        26, new Board("r3k2r/8/8/8/8/8/8/8 b - - 1 1"), new Board("4k2r/r7/8/8/8/8/8/8 w - - 2 2"),
+        moves, 1
+    );
+
+    return successCount;
+}
+
+#pragma endregion get_zobrist_key
+
 #pragma region find_moves
 
 bool is_move_in_movelst(Move *move, vector<Move> movelst)
@@ -348,7 +572,7 @@ bool is_move_in_movelst(Move *move, vector<Move> movelst)
     return false;
 }
 
-bool is_move_in_movelst(Move move, Move *movelst[10], int move_count)
+bool is_move_in_movelst(Move move, Move *movelst[30], int move_count)
 {
     for (int i = 0; i < move_count; i++)
     {
@@ -360,7 +584,7 @@ bool is_move_in_movelst(Move move, Move *movelst[10], int move_count)
 }
 
 int find_moves_RegularCases_FindAllMoves(
-    int testIndex, Board *board, Move *requested_moves[10], int requested_moves_count
+    int testIndex, Board *board, Move *requested_moves[30], int requested_moves_count
 )
 {
     // Act
@@ -386,7 +610,7 @@ int find_moves_RegularCases_FindAllMoves(
     }
 
     // Assert all moves found by the engine are requested
-    for (int i = 0; i < moves_found.size(); i++)
+    for (size_t i = 0; i < moves_found.size(); i++)
     {
         if (!is_move_in_movelst(moves_found[i], requested_moves, requested_moves_count))
         {
@@ -404,7 +628,7 @@ int find_moves_RegularCases_FindAllMoves(
     }
 
     // Assert no duplicates
-    if (moves_found.size() != requested_moves_count)
+    if (moves_found.size() != (size_t)(requested_moves_count))
     {
         if (success)
         {
@@ -414,7 +638,7 @@ int find_moves_RegularCases_FindAllMoves(
         }
 
         cerr << "- Moves found by the engine : " << endl;
-        for (int i = 0; i < moves_found.size(); i++)
+        for (size_t i = 0; i < moves_found.size(); i++)
             moves_found[i].log();
 
         cerr << "- Requested moves : " << endl;
@@ -1555,6 +1779,8 @@ int mainTestBoard()
     successCount += apply_move_testLauncher_uci();
     successCount += get_game_state_testLauncher();
     successCount += is_check_testLauncher();
+
+    successCount += get_zobrist_key_testLauncher();
 
     successCount += find_pawn_moves_testLauncher();
     successCount += find_knight_moves_testLauncher();

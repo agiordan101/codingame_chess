@@ -14,9 +14,6 @@ void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vecto
 {
     this->_start_time = clock();
 
-    // Debugging information for CG
-    cerr << std::bitset<64>(board->get_castling_rights()) << endl;
-
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
@@ -56,10 +53,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-1");
+    stats.push_back("version=BbMmabPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-1\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -114,7 +111,7 @@ float MinMaxAlphaBetaAgent::max_node(
 
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Beta cut : If we're in a max node and the current child max quality is higher than a
-        // brother node
+        // brother node (which will be chosen by the parent min-node)
         if (beta <= best_quality)
             return best_quality;
 
@@ -146,7 +143,7 @@ float MinMaxAlphaBetaAgent::min_node(
 
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Alpha cut : If we're in a min node and the current child min quality is lower than a
-        // brother node
+        // brother node (which will be chosen by the parent max-node)
         if (alpha >= best_quality)
             return best_quality;
 

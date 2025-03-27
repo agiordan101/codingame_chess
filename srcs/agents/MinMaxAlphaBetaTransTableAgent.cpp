@@ -19,12 +19,14 @@ void MinMaxAlphaBetaTransTableAgent::get_qualities(
 )
 {
     this->_start_time = clock();
+    cerr << "MinMaxAlphaBetaTransTableAgent: get_qualities" << endl;
 
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
     this->_nodes_explored = 0;
     int zobrist_key = this->_tt->create_zobrist_key(board);
+    cerr << "MinMaxAlphaBetaTransTableAgent: get_qualities" << endl;
 
     int max_depth = 1;
     while (!this->is_time_up())
@@ -45,6 +47,7 @@ void MinMaxAlphaBetaTransTableAgent::get_qualities(
                 break;
 
             qualities->at(i) = move_quality;
+            cerr << "MinMaxAlphaBetaTransTableAgent: move=" << moves[i].to_uci() << " quality=" << move_quality << endl;
         }
 
         max_depth++;

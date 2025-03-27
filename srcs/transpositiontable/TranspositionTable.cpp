@@ -73,6 +73,9 @@ int TranspositionTable::update_key(Board *board, Move *move, int zobrist_key)
     if (dst_piece != EMPTY_CELL)
         zobrist_key ^= this->_random_hashs[dst_i][dst_piece];
 
+    // TODO: Correctly handle en-passant moves
+    // TODO: Correctly handle castling moves
+
     return zobrist_key;
 }
 
@@ -81,11 +84,19 @@ s_MinMaxNode *TranspositionTable::get_node(int zobrist_key)
     int           index = zobrist_key % this->_max_node_count;
     s_MinMaxNode *node = &this->_table[index];
 
-    if (node->zobrist_key == zobrist_key)
-        return node;
+    // Return the node if it was already seen
+    if (node->zobrist_key)
+    {
+        // Same zobrist key means same position
+        if (node->zobrist_key == zobrist_key)
+            return node;
 
-    cerr << "TranspositionTable: COLLISION: zobrist_key=" << zobrist_key << " index=" << index
-         << " node->zobrist_key=" << node->zobrist_key << endl;
+        // Else there is a collision
+        cerr << "TranspositionTable: COLLISION: zobrist_key=" << zobrist_key << " index=" << index
+             << " node->zobrist_key=" << node->zobrist_key << endl;
+    }
+
+    // Else this node is new
     return NULL;
 }
 
@@ -93,19 +104,19 @@ void TranspositionTable::insert_node(int zobrist_key, s_MinMaxNode *node)
 {
     this->_inserted_node_count++;
 
-    s_MinMaxNode *old_node = this->get_node(zobrist_key);
+    s_MinMaxNode *actual_node = this->get_node(zobrist_key);
 
-    if (old_node == NULL)
+    if (actual_node == NULL)
     {
-        collision_handler(node, old_node);
+        collision_handler(node, actual_node);
         return;
     }
 
-    memcpy(old_node, node, sizeof(s_MinMaxNode));
+    *actual_node = *node;
 }
 
 void TranspositionTable::collision_handler(s_MinMaxNode *new_node, s_MinMaxNode *node)
 {
     // OVERWRITE THE NODE
-    memcpy(node, new_node, sizeof(s_MinMaxNode));
+    *node = *new_node;
 }

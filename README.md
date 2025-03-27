@@ -41,8 +41,8 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
 
 The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
-The actual best stable bot is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
-The actual bot in development is BbMmPv-2 (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual best stable bot is BbMmabPv-1 (bitboard_minmaxalphabeta[50]_piecevalues). With ELO rating of ????
+The actual bot in development is BbMmabttPv-1 (bitboard_minmaxalphabetatranstable[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 
@@ -240,11 +240,11 @@ Inside the file :
 
 - Next steps :
 
-    * There is a bug with castle move generation.
-        A lot of failure in CG come from castling on an empty square, ally piece etc.
-
-    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
-        - Think about 2 methods: for min node and max node
+    * Create zobrish key in Board, and update it when applying moves. That way :
+       - We don't create it each turns
+       - We optimize 'update_key' function of TranspositionTable
+       - and this will simpllify agent code.
+       - Create static get_hash function in TT
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 

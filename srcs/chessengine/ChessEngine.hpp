@@ -13,7 +13,7 @@ using namespace std;
 
 #define CHESS960_RULES 1
 
-#define USE_VISUAL_BOARD 1
+#define USE_VISUAL_BOARD 0
 #define PRINT_DEBUG_DATA 0 & USE_VISUAL_BOARD
 #define PRINT_TURNS      0 & USE_VISUAL_BOARD
 
@@ -72,7 +72,6 @@ enum ray_dir_e
 
 enum piece_zobrist_index_e
 {
-    ZOBRIST_NOPIECE,
     ZOBRIST_WHITEPAWN,
     ZOBRIST_WHITEKNIGHT,
     ZOBRIST_WHITEBISHOP,
@@ -84,7 +83,8 @@ enum piece_zobrist_index_e
     ZOBRIST_BLACKBISHOP,
     ZOBRIST_BLACKROOK,
     ZOBRIST_BLACKQUEEN,
-    ZOBRIST_BLACKKING
+    ZOBRIST_BLACKKING,
+    ZOBRIST_NOPIECE
 };
 
 /* PIECES FUNCTIONS */

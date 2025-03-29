@@ -610,7 +610,7 @@ int find_moves_RegularCases_FindAllMoves(
     }
 
     // Assert all moves found by the engine are requested
-    for (int i = 0; i < moves_found.size(); i++)
+    for (size_t i = 0; i < moves_found.size(); i++)
     {
         if (!is_move_in_movelst(moves_found[i], requested_moves, requested_moves_count))
         {
@@ -628,7 +628,7 @@ int find_moves_RegularCases_FindAllMoves(
     }
 
     // Assert no duplicates
-    if (moves_found.size() != requested_moves_count)
+    if (moves_found.size() != (size_t)(requested_moves_count))
     {
         if (success)
         {
@@ -638,7 +638,7 @@ int find_moves_RegularCases_FindAllMoves(
         }
 
         cerr << "- Moves found by the engine : " << endl;
-        for (int i = 0; i < moves_found.size(); i++)
+        for (size_t i = 0; i < moves_found.size(); i++)
             moves_found[i].log();
 
         cerr << "- Requested moves : " << endl;

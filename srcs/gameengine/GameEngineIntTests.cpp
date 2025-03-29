@@ -110,8 +110,9 @@ void GameEngineIntTests::_parse_first_turn()
         else if (name == "maxMoves")
             maxMoves = stoi(value);
     }
-    // cerr << "GameEngineIntTests: first turn: crazyHouse = " << crazyHouse << endl;
-    // cerr << "GameEngineIntTests: first turn: maxMoves = " << maxMoves << endl;
+
+    cerr << "GameEngineIntTests: first turn: crazyHouse = " << crazyHouse << endl;
+    cerr << "GameEngineIntTests: first turn: maxMoves = " << maxMoves << endl;
 }
 
 void GameEngineIntTests::_parse_turn()

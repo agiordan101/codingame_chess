@@ -63,7 +63,6 @@ int main()
     string line;
     getline(file, line);
 
-    int    id;
     string fen;
     int    depths_count = 2;
     int    depths[depths_count];
@@ -78,7 +77,6 @@ int main()
         string       buffer;
 
         getline(ss, buffer, ',');
-        id = stoi(buffer);
         getline(ss, buffer, ',');
         fen = buffer;
         for (int i = 0; i < depths_count; i++)

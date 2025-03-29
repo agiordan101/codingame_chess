@@ -240,12 +240,6 @@ Inside the file :
 
 - Next steps :
 
-    * Create zobrish key in Board, and update it when applying moves. That way :
-       - We don't create it each turns
-       - We optimize 'update_key' function of TranspositionTable
-       - and this will simpllify agent code.
-       - Create static get_hash function in TT
-
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
     * Ajouter une protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?

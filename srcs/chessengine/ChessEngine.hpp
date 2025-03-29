@@ -13,7 +13,7 @@ using namespace std;
 
 #define CHESS960_RULES 1
 
-#define USE_VISUAL_BOARD 0
+#define USE_VISUAL_BOARD 1
 #define PRINT_DEBUG_DATA 0 & USE_VISUAL_BOARD
 #define PRINT_TURNS      0 & USE_VISUAL_BOARD
 
@@ -70,6 +70,23 @@ enum ray_dir_e
     NORTHWEST
 };
 
+enum piece_zobrist_index_e
+{
+    ZOBRIST_NOPIECE,
+    ZOBRIST_WHITEPAWN,
+    ZOBRIST_WHITEKNIGHT,
+    ZOBRIST_WHITEBISHOP,
+    ZOBRIST_WHITEROOK,
+    ZOBRIST_WHITEQUEEN,
+    ZOBRIST_WHITEKING,
+    ZOBRIST_BLACKPAWN,
+    ZOBRIST_BLACKKNIGHT,
+    ZOBRIST_BLACKBISHOP,
+    ZOBRIST_BLACKROOK,
+    ZOBRIST_BLACKQUEEN,
+    ZOBRIST_BLACKKING
+};
+
 /* PIECES FUNCTIONS */
 
 inline wchar_t convert_piece_to_unicode(char piece)
@@ -105,6 +122,38 @@ inline wchar_t convert_piece_to_unicode(char piece)
     }
 }
 
+inline piece_zobrist_index_e convert_char_to_zobrist_index(char piece)
+{
+    switch (piece)
+    {
+    case 'P':
+        return ZOBRIST_WHITEPAWN;
+    case 'N':
+        return ZOBRIST_WHITEKNIGHT;
+    case 'B':
+        return ZOBRIST_WHITEBISHOP;
+    case 'R':
+        return ZOBRIST_WHITEROOK;
+    case 'Q':
+        return ZOBRIST_WHITEQUEEN;
+    case 'K':
+        return ZOBRIST_WHITEKING;
+    case 'p':
+        return ZOBRIST_BLACKPAWN;
+    case 'n':
+        return ZOBRIST_BLACKKNIGHT;
+    case 'b':
+        return ZOBRIST_BLACKBISHOP;
+    case 'r':
+        return ZOBRIST_BLACKROOK;
+    case 'q':
+        return ZOBRIST_BLACKQUEEN;
+    case 'k':
+        return ZOBRIST_BLACKKING;
+    default:
+        return ZOBRIST_NOPIECE;
+    }
+}
 /* NOTATION FUNCTIONS */
 
 inline int column_name_to_index(char column_name)

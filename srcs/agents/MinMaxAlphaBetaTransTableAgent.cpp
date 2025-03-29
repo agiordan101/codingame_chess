@@ -47,7 +47,8 @@ void MinMaxAlphaBetaTransTableAgent::get_qualities(
                 break;
 
             qualities->at(i) = move_quality;
-            cerr << "MinMaxAlphaBetaTransTableAgent: move=" << moves[i].to_uci() << " quality=" << move_quality << endl;
+            cerr << "MinMaxAlphaBetaTransTableAgent: move=" << moves[i].to_uci()
+                 << " quality=" << move_quality << endl;
         }
 
         max_depth++;

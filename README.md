@@ -240,6 +240,9 @@ Inside the file :
 
 - Next steps :
 
+    * Use depth and cutoff with alpha > beta or the opposite ..? 
+        * transposition table -> https://en.wikipedia.org/wiki/Negamax
+
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
     * Ajouter une protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
@@ -343,7 +346,7 @@ BbMm50Pv    vs  BMm50Pv -> 66% win / 200 games
 
 BbMmabttPv-rc basic                     vs BbMmabPv-1 -> 0.403 / 284 games
 BbMmabttPv-rc move ordering             vs BbMmabPv-1 -> 0.452 / 284 games
-BbMmabttPv-rc move ordering & ab save   vs BbMmabPv-1 ->  /  games
+BbMmabttPv-rc move ordering & ab save   vs BbMmabPv-1 -> 0. / 284 games
 
 ## Externals C++ libraries
 

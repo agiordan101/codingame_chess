@@ -89,6 +89,7 @@ class Board
         uint64_t      get_castling_rights();
         int           get_zobrist_key();
         static string get_name();
+        string        get_last_position_fen();
 
         string create_fen(bool with_turns = true);
         Board *clone();

@@ -4,7 +4,7 @@ PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
 CG_EXEC = mychessbot
-BOT_EXEC = BbMmabttPv-2
+BOT_EXEC = BbMmabttPv-3
 
 flag = -g -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 

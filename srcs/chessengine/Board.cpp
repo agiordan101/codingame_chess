@@ -247,6 +247,12 @@ string Board::get_name()
     return "BitBoardZk";
 }
 
+string Board::get_last_position_fen()
+{
+    return this->fen_history_index > 0 ? this->fen_history[this->fen_history_index - 1]
+                                       : this->fen_history[FEN_HISTORY_SIZE - 1];
+}
+
 string Board::create_fen(bool with_turns)
 {
     char fen[85];

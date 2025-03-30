@@ -9,16 +9,12 @@
 
 typedef struct MinMaxNode
 {
-        // Primary information, filled the first time
         int   zobrist_key;
         int   depth;
-        bool  leaf_node; // To not expand it
+        bool  leaf_node;
         float quality;
 
-        // Secondary information, filled the second time, while expanding the node
-        vector<Move>  child_moves;     // To not have to recompute them
-        vector<float> child_qualities; // To order moves by quality (Reorder them each turn)
-
+        vector<pair<Move, float>> child_move_quality_pairs;
 } s_MinMaxNode;
 
 class TranspositionTable

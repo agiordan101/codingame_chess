@@ -5,19 +5,20 @@
 #include <stdlib.h>
 
 #define TT_MEMORY_SIZE 1000000000 // in bytes
+#define TT_MODULO_MASK
 
 typedef struct MinMaxNode
 {
         // Primary information, filled the first time
         int   zobrist_key;
         int   depth;
-        bool  leaf_node;
+        bool  leaf_node; // To not expand it
         float quality;
 
-        float alpha; // First time we create a node, some of its cousins are not created yet
-        float beta;  // Se alpha beta values can be more aggresive in next visits
+        // Secondary information, filled the second time, while expanding the node
+        vector<Move>  child_moves;     // To not have to recompute them
+        vector<float> child_qualities; // To order moves by quality (Reorder them each turn)
 
-        vector<pair<Move, float>> child_move_quality_pairs;
 } s_MinMaxNode;
 
 class TranspositionTable

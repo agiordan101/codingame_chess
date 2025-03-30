@@ -28,8 +28,7 @@ class MinMaxAlphaBetaTransTableAgent : public AbstractAgent
         int _alpha_cutoffs;
         int _beta_cutoffs;
 
-        float
-        minmax(Board *board, int max_depth, int depth, float alpha, float beta);
+        float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
         float max_node(
             Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
         );

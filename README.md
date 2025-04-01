@@ -242,6 +242,11 @@ Inside the file :
 
     * Use depth and cutoff with alpha > beta or the opposite ..? 
         * transposition table -> https://en.wikipedia.org/wiki/Negamax
+        * transposition table -> https://en.wikipedia.org/wiki/Negamax
+        * transposition table -> https://en.wikipedia.org/wiki/Negamax
+        https://www.chessprogramming.org/Exact_Score
+        https://www.chessprogramming.org/Transposition_Table
+        https://stackoverflow.com/questions/65764015/how-to-implement-transposition-tables-with-alpha-beta-pruning
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 

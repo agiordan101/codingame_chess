@@ -9,6 +9,7 @@
 typedef struct MinMaxNode
 {
         int    zobrist_key;
+        int    depth;
         string last_position_fen;
         int    game_turn;
         bool   leaf_node;

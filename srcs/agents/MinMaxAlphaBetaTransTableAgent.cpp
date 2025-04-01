@@ -106,6 +106,7 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
         }
 
         node->zobrist_key = zobrist_key;
+        node->depth = depth;
         node->last_position_fen = board->get_last_position_fen();
         node->game_turn = board->game_turn;
         node->leaf_node = board->get_game_state() != GAME_CONTINUE;
@@ -165,10 +166,14 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
         );
     }
 
-    if (board->is_white_turn())
-        return this->max_node(board, max_depth, depth, alpha, beta, node);
+    float quality = board->is_white_turn()
+                        ? this->max_node(board, max_depth, depth, alpha, beta, node)
+                        : this->min_node(board, max_depth, depth, alpha, beta, node);
 
-    return this->min_node(board, max_depth, depth, alpha, beta, node);
+    node->quality = quality;
+    node->depth = depth;
+
+    return quality;
 }
 
 float MinMaxAlphaBetaTransTableAgent::max_node(
@@ -177,9 +182,7 @@ float MinMaxAlphaBetaTransTableAgent::max_node(
 {
     // We can only use alpha and beta values from previous search branches are the same.
     // So we rely on the actual zobrist key and the last FEN position
-    if (node->zobrist_key == board->get_zobrist_key() &&
-        node->last_position_fen == board->get_last_position_fen() &&
-        node->game_turn == board->game_turn)
+    if (node->depth < depth)
     {
         // Compare actual branch alpha with the one from previous search, and keep the lowest
         alpha = max(alpha, node->alpha);
@@ -206,6 +209,9 @@ float MinMaxAlphaBetaTransTableAgent::max_node(
         // TODO: Move this line under the if
         best_quality = max(best_quality, child_quality);
 
+        // Update alpha for the next brother nodes
+        alpha = max(alpha, best_quality);
+
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Beta cut : If we're in a max node and the current child max quality is higher than a
         // brother node (which will be chosen by the parent min-node)
@@ -214,17 +220,10 @@ float MinMaxAlphaBetaTransTableAgent::max_node(
             this->_beta_cutoffs++;
             break;
         }
-
-        // Update alpha for the next brother nodes
-        alpha = max(alpha, best_quality);
     }
 
-    // Update the node alpha if a lower value was found
-    if (node->zobrist_key == board->get_zobrist_key() &&
-        node->last_position_fen == board->get_last_position_fen())
-    {
-        node->alpha = max(node->alpha, alpha);
-    }
+    node->alpha = max(node->alpha, alpha);
+
     return best_quality;
 }
 
@@ -234,9 +233,7 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
 {
     // We can only use alpha and beta values from previous search branches are the same.
     // So we rely on the actual zobrist key and the last FEN position
-    if (node->zobrist_key == board->get_zobrist_key() &&
-        node->last_position_fen == board->get_last_position_fen() &&
-        node->game_turn == board->game_turn)
+    if (node->depth < depth)
     {
         // Compare actual branch beta with the one from previous search, and keep the lowest
         beta = min(beta, node->beta);
@@ -263,6 +260,9 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
         // TODO: Move this line under the if
         best_quality = min(best_quality, child_quality);
 
+        // Update beta for the next brother nodes
+        beta = min(beta, best_quality);
+
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Alpha cut : If we're in a min node and the current child min quality is lower than a
         // brother node (which will be chosen by the parent max-node)
@@ -271,14 +271,10 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
             this->_alpha_cutoffs++;
             break;
         }
-
-        // Update beta for the next brother nodes
-        beta = min(beta, best_quality);
     }
 
     // Update the node beta if a lower value was found
-    if (node->zobrist_key == board->get_zobrist_key() &&
-        node->last_position_fen == board->get_last_position_fen())
+    if (node->depth < depth)
     {
         node->beta = min(node->beta, beta);
     }

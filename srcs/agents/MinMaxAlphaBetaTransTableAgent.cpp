@@ -66,14 +66,14 @@ vector<string> MinMaxAlphaBetaTransTableAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabttPv-4");
+    stats.push_back("version=BbMmabttPv-5");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("states_created=" + to_string(this->_nodes_created));
     stats.push_back("states_collisions=" + to_string(this->_nodes_collisions));
     stats.push_back("alpha_cutoffs=" + to_string(this->_alpha_cutoffs));
     stats.push_back("beta_cutoffs=" + to_string(this->_beta_cutoffs));
-    cerr << "BbMmabttPv-4\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMmabttPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << " " << stats[4] << " " << stats[5] << " " << stats[6] << endl;
     return stats;
 }
@@ -98,14 +98,6 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
     {
         this->_nodes_created++;
 
-        if (node->zobrist_key != 0)
-        {
-            this->_nodes_collisions++;
-            // cerr << "MinMaxAlphaBetaTransTableAgent: COLLISION: zobrist_key=" << zobrist_key
-            //  << endl;
-        }
-
-        node->zobrist_key = zobrist_key;
         node->depth = depth;
         node->last_position_fen = board->get_last_position_fen();
         node->game_turn = board->game_turn;
@@ -113,6 +105,19 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
         node->quality = this->_heuristic->evaluate(board);
         node->alpha = alpha;
         node->beta = beta;
+
+        if (node->zobrist_key != 0)
+        {
+            this->_nodes_collisions++;
+            // cerr << "MinMaxAlphaBetaTransTableAgent: COLLISION: zobrist_key=" << zobrist_key
+            //  << endl;
+            node->zobrist_key = zobrist_key;
+        }
+        else
+        {
+            node->zobrist_key = zobrist_key;
+            return node->quality;
+        }
     }
     // else if (node->last_position_fen == board->get_last_position_fen())
     // {

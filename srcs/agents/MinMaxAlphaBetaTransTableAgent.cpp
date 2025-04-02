@@ -66,14 +66,14 @@ vector<string> MinMaxAlphaBetaTransTableAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabttPv-3");
+    stats.push_back("version=BbMmabttPv-4");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("states_created=" + to_string(this->_nodes_created));
     stats.push_back("states_collisions=" + to_string(this->_nodes_collisions));
     stats.push_back("alpha_cutoffs=" + to_string(this->_alpha_cutoffs));
     stats.push_back("beta_cutoffs=" + to_string(this->_beta_cutoffs));
-    cerr << "BbMmabttPv-3\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMmabttPv-4\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << " " << stats[4] << " " << stats[5] << " " << stats[6] << endl;
     return stats;
 }
@@ -274,10 +274,7 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
     }
 
     // Update the node beta if a lower value was found
-    if (node->depth < depth)
-    {
-        node->beta = min(node->beta, beta);
-    }
+    node->beta = min(node->beta, beta);
 
     return best_quality;
 }

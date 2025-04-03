@@ -66,14 +66,14 @@ vector<string> MinMaxAlphaBetaTransTableAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabttPv-2");
+    stats.push_back("version=BbMmabttPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("states_created=" + to_string(this->_nodes_created));
     stats.push_back("states_collisions=" + to_string(this->_nodes_collisions));
     stats.push_back("alpha_cutoffs=" + to_string(this->_alpha_cutoffs));
     stats.push_back("beta_cutoffs=" + to_string(this->_beta_cutoffs));
-    cerr << "BbMmabttPv-2\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMmabttPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << " " << stats[4] << " " << stats[5] << " " << stats[6] << endl;
     return stats;
 }
@@ -93,73 +93,41 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
     int           zobrist_key = board->get_zobrist_key();
     s_MinMaxNode *node = this->_tt->get_node(zobrist_key);
 
-    // Create the node if the position wasn't already seen
+    // Initialize the node if the position wasn't already seen
     if (node->zobrist_key != zobrist_key)
     {
         this->_nodes_created++;
 
         if (node->zobrist_key != 0)
-        {
             this->_nodes_collisions++;
-            // cerr << "MinMaxAlphaBetaTransTableAgent: COLLISION: zobrist_key=" << zobrist_key
-            //  << endl;
-        }
 
         node->zobrist_key = zobrist_key;
         node->depth = depth;
         node->leaf_node = board->get_game_state() != GAME_CONTINUE;
-        node->quality = this->_heuristic->evaluate(board);
+
+        vector<Move> child_moves = board->get_available_moves();
+        for (size_t i = 0; i < child_moves.size(); i++)
+            node->child_move_quality_pairs.emplace_back(child_moves[i], 0);
     }
 
     // Stop the search if we reach the max depth, search time is up, or the game is over
     if (depth == max_depth || this->is_time_up() || node->leaf_node)
-        return node->quality;
-
-    // Initialize its child data if it wasn't already expanded
-    if (node->child_move_quality_pairs.size() == 0)
-    {
-        vector<Move> child_moves = board->get_available_moves();
-        for (size_t i = 0; i < child_moves.size(); ++i)
-        {
-            node->child_move_quality_pairs.emplace_back(child_moves[i], 0);
-        }
-    }
-    else if (board->is_white_turn())
-    {
-        // Sort moves in descending order, based on their quality to improve alpha-beta pruning
-        // effect
-        std::sort(
-            node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
-            [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
-            {
-                return a.second > b.second; // Sort in descending order of quality
-            }
-        );
-    }
-    else
-    {
-        // Sort moves in ascending order, based on their quality to improve alpha-beta pruning
-        // effect
-        std::sort(
-            node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
-            [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
-            {
-                return a.second < b.second; // Sort in descending order of quality
-            }
-        );
-    }
+        return this->_heuristic->evaluate(board);
 
     if (board->is_white_turn())
-        return this->max_node(board, max_depth, depth, alpha, beta, node);
+        node->quality = this->max_node(board, max_depth, depth, alpha, beta, node);
+    else
+        node->quality = this->min_node(board, max_depth, depth, alpha, beta, node);
 
-    return this->min_node(board, max_depth, depth, alpha, beta, node);
+    return node->quality;
 }
 
 float MinMaxAlphaBetaTransTableAgent::max_node(
     Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
 )
 {
-    // TODO: Order moves by quality to improve alpha-beta pruning effect
+    // Sort moves by their quality, in descending order, to improve alpha-beta pruning effect
+    this->sort_child_move_quality_pairs_descending(node);
 
     // White wants to maximize the heuristic value
     float best_quality = -1;
@@ -201,7 +169,8 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
     Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
 )
 {
-    // TODO: Order moves by quality to improve alpha-beta pruning effect
+    // Sort moves by their quality, in ascending order, to improve alpha-beta pruning effect
+    this->sort_child_move_quality_pairs_ascending(node);
 
     // Black wants to minimize the heuristic value
     float best_quality = 1;
@@ -237,6 +206,28 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
     }
 
     return best_quality;
+}
+
+void MinMaxAlphaBetaTransTableAgent::sort_child_move_quality_pairs_descending(s_MinMaxNode *node)
+{
+    std::sort(
+        node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
+        [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
+        {
+            return a.second > b.second; // Sort in descending order of quality
+        }
+    );
+}
+
+void MinMaxAlphaBetaTransTableAgent::sort_child_move_quality_pairs_ascending(s_MinMaxNode *node)
+{
+    std::sort(
+        node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
+        [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
+        {
+            return a.second < b.second; // Sort in descending order of quality
+        }
+    );
 }
 
 bool MinMaxAlphaBetaTransTableAgent::is_time_up()

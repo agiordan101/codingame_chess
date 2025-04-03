@@ -35,6 +35,8 @@ class MinMaxAlphaBetaTransTableAgent : public AbstractAgent
         float min_node(
             Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
         );
+        void sort_child_move_quality_pairs_descending(s_MinMaxNode *node);
+        void sort_child_move_quality_pairs_ascending(s_MinMaxNode *node);
 
         bool  is_time_up();
         float elapsed_time();

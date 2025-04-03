@@ -66,14 +66,14 @@ vector<string> MinMaxAlphaBetaTransTableAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabttPv-5");
+    stats.push_back("version=BbMmabttPv-2.6.1");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("states_created=" + to_string(this->_nodes_created));
     stats.push_back("states_collisions=" + to_string(this->_nodes_collisions));
     stats.push_back("alpha_cutoffs=" + to_string(this->_alpha_cutoffs));
     stats.push_back("beta_cutoffs=" + to_string(this->_beta_cutoffs));
-    cerr << "BbMmabttPv-5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMmabttPv-2.6.1\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << " " << stats[4] << " " << stats[5] << " " << stats[6] << endl;
     return stats;
 }
@@ -90,52 +90,42 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
 {
     this->_nodes_explored++;
 
-    int           zobrist_key = board->get_zobrist_key();
-    s_MinMaxNode *node = this->_tt->get_node(zobrist_key);
+    int                       zobrist_key = board->get_zobrist_key();
+    s_TranspositionTableNode *node = this->_tt->get_node(zobrist_key);
+
+    // // If the position was already seen, we can use its data
+    // if (node->zobrist_key == zobrist_key)
+    // {
+    //     if (node->depth < depth)
+    //     {
+    //         // if (node->node_type == EXACT)
+    //         //     return node->quality;
+    //         if (node->node_type == LOWERBOUND)
+    //             alpha = max(alpha, node->alpha);
+    //         else if (node->node_type == UPPERBOUND)
+    //             beta = min(beta, node->beta);
+
+    //         if (alpha >= beta)
+    //             return node->quality;
+    //     }
+    // }
 
     // Create the node if the position wasn't already seen
     if (node->zobrist_key != zobrist_key)
     {
         this->_nodes_created++;
 
-        node->depth = depth;
-        node->last_position_fen = board->get_last_position_fen();
-        node->game_turn = board->game_turn;
+        if (node->zobrist_key != 0)
+            this->_nodes_collisions++;
+
+        node->zobrist_key = zobrist_key;
+        // node->depth = depth;
         node->leaf_node = board->get_game_state() != GAME_CONTINUE;
         node->quality = this->_heuristic->evaluate(board);
-        node->alpha = alpha;
-        node->beta = beta;
-
-        if (node->zobrist_key != 0)
-        {
-            this->_nodes_collisions++;
-            // cerr << "MinMaxAlphaBetaTransTableAgent: COLLISION: zobrist_key=" << zobrist_key
-            //  << endl;
-            node->zobrist_key = zobrist_key;
-        }
-        else
-        {
-            node->zobrist_key = zobrist_key;
-            return node->quality;
-        }
+        // node->alpha = alpha;
+        // node->beta = beta;
+        // node->node_type = EXACT;
     }
-    // else if (node->last_position_fen == board->get_last_position_fen())
-    // {
-    //     // We can only use alpha and beta values from previous search branches are the same.
-    //     // So we rely on the actual zobrist key and the last FEN position
-
-    //     // Compare actual branch beta with the one from previous search, and keep the lowest
-    //     if (node->beta < beta)
-    //         beta = node->beta;
-    //     // else
-    //     //     node->beta = beta;
-
-    //     // Compare actual branch alpha with the one from previous search, and keep the lowest
-    //     if (node->alpha > alpha)
-    //         alpha = node->alpha;
-    //     // else
-    //     //     node->alpha = alpha;
-    // }
 
     // Stop the search if we reach the max depth, search time is up, or the game is over
     if (depth == max_depth || this->is_time_up() || node->leaf_node)
@@ -145,25 +135,25 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
     if (node->child_move_quality_pairs.size() == 0)
     {
         vector<Move> child_moves = board->get_available_moves();
-        for (size_t i = 0; i < child_moves.size(); ++i)
+        for (size_t i = 0; i < child_moves.size(); i++)
         {
             node->child_move_quality_pairs.emplace_back(child_moves[i], 0);
         }
     }
+    // If we already have child data, we can sort moves based on their quality to improve alpha-beta
+    // pruning effect (descending order)
     else if (board->is_white_turn())
     {
-        // Sort moves in descending order, based on their quality to improve alpha-beta pruning
-        // effect
         std::sort(
             node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
             [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
             { return a.second > b.second; }
         );
     }
+    // If we already have child data, we can sort moves based on their quality to improve alpha-beta
+    // pruning effect (ascending order)
     else
     {
-        // Sort moves in ascending order, based on their quality to improve alpha-beta pruning
-        // effect
         std::sort(
             node->child_move_quality_pairs.begin(), node->child_move_quality_pairs.end(),
             [](const std::pair<Move, float> &a, const std::pair<Move, float> &b)
@@ -176,43 +166,36 @@ float MinMaxAlphaBetaTransTableAgent::minmax(
                         : this->min_node(board, max_depth, depth, alpha, beta, node);
 
     node->quality = quality;
-    node->depth = depth;
+    // node->depth = depth;
 
     return quality;
 }
 
 float MinMaxAlphaBetaTransTableAgent::max_node(
-    Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+    Board *board, int max_depth, int depth, float alpha, float beta, s_TranspositionTableNode *node
 )
 {
-    // We can only use alpha and beta values from previous search branches are the same.
-    // So we rely on the actual zobrist key and the last FEN position
-    if (node->depth < depth)
-    {
-        // Compare actual branch alpha with the one from previous search, and keep the lowest
-        alpha = max(alpha, node->alpha);
-    }
-
     // White wants to maximize the heuristic value
     float best_quality = -1;
     for (size_t i = 0; i < node->child_move_quality_pairs.size(); i++)
     {
-        Move  move = node->child_move_quality_pairs.at(i).first;
         Board new_board = *board;
 
         // Apply the move and update the zobrist key
+        Move move = node->child_move_quality_pairs.at(i).first;
         new_board.apply_move(move);
 
         float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
 
+        node->child_move_quality_pairs.at(i).second = child_quality;
+        best_quality = max(best_quality, child_quality);
+
         // Stop the search if we run out of time, the actual branch won't be used anyway
         if (this->is_time_up())
-            break;
-
-        node->child_move_quality_pairs.at(i).second = child_quality;
-
-        // TODO: Move this line under the if
-        best_quality = max(best_quality, child_quality);
+        {
+            // node->alpha = max(node->alpha, alpha);
+            return best_quality;
+        }
 
         // Update alpha for the next brother nodes
         alpha = max(alpha, best_quality);
@@ -223,47 +206,44 @@ float MinMaxAlphaBetaTransTableAgent::max_node(
         if (beta <= best_quality)
         {
             this->_beta_cutoffs++;
-            break;
+            // node->alpha = max(node->alpha, alpha);
+            // node->node_type = LOWERBOUND;
+
+            return best_quality;
         }
     }
 
-    node->alpha = max(node->alpha, alpha);
+    // node->alpha = max(node->alpha, alpha);
+    // node->node_type = beta <= best_quality ? LOWERBOUND : EXACT; // Test without
 
     return best_quality;
 }
 
 float MinMaxAlphaBetaTransTableAgent::min_node(
-    Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+    Board *board, int max_depth, int depth, float alpha, float beta, s_TranspositionTableNode *node
 )
 {
-    // We can only use alpha and beta values from previous search branches are the same.
-    // So we rely on the actual zobrist key and the last FEN position
-    if (node->depth < depth)
-    {
-        // Compare actual branch beta with the one from previous search, and keep the lowest
-        beta = min(beta, node->beta);
-    }
-
-    // Black wants to minimize the heuristic value
+    // White wants to maximize the heuristic value
     float best_quality = 1;
     for (size_t i = 0; i < node->child_move_quality_pairs.size(); i++)
     {
-        Move  move = node->child_move_quality_pairs.at(i).first;
         Board new_board = *board;
 
         // Apply the move and update the zobrist key
+        Move move = node->child_move_quality_pairs.at(i).first;
         new_board.apply_move(move);
 
         float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
 
+        node->child_move_quality_pairs.at(i).second = child_quality;
+        best_quality = min(best_quality, child_quality);
+
         // Stop the search if we run out of time, the actual branch won't be used anyway
         if (this->is_time_up())
-            break;
-
-        node->child_move_quality_pairs.at(i).second = child_quality;
-
-        // TODO: Move this line under the if
-        best_quality = min(best_quality, child_quality);
+        {
+            // node->beta = min(node->beta, beta);
+            return best_quality;
+        }
 
         // Update beta for the next brother nodes
         beta = min(beta, best_quality);
@@ -271,15 +251,18 @@ float MinMaxAlphaBetaTransTableAgent::min_node(
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Alpha cut : If we're in a min node and the current child min quality is lower than a
         // brother node (which will be chosen by the parent max-node)
-        if (alpha >= best_quality)
+        if (best_quality <= alpha)
         {
             this->_alpha_cutoffs++;
-            break;
+            // node->beta = min(node->beta, beta);
+            // node->node_type = UPPERBOUND;
+
+            return best_quality;
         }
     }
 
-    // Update the node beta if a lower value was found
-    node->beta = min(node->beta, beta);
+    // node->beta = min(node->beta, beta);
+    // node->node_type = best_quality <= alpha ? UPPERBOUND : EXACT; // Test without
 
     return best_quality;
 }

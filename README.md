@@ -239,6 +239,9 @@ Inside the file :
 ## Roadmap
 
 - Next steps :
+    * test move ordering wiht no move ordering
+    * remove get_last_position_fen
+    * Minmax: main function iter deep : use child_move_quality_pairs and remove for loop
 
     * Use depth and cutoff with alpha > beta or the opposite ..? 
         * transposition table -> https://en.wikipedia.org/wiki/Negamax

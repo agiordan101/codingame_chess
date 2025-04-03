@@ -2,9 +2,9 @@
 
 TranspositionTable::TranspositionTable()
 {
-    this->_node_size = sizeof(s_MinMaxNode);
+    this->_node_size = sizeof(s_TranspositionTableNode);
     this->_max_node_count = TT_MEMORY_SIZE / _node_size;
-    this->_table = (s_MinMaxNode *)malloc(_max_node_count * _node_size);
+    this->_table = (s_TranspositionTableNode *)malloc(_max_node_count * _node_size);
     if (this->_table == NULL)
     {
         cerr << "TranspositionTable: malloc failed !" << endl;
@@ -15,10 +15,10 @@ TranspositionTable::TranspositionTable()
          << "millions _node_size=" << _node_size << " bytes" << endl;
 }
 
-s_MinMaxNode *TranspositionTable::get_node(int zobrist_key)
+s_TranspositionTableNode *TranspositionTable::get_node(int zobrist_key)
 {
-    int           index = zobrist_key % this->_max_node_count;
-    s_MinMaxNode *node = &this->_table[index];
+    int                       index = zobrist_key % this->_max_node_count;
+    s_TranspositionTableNode *node = &this->_table[index];
 
     return node;
 }

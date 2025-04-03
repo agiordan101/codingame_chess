@@ -30,10 +30,20 @@ class MinMaxAlphaBetaTransTableAgent : public AbstractAgent
 
         float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
         float max_node(
-            Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+            Board                    *board,
+            int                       max_depth,
+            int                       depth,
+            float                     alpha,
+            float                     beta,
+            s_TranspositionTableNode *node
         );
         float min_node(
-            Board *board, int max_depth, int depth, float alpha, float beta, s_MinMaxNode *node
+            Board                    *board,
+            int                       max_depth,
+            int                       depth,
+            float                     alpha,
+            float                     beta,
+            s_TranspositionTableNode *node
         );
 
         bool  is_time_up();

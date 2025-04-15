@@ -41,8 +41,8 @@ Displays a graph X: Stockfish ELO - Y: Winrate
 I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
 
 The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
-The actual best stable bot is BbMmPv (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
-The actual bot in development is BbMmPv-2 (bitboard_minmaxiterdeep[50]_piecevalues). With ELO rating of ????
+The actual best stable bot is BbMmabPv-1 (bitboard_minmaxalphabeta[50]_piecevalues). With ELO rating of ????
+The actual bot in development is BbMmabttPv-1 (bitboard_minmaxalphabetatranstable[50]_piecevalues). With ELO rating of ????
 
 External libraries are used to test & debug my own chess engine (times, valids moves from a position)
 
@@ -54,12 +54,13 @@ An unique bot is defined by 4 properties:
     * Chess engine
     * Algorithm
     * Heuristic
-    * Thinking time in ms
 
 These properties combinations are represented in 3 different ways:
 
     * A short name for executable name (PascalCase) : {chess_engine}{algorithm}{heuristic}{thinking_time}
     * A long name for logging name     (snake_case) : {chess_engine}_{algorithm}[{thinking_time}]_{heuristic}
+
+Each of them have a version number, in respect of the order.
 
 Examples:
 
@@ -81,7 +82,16 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-### BbMmPv-6
+### BbMmabPv-1 (-> BbMmabPv-3.1.2)
+
+* Submit date: 23.03.2025 23H28
+* Overall ranking : 34/374
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 34/60
+    * CG elo: 19,13
+    * Top 1 elo: 44,9
+
+### BbMmPv-6 (-> BbMmPv-3.2.2)
 
 * Submit date: 23.03.2025 23H28
 * Overall ranking : 42/374
@@ -90,7 +100,7 @@ Before creating a new version :
     * CG elo: 15,78
     * Top 1 elo: 44,9
 
-### BbMmPv-5
+### BbMmPv-5 (-> BbMmPv-2.2.2)
 
 * Submit date: 23.03.2025 22H12
 * Overall ranking : 61/374
@@ -184,11 +194,11 @@ Despite the rules, the final position after castling is always the same:
 
 #### MinMax algorithm
 
-    - MinMax: Alternatively choose the min and the max value returned by the heuristic function
-    - Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
-    - Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
-    - Transposition table: Hashing the position we can create an unique index to lookup a table (Collisions may appear depending on the hash function). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
-    - Hash function -  :
+- MinMax: Alternatively choose the min and the max value returned by the heuristic function
+- Alpha-Beta pruning: Prune branches whenever the current selected child won't be better than its oncle.
+- Iterative Deepening: Successively run MinMax with an increasing depth. Update the tree on each leaf node. And stop the search if the time constraint is reached. Require a transposition table to be efficient
+- Transposition table: Hashing the position we can create an unique index to lookup a table (With the depth of the calculation! it is improtant). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
+- Hash function -  :
 
 ### Python tools
 
@@ -231,25 +241,10 @@ Inside the file :
 
 - Next steps :
 
-    * There is a bug with castle move generation.
-        A lot of failure in CG come from castling on an empty square, ally piece etc.
-
-    * Implement iterative deepening in MinMaxAlphaBetaOldAgent -> BbMmabPv
-        - Think about 2 methods: for min node and max node
+    * Copy zobrist board changes & Remove all transposition table and zobrist stuff from Board
+    * Start heuristics
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
-
-    * Ajouter une protection de coups dans BotPlayer ? Si aucune piece n'est à la soure du coup, ne pas le prendr een compte ... Ou plutot le faire la génération de coups dans le Board ?
-    * Fix issue about non legal moves played !
-       * k5rn/7p/1p4p1/2p1pp2/2P1P3/8/3N1PPP/2BBQKRN -> d8d2
-       * k6r/5b2/1P6/1n2p2p/7b/8/1K6/5q2 -> d8d2
-       * nN4kn/8/8/5p2/2p2P2/8/8/4q1BK -> f1e1
-       * 1nk3Q1/6b1/8/1p2p3/2p1b3/8/3KP2P/1N3rN1 -> d8g8
-       * Looks like the last move is played. Could happen if the board hadn't been updated before generating moves. Possibly due to a wrong last move
-    * FIx issue about end game detection where the game should continue !
-      * 8/P1p1k1pp/R2p4/2b4P/2B4K/8/5rq1/8 b - - 17 44 -> Detected as DRAW
-
-    * Board: Implement get_castling_rights()
 
     * Optimize BitBoard :
         * Switch some function pointer at engine start depending on the rule ?
@@ -336,6 +331,11 @@ sf1500 50ms  vs sf1500 None -> 107W 26D 127L / 260 games
 In conclusion, time per turn associated to Stockfish doesn't matter above 50ms
 
 BbMm50Pv    vs  BMm50Pv -> 66% win / 200 games
+
+
+BbMmabttPv-rc basic                     vs BbMmabPv-1 -> 0.403 / 284 games
+BbMmabttPv-rc move ordering             vs BbMmabPv-1 -> 0.452 / 284 games
+BbMmabttPv-rc move ordering & ab save   vs BbMmabPv-1 ->  /  games
 
 ## Externals C++ libraries
 

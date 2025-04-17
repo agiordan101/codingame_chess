@@ -74,13 +74,23 @@ Bot versions must be created on their tag commit. For example, an older version 
 All versions should have a ELO rating.
 
 Before creating a new version :
-- Run all tests
-- Run format
-- Make sure it wins against the previous version
-- Change Agent name
-- Change Makefile exec name
+- make format
+- make test
+- Make sure it wins against the previous version (versus.py)
+- Change version number in Agent
+- Change version number in Makefile
+- make buildcg
 
 ## Bot versions deployed in CodinGame
+
+### BbMmabPv-3.1.3
+
+* Submit date:
+* Overall ranking :
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 
+    * CG elo: 
+    * Top 1 elo: 44,9
 
 ### BbMmabPv-1 (-> BbMmabPv-3.1.2)
 
@@ -316,6 +326,12 @@ Inside the file :
     - Quantity of explored nodes per turn is constant ~19 npms (nodes per milliseconds)
     - Where as the BMm50Pv begin at 40 npms and slow down to apprimately 10 npms at turn 30
     - Until turn 12, BbMm50Pv compute less nodes
+
+
+### Versus
+
+BbMmabPv-3.1.3   vs  BbMmabPv-3.1.2 : 0.621 / 228 games
+
 
 ## Tests
 

@@ -556,6 +556,215 @@ class PiecesHeuristic : public AbstractHeuristic
     public:
         float  evaluate(Board *board) override;
         string get_name() override;
+
+    private:
+        int _material_evaluation(Board *board, int *white_material, int *black_material);
+        int _piece_positions_evaluation(
+            Board *board, float white_eg_coefficient, float black_eg_coefficient
+        );
+
+        int _lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard);
+        int _lookup_bonuses_for_all_pieces(
+            int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
+        );
+
+        // From AlphaZero paper
+        // https://en.wikipedia.org/wiki/Chess_piece_relative_value
+        typedef enum t_piece_values
+        {
+            PAWN_VALUE = 100,
+            KNIGHT_VALUE = 305,
+            BISHOP_VALUE = 333,
+            ROOK_VALUE = 563,
+            QUEEN_VALUE = 950
+        } e_piece_values;
+
+        // Completely arbitrary estimation (but fast)
+        const int material_start_game =
+            10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
+        const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
+        const int material_start_end_game_diff = material_start_game - material_end_game;
+
+        // clang-format off
+        // Pieces bonuses depending on their position
+        // https://www.chessprogramming.org/Simplified_Evaluation_Function
+        // https://github.com/amir650/BlackWidow-Chess/blob/master/src/com/chess/engine/classic/Alliance.java
+        int white_pawn_sg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            10, 10, 20, 30, 30, 20, 10, 10,
+             5,  5, 10, 25, 25, 10,  5,  5,
+             0,  0,  0, 20, 20,  0,  0,  0,
+             5, -5,-10,  0,  0,-10, -5,  5,
+             5, 10, 10,-20,-20, 10, 10,  5,
+             0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int white_pawn_eg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            80, 80, 80, 80, 80, 80, 80, 80,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            30, 30, 30, 30, 30, 30, 30, 30,
+            20, 20, 20, 20, 20, 20, 20, 20,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+             0,  0,  0,  0,  0,  0,  0,  0,
+        };
+        
+        int black_pawn_sg_bonus_table[64] = {
+            0,  0,  0,  0,  0,  0,  0,  0,
+            5, 10, 10,-20,-20, 10, 10,  5,
+            5, -5,-10,  0,  0,-10, -5,  5,
+            0,  0,  0, 20, 20,  0,  0,  0,
+            5,  5, 10, 25, 25, 10,  5,  5,
+            10, 10, 20, 30, 30, 20, 10, 10,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int black_pawn_eg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            20, 20, 20, 20, 20, 20, 20, 20,
+            30, 30, 30, 30, 30, 30, 30, 30,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            80, 80, 80, 80, 80, 80, 80, 80,
+             0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int white_knight_bonus_table[64] = {
+            -50,-40,-30,-30,-30,-30,-40,-50,
+            -40,-20,  0,  5,  5,  0,-20,-40,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -50,-40,-30,-30,-30,-30,-40,-50
+        };
+
+        int black_knight_bonus_table[64] = {
+            -50,-40,-30,-30,-30,-30,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -40,-20,  0,  5,  5,  0,-20,-40,
+            -50,-40,-30,-30,-30,-30,-40,-50,
+        };
+
+        int white_bishop_bonus_table[64] = {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  5,  5, 10, 10,  5,  5,-10,
+            -10,  0, 10, 15, 15, 10,  0,-10,
+            -10, 10, 10, 10, 10, 10, 10,-10,
+            -10,  5,  0,  0,  0,  0,  5,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20
+        };
+
+        int black_bishop_bonus_table[64] = {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  5,  0,  0,  0,  0,  5,-10,
+            -10, 10, 10, 10, 10, 10, 10,-10,
+            -10,  0, 10, 15, 15, 10,  0,-10,
+            -10,  5, 10, 15, 15, 10,  5,-10,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20
+        };
+
+        int white_rook_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5, 20, 20, 20, 20, 20, 20,  5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+             0,  0,  0,  5,  5,  0,  0,  0
+        };
+
+        int black_rook_bonus_table[64] = {
+             0,  0,  0,  5,  5,  0,  0,  0,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+             5, 20, 20, 20, 20, 20, 20,  5,
+             0,  0,  0,  0,  0,  0,  0,  0,
+        };
+
+        int white_queen_bonus_table[64] = {
+            -20,-10,-10, -5, -5,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -5,   0,  5, 10, 10,  5,  0, -5,
+            -5,   0,  5, 10, 10,  5,  0, -5,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10, -5, -5,-10,-10,-20
+        };
+
+        int black_queen_bonus_table[64] = {
+            -20,-10,-10, -5, -5,-10,-10,-20,
+            -10,  0,  5,  0,  0,  0,  0,-10,
+            -10,  5,  5,  5,  5,  5,  0,-10,
+            -5,   0,  5, 10, 10,  5,  0, -5,
+            -5,   0,  5, 10, 10,  5,  0, -5,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10, -5, -5,-10,-10,-20
+        };
+
+        int white_king_sg_bonus_table[64] = {
+            -60,-60,-60,-60,-60,-60,-60,-60,
+            -50,-50,-50,-50,-50,-50,-50,-50,
+            -40,-40,-40,-40,-40,-40,-40,-40,
+            -30,-30,-30,-30,-30,-30,-30,-30,
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -10,-10,-10,-10,-10,-10,-10,-10,
+              0,  0,  0,  0,  0,  0,  0,  0,
+             20, 30,  5,  0,  0,  5, 30, 20
+        };
+
+        int white_king_eg_bonus_table[64] = {
+            -50,-40,-30,-20,-20,-30,-40,-50,
+            -30,-20,-10,  0,  0,-10,-20,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-30,  0,  0,  0,  0,-30,-30,
+            -50,-30,-30,-30,-30,-30,-30,-50
+        };
+
+        int black_king_sg_bonus_table[64] = {
+             20, 30,  5,  0,  0,  5, 30, 20,
+              0,  0,  0,  0,  0,  0,  0,  0,
+            -10,-10,-10,-10,-10,-10,-10,-10,
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -30,-30,-30,-30,-30,-30,-30,-30,
+            -40,-40,-40,-40,-40,-40,-40,-40,
+            -50,-50,-50,-50,-50,-50,-50,-50,
+            -60,-60,-60,-60,-60,-60,-60,-60,
+        };
+
+        int black_king_eg_bonus_table[64] = {
+            -50,-30,-30,-30,-30,-30,-30,-50
+            -30,-30,  0,  0,  0,  0,-30,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-20,-10,  0,  0,-10,-20,-30,
+            -50,-40,-30,-20,-20,-30,-40,-50,
+        };
+        // clang-format on
 };
 
 #endif
@@ -2989,10 +3198,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-1");
+    stats.push_back("version=BbMmabPv-3.1.3");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-1\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-3.1.3\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -3104,6 +3313,7 @@ float MinMaxAlphaBetaAgent::elapsed_time()
         Content of 'srcs/heuristics/PiecesHeuristic.cpp'
 */
 
+#include <algorithm>
 float PiecesHeuristic::evaluate(Board *board)
 {
     float state = board->get_game_state();
@@ -3117,6 +3327,38 @@ float PiecesHeuristic::evaluate(Board *board)
             return 1;
     }
 
+    int white_material;
+    int black_material;
+    int material_evaluation = _material_evaluation(board, &white_material, &black_material);
+
+    // Start game material = 100 * 8 + 305 * 2 + 333 * 2 + 563 * 2 + 950 = 4 152
+    // Consider that end game is approximately at 1800 material or less
+    int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
+    int black_material_in_bound = min(max(black_material, material_end_game), material_start_game);
+
+    // Interpolate current material in start and end game interval, to a coefficient between 0 and 1
+    // 0 = start game, 1 = end game
+    float white_eg_coefficient =
+        (float)(material_start_game - white_material_in_bound) / material_start_end_game_diff;
+    float black_eg_coefficient =
+        (float)(material_start_game - black_material_in_bound) / material_start_end_game_diff;
+
+    int pp_evaluation =
+        _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
+
+    int evaluation = material_evaluation + pp_evaluation;
+    if (evaluation > 0)
+        return 1 - 1.0 / (1 + evaluation);
+    return -1 - 1.0 / (-1 + evaluation);
+}
+
+string PiecesHeuristic::get_name()
+{
+    return "PiecesHeuristic";
+}
+
+int PiecesHeuristic::_material_evaluation(Board *board, int *white_material, int *black_material)
+{
     int white_pawn_count = _count_bits(board->white_pawns);
     int white_knight_count = _count_bits(board->white_knights);
     int white_bishop_count = _count_bits(board->white_bishops);
@@ -3128,19 +3370,92 @@ float PiecesHeuristic::evaluate(Board *board)
     int black_rook_count = _count_bits(board->black_rooks);
     int black_queen_count = _count_bits(board->black_queens);
 
-    float evaluation =
-        white_pawn_count - black_pawn_count + 3 * (white_knight_count - black_knight_count) +
-        3.2 * (white_bishop_count - black_bishop_count) +
-        5 * (white_rook_count - black_rook_count) + 9 * (white_queen_count - black_queen_count);
+    // Material evaluation
+    *white_material = white_pawn_count * PAWN_VALUE + white_knight_count * KNIGHT_VALUE +
+                      white_bishop_count * BISHOP_VALUE + white_rook_count * ROOK_VALUE +
+                      white_queen_count * QUEEN_VALUE;
+    *black_material = black_pawn_count * PAWN_VALUE + black_knight_count * KNIGHT_VALUE +
+                      black_bishop_count * BISHOP_VALUE + black_rook_count * ROOK_VALUE +
+                      black_queen_count * QUEEN_VALUE;
 
-    if (evaluation > 0)
-        return 1 - 1.0 / (1 + evaluation);
-    return -1 - 1.0 / (-1 + evaluation);
+    return *white_material - *black_material;
 }
 
-string PiecesHeuristic::get_name()
+int PiecesHeuristic::_piece_positions_evaluation(
+    Board *board, float white_eg_coefficient, float black_eg_coefficient
+)
 {
-    return "PiecesHeuristic";
+    int pp_eval = 0;
+
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_pawn_sg_bonus_table, white_pawn_eg_bonus_table, white_eg_coefficient,
+        board->white_pawns
+    );
+    pp_eval += _lookup_bonuses_for_all_pieces(white_knight_bonus_table, board->white_knights);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_bishop_bonus_table, board->white_bishops);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_rook_bonus_table, board->white_rooks);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_queen_bonus_table, board->white_queens);
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_king_sg_bonus_table, white_king_eg_bonus_table, white_eg_coefficient,
+        board->white_king
+    );
+
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_pawn_sg_bonus_table, black_pawn_eg_bonus_table, black_eg_coefficient,
+        board->black_pawns
+    );
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_knight_bonus_table, board->black_knights);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_bishop_bonus_table, board->black_bishops);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_rook_bonus_table, board->black_rooks);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_queen_bonus_table, board->black_queens);
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_king_sg_bonus_table, black_king_eg_bonus_table, black_eg_coefficient,
+        board->black_king
+    );
+
+    return pp_eval;
+}
+
+int PiecesHeuristic::_lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard)
+{
+    int bonuses = 0;
+
+    // Find all individual bits in bitboard
+    while (bitboard)
+    {
+        int first_piece_i = _count_trailing_zeros(bitboard);
+
+        // Lookup table for this piece
+        bonuses += bonus_table[first_piece_i];
+
+        // Remove the actual bit from bitboard, so we can find the next one
+        bitboard ^= 1UL << first_piece_i;
+    }
+
+    return bonuses;
+}
+
+int PiecesHeuristic::_lookup_bonuses_for_all_pieces(
+    int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
+)
+{
+    int   bonuses = 0;
+    float sg_coef = 1 - eg_coef;
+
+    // Find all individual bits in bitboard
+    while (bitboard)
+    {
+        int first_piece_i = _count_trailing_zeros(bitboard);
+
+        // Lookup both start game and end game bonus tables, and mix them
+        bonuses +=
+            sg_bonus_table[first_piece_i] * sg_coef + eg_bonus_table[first_piece_i] * eg_coef;
+
+        // Remove the actual bit from bitboard, so we can find the next one
+        bitboard ^= 1UL << first_piece_i;
+    }
+
+    return bonuses;
 }
 
 /*

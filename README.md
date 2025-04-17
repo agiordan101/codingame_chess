@@ -85,11 +85,11 @@ Before creating a new version :
 
 ### BbMmabPv-3.1.3
 
-* Submit date:
-* Overall ranking :
+* Submit date: 17.04.2025 14H47
+* Overall ranking : 31/384
 * Ligue: Wood 1 (Best ligue)
-    * Rank: 
-    * CG elo: 
+    * Rank: 31/66
+    * CG elo: 20,77
     * Top 1 elo: 44,9
 
 ### BbMmabPv-1 (-> BbMmabPv-3.1.2)
@@ -251,8 +251,10 @@ Inside the file :
 
 - Next steps :
 
+    * Pawn are going too far too soon
+    * Rook should be more on the center
+
     * Copy zobrist board changes & Remove all transposition table and zobrist stuff from Board
-    * Start heuristics
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 

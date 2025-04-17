@@ -34,6 +34,15 @@ def merge_files(file_name, output_fd):
         for line in infile:
             # Skip the #include directive
             if not any(regex.match(line) for regex in regexes):
+
+                # Remove comments
+                if (
+                    "//" in line
+                    and "// clang-format on" not in line
+                    and "// clang-format off" not in line
+                ):
+                    line = line.split("//")[0]
+
                 output_fd.write(line)
 
 

@@ -85,11 +85,11 @@ Before creating a new version :
 
 ### BbMmabPv-3.1.3
 
-* Submit date:
-* Overall ranking :
+* Submit date: 17.04.2025 14H47
+* Overall ranking : 31/384
 * Ligue: Wood 1 (Best ligue)
-    * Rank: 
-    * CG elo: 
+    * Rank: 31/66
+    * CG elo: 20,77
     * Top 1 elo: 44,9
 
 ### BbMmabPv-1 (-> BbMmabPv-3.1.2)
@@ -251,8 +251,18 @@ Inside the file :
 
 - Next steps :
 
-    * Copy zobrist board changes & Remove all transposition table and zobrist stuff from Board
-    * Start heuristics
+    * Pawn are going too far too soon
+    * Rook should be more on the center
+
+    * Copy board changes from zobrist feature & Remove all transposition table and zobrist stuff from Board
+
+    * In python script versus, write game results in a history file reserved for these opponents
+
+    * DRAW offers (Need a winrate estimation first) :
+        * You can offer a draw to your opponent by adding = right after the move, without a space:
+            * If estimated winrate < 0.4, offer a draw (as white)
+        * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
+            * If estimated winrate > 0.6, accept a draw (as white)
 
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
@@ -266,7 +276,6 @@ Inside the file :
                 - Simulate N games and create an average time for all methods ?
             - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
 
-    * In python script versus, write game results in a history file reserved for these opponents
     * Find a way to print chess board in python.
         Create with Mistral a game UI with button :
            - Bot name selectors (With a human option)
@@ -279,14 +288,8 @@ Inside the file :
            - Show move scores
            - Show last move
 
-    * Create MinMaxAlphaBetaTransTableAgent
-
     * Transform game state from static define to enum
-    * Be carefull about evaluation > max_value in heuristic. It shouldn't be possible
     * BotPlayer : from vector to *vector
-
-    * You can offer a draw to your opponent by adding = right after the move, without a space.
-    * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
 
     * Project architecture :
         * Regroup all .test. files into a tests folder
@@ -300,7 +303,6 @@ Inside the file :
         On push:
             make format
     * Use valgrind to remove invalid reads
-
 
     * Modify Board::Board(): Randomize the board generation
 

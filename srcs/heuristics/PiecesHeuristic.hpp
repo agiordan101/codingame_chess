@@ -32,7 +32,10 @@ class PiecesHeuristic : public AbstractHeuristic
             QUEEN_VALUE = 950
         } e_piece_values;
 
-        // Completely arbitrary estimation (but fast)
+        // Cells control
+        const int cell_control_value = 2;
+
+        // Piece positions - Completely arbitrary estimation (but fast)
         const int material_middle_game_start =
             QUEEN_VALUE + 2 * ROOK_VALUE + BISHOP_VALUE + KNIGHT_VALUE + 6 * PAWN_VALUE;
         const int material_middle_game_end = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;

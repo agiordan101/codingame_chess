@@ -59,6 +59,12 @@ class Board
         uint64_t black_queens;
         uint64_t black_king;
 
+        uint64_t uncheck_mask;           // Full set of bits to 1 means there is no check
+        uint64_t pawn_uncheck_mask;      // Uncheck mask only available for pawns
+        uint64_t attacked_by_enemy_mask; // Squares attacked by the enemy
+        uint64_t attacked_by_ally_mask;  // Squares attacked by the enemy
+        uint64_t pin_masks[64];          // Each cell can have a pinned mask
+
         Board(
             string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
             bool   chess960_rule = true,
@@ -133,11 +139,6 @@ class Board
 
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
-
-        uint64_t uncheck_mask;           // Full set of bits to 1 means there is no check
-        uint64_t pawn_uncheck_mask;      // Uncheck mask only available for pawns
-        uint64_t attacked_by_enemy_mask; // Squares attacked by the enemy
-        uint64_t pin_masks[64];          // Each cell can have a pinned mask
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -218,6 +219,7 @@ class Board
 
         void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
+        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
 
         // - Bit operations -
 

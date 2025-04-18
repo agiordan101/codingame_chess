@@ -814,6 +814,7 @@ void Board::_update_engine_at_turn_start()
     pawn_uncheck_mask = 0UL;
     std::fill(std::begin(pin_masks), std::end(pin_masks), BITMASK_ALL_CELLS);
     attacked_by_enemy_mask = 0UL;
+    attacked_by_ally_mask = 0UL;
 
     _update_check_and_pins();
     _update_attacked_by_enemy_mask();
@@ -1156,6 +1157,8 @@ void Board::_find_white_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
         legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
+    attacked_by_ally_mask |= capture_moves;
+
     // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
@@ -1206,6 +1209,7 @@ void Board::_find_white_queens_moves(uint64_t src)
 
 void Board::_find_white_king_moves()
 {
+    // TODO: Only needed for unit tests ...
     if (white_king)
     {
         int      src_lkt_i = _count_trailing_zeros(white_king);
@@ -1281,6 +1285,8 @@ void Board::_find_black_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
         legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
+    attacked_by_ally_mask |= capture_moves;
+
     // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
@@ -1331,6 +1337,7 @@ void Board::_find_black_queens_moves(uint64_t src)
 
 void Board::_find_black_king_moves()
 {
+    // TODO: Only needed for unit tests ...
     if (black_king)
     {
         int      src_lkt_i = _count_trailing_zeros(black_king);
@@ -1397,27 +1404,34 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
     if (dst & BITMASK_LINE_81)
     {
         // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
-        this->available_moves.push_back(Move(piece, src, dst, 'n'));
-        this->available_moves.push_back(Move(piece, src, dst, 'b'));
-        this->available_moves.push_back(Move(piece, src, dst, 'r'));
-        this->available_moves.push_back(Move(piece, src, dst, 'q'));
+        _create_move(piece, src, dst, 'n');
+        _create_move(piece, src, dst, 'b');
+        _create_move(piece, src, dst, 'r');
+        _create_move(piece, src, dst, 'q');
     }
     else
-        this->available_moves.push_back(Move(piece, src, dst));
+        _create_move(piece, src, dst);
 }
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
+    attacked_by_ally_mask |= legal_moves;
+
     // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
-        this->available_moves.push_back(Move(piece, src, dst));
+        _create_move(piece, src, dst);
 
         // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
     }
+}
+
+void Board::_create_move(char piece, uint64_t src, uint64_t dst, char promotion)
+{
+    this->available_moves.push_back(Move(piece, src, dst, promotion));
 }
 
 // - Bit operations -

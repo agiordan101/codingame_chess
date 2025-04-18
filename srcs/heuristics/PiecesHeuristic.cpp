@@ -13,6 +13,8 @@ float PiecesHeuristic::evaluate(Board *board)
             return 1;
     }
 
+    // --- Material evaluation ---
+
     int white_material;
     int black_material;
     int material_evaluation = _material_evaluation(board, &white_material, &black_material);
@@ -31,10 +33,17 @@ float PiecesHeuristic::evaluate(Board *board)
     float black_eg_coefficient =
         (float)(material_middle_game_start - black_material_in_bound) / material_middle_game_diff;
 
+    // --- Piece positions evaluation ---
+
     int pp_evaluation =
         _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
 
-    int evaluation = material_evaluation + pp_evaluation;
+    // --- Cells control evaluation ---
+    int ally_control_count = _count_bits(board->attacked_by_ally_mask);
+    int enemy_control_count = _count_bits(board->attacked_by_enemy_mask);
+    int control_evaluation = (ally_control_count - enemy_control_count) * cell_control_value;
+
+    int evaluation = material_evaluation + pp_evaluation + control_evaluation;
     if (evaluation > 0)
         return 1 - 1.0 / (1 + evaluation);
     return -1 - 1.0 / (-1 + evaluation);

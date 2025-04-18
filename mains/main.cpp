@@ -9,6 +9,6 @@ using namespace std;
 int main()
 {
     GameEngine *game_engine =
-        new GameEngine(new BotPlayer(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 50)));
+        new GameEngine(new BotPlayer(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 10)));
     game_engine->infinite_game_loop();
 }

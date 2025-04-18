@@ -351,7 +351,7 @@ void Board::_main_parsing(
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
-    // Initialize internal data
+    // Initialize engine variables
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
@@ -387,11 +387,6 @@ void Board::_initialize_bitboards()
     not_black_pieces_mask = 0UL;
     all_pieces_mask = 0UL;
     empty_cells_mask = 0UL;
-
-    check_state = false;
-    double_check = false;
-    uncheck_mask = BITMASK_ALL_CELLS;
-    attacked_cells_mask = BITMASK_ALL_CELLS;
 }
 
 void Board::_parse_board(string fen_board)
@@ -818,10 +813,10 @@ void Board::_update_engine_at_turn_start()
     uncheck_mask = 0UL;
     pawn_uncheck_mask = 0UL;
     std::fill(std::begin(pin_masks), std::end(pin_masks), BITMASK_ALL_CELLS);
-    attacked_cells_mask = 0UL;
+    attacked_by_enemy_mask = 0UL;
 
     _update_check_and_pins();
-    _update_attacked_cells_mask();
+    _update_attacked_by_enemy_mask();
 
     // pawn_uncheck_mask is only set for a the specific case, so we must add generic uncheck_mask to
     // it
@@ -830,7 +825,7 @@ void Board::_update_engine_at_turn_start()
 #if USE_VISUAL_BOARD == 1
     if (PRINT_DEBUG_DATA)
     {
-        this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
+        this->visual_board.printSpecificBoard('A', attacked_by_enemy_mask, "Attacked cells mask");
         this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
     }
 #endif
@@ -934,7 +929,7 @@ void Board::_update_pawn_check(int king_lkt_i)
     }
 }
 
-void Board::_update_attacked_cells_mask()
+void Board::_update_attacked_by_enemy_mask()
 {
     if (white_turn)
     {
@@ -978,10 +973,12 @@ void Board::_update_attacked_cells_mask()
 
 void Board::_update_engine_at_turn_end()
 {
+    // Reset engine state
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
 
+    // Switch turn
     en_passant = next_turn_en_passant;
     next_turn_en_passant = 0UL;
 
@@ -1012,28 +1009,28 @@ void Board::_update_fen_history()
 void Board::_find_white_pawns_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= pawn_captures_lookup[src_lkt_i][0];
+    attacked_by_enemy_mask |= pawn_captures_lookup[src_lkt_i][0];
 }
 
 void Board::_find_white_knights_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= knight_lookup[src_lkt_i];
+    attacked_by_enemy_mask |= knight_lookup[src_lkt_i];
 }
 
 void Board::_find_white_bishops_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_diagonal_rays(src, ally_king);
 }
 
 void Board::_find_white_rooks_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_line_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_line_rays(src, ally_king);
 }
 
 void Board::_find_white_queens_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
 }
 
 void Board::_find_white_king_attacks()
@@ -1042,35 +1039,35 @@ void Board::_find_white_king_attacks()
     if (white_king)
     {
         int src_lkt_i = _count_trailing_zeros(white_king);
-        attacked_cells_mask |= king_lookup[src_lkt_i];
+        attacked_by_enemy_mask |= king_lookup[src_lkt_i];
     }
 }
 
 void Board::_find_black_pawns_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= pawn_captures_lookup[src_lkt_i][1];
+    attacked_by_enemy_mask |= pawn_captures_lookup[src_lkt_i][1];
 }
 
 void Board::_find_black_knights_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= knight_lookup[src_lkt_i];
+    attacked_by_enemy_mask |= knight_lookup[src_lkt_i];
 }
 
 void Board::_find_black_bishops_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_diagonal_rays(src, ally_king);
 }
 
 void Board::_find_black_rooks_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_line_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_line_rays(src, ally_king);
 }
 
 void Board::_find_black_queens_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
+    attacked_by_enemy_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
 }
 
 void Board::_find_black_king_attacks()
@@ -1079,7 +1076,7 @@ void Board::_find_black_king_attacks()
     if (black_king)
     {
         int src_lkt_i = _count_trailing_zeros(black_king);
-        attacked_cells_mask |= king_lookup[src_lkt_i];
+        attacked_by_enemy_mask |= king_lookup[src_lkt_i];
     }
 }
 
@@ -1213,7 +1210,7 @@ void Board::_find_white_king_moves()
     {
         int      src_lkt_i = _count_trailing_zeros(white_king);
         uint64_t legal_moves =
-            king_lookup[src_lkt_i] & not_white_pieces_mask & ~attacked_cells_mask;
+            king_lookup[src_lkt_i] & not_white_pieces_mask & ~attacked_by_enemy_mask;
 
         _create_piece_moves('K', white_king, legal_moves);
     }
@@ -1262,7 +1259,7 @@ void Board::_find_white_castle_moves(uint64_t rook)
         // - No cells are attacked in the king path
         // - Rook isn't pinned
         if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL &&
-            (king_path & attacked_cells_mask) == 0UL &&
+            (king_path & attacked_by_enemy_mask) == 0UL &&
             pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
@@ -1338,7 +1335,7 @@ void Board::_find_black_king_moves()
     {
         int      src_lkt_i = _count_trailing_zeros(black_king);
         uint64_t legal_moves =
-            king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_cells_mask;
+            king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_by_enemy_mask;
 
         _create_piece_moves('k', black_king, legal_moves);
     }
@@ -1387,7 +1384,7 @@ void Board::_find_black_castle_moves(uint64_t rook)
         // - No cells are attacked in the king path
         // - Rook isn't pinned
         if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL &&
-            (king_path & attacked_cells_mask) == 0UL &&
+            (king_path & attacked_by_enemy_mask) == 0UL &&
             (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS))
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));

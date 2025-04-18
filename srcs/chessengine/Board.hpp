@@ -134,10 +134,10 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
-        uint64_t uncheck_mask;        // Full set of bits to 1 means there is no check
-        uint64_t pawn_uncheck_mask;   // Uncheck mask only available for pawns
-        uint64_t attacked_cells_mask; // Squares attacked by the opponent
-        uint64_t pin_masks[64];       // Each cell can have a pinned mask
+        uint64_t uncheck_mask;           // Full set of bits to 1 means there is no check
+        uint64_t pawn_uncheck_mask;      // Uncheck mask only available for pawns
+        uint64_t attacked_by_enemy_mask; // Squares attacked by the enemy
+        uint64_t pin_masks[64];          // Each cell can have a pinned mask
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -182,7 +182,7 @@ class Board
         void _update_engine_at_turn_start();
         void _update_check_and_pins();
         void _update_pawn_check(int king_lkt_i);
-        void _update_attacked_cells_mask();
+        void _update_attacked_by_enemy_mask();
         void _update_fen_history();
 
         // - Piece attacks -

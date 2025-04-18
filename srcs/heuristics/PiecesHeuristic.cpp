@@ -31,12 +31,6 @@ float PiecesHeuristic::evaluate(Board *board)
     float black_eg_coefficient =
         (float)(material_middle_game_start - black_material_in_bound) / material_middle_game_diff;
 
-    // if (white_eg_coefficient > 0.5 || black_eg_coefficient > 0.5)
-    // {
-    //     cerr << "white_eg_coefficient: " << white_eg_coefficient
-    //          << "black_eg_coefficient: " << black_eg_coefficient << endl;
-    // }
-
     int pp_evaluation =
         _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
 

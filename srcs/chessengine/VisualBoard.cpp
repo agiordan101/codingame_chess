@@ -75,7 +75,7 @@ void VisualBoard::printSpecificBoard(char piece, uint64_t bitboard, string title
 
     VisualBoard board = VisualBoard();
     board.updateBoard(piece, bitboard);
-    board.printBoard();
+    board.printRawBoard();
 }
 
 VisualBoard VisualBoard::clone()

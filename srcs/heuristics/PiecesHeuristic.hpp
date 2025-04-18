@@ -32,7 +32,12 @@ class PiecesHeuristic : public AbstractHeuristic
             QUEEN_VALUE = 950
         } e_piece_values;
 
-        // Completely arbitrary estimation (but fast)
+        // Cells control
+        const int control_value_for_empty_cell = 4;
+        const int control_value_for_enemy_cell = 6;
+        const int control_value_for_ally_cell = 10;
+
+        // Piece positions - Completely arbitrary estimation (but fast)
         const int material_start_game =
             10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
         const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
@@ -44,8 +49,8 @@ class PiecesHeuristic : public AbstractHeuristic
         // https://github.com/amir650/BlackWidow-Chess/blob/master/src/com/chess/engine/classic/Alliance.java
         int white_pawn_sg_bonus_table[64] = {
              0,  0,  0,  0,  0,  0,  0,  0,
-            50, 50, 50, 50, 50, 50, 50, 50,
-            10, 10, 20, 20, 20, 20, 10, 10,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0,
              0,  0,  0,  0,  0,  0,  0,  0,
              0,  0,  0, 20, 20,  0,  0,  0,
              0,  0, 10,  0,  0, 10,  0,  0,
@@ -65,14 +70,14 @@ class PiecesHeuristic : public AbstractHeuristic
         };
         
         int black_pawn_sg_bonus_table[64] = {
-            0,  0,  0,  0,  0,  0,  0,  0,
-            5,  5, 5, -20,-20,  5,  5,  5,
-            0,  0, 10,  0,  0, 10,  0,  0,
-            0,  0,  0, 20, 20,  0,  0,  0,
-            0,  0,  0,  0,  0,  0,  0,  0,
-            10, 10, 20, 20, 20, 20, 10, 10,
-            50, 50, 50, 50, 50, 50, 50, 50,
-            0,  0,  0,  0,  0,  0,  0,  0
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5,  5, 5, -20,-20,  5,  5,  5,
+             0,  0, 10,  0,  0, 10,  0,  0,
+             0,  0,  0, 20, 20,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0
         };
 
         int black_pawn_eg_bonus_table[64] = {

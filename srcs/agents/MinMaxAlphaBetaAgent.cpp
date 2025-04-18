@@ -14,9 +14,6 @@ void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vecto
 {
     this->_start_time = clock();
 
-    // Debugging information for CG
-    cerr << std::bitset<64>(board->get_castling_rights()) << endl;
-
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
@@ -56,10 +53,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-3.1.4");
+    stats.push_back("version=BbMmabPv-3.1.5");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-3.1.4\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-3.1.5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

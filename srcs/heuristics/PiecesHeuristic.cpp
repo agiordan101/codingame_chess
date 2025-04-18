@@ -13,12 +13,13 @@ float PiecesHeuristic::evaluate(Board *board)
             return 1;
     }
 
+    // --- Material evaluation ---
+
     int white_material;
     int black_material;
     int material_evaluation = _material_evaluation(board, &white_material, &black_material);
 
-    // Start game material = 100 * 8 + 305 * 2 + 333 * 2 + 563 * 2 + 950 = 4 152
-    // Consider that end game is approximately at 1800 material or less
+    // --- Piece position evaluation ---
     int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
     int black_material_in_bound = min(max(black_material, material_end_game), material_start_game);
 
@@ -32,7 +33,30 @@ float PiecesHeuristic::evaluate(Board *board)
     int pp_evaluation =
         _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
 
-    int evaluation = material_evaluation + pp_evaluation;
+    // --- Cells control evaluation ---
+    int white_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->empty_cells_mask);
+    int white_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->black_pieces_mask);
+    int white_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->white_pieces_mask);
+
+    int black_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->empty_cells_mask);
+    int black_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->white_pieces_mask);
+    int black_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->black_pieces_mask);
+
+    int control_evaluation = (white_control_on_empty_cell_count - black_control_on_empty_cell_count
+                             ) * control_value_for_empty_cell +
+                             (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count
+                             ) * control_value_for_enemy_cell +
+                             (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
+                                 control_value_for_ally_cell;
+
+    int evaluation = material_evaluation + pp_evaluation + control_evaluation;
+
     if (evaluation > 0)
         return 1 - 1.0 / (1 + evaluation);
     return -1 - 1.0 / (-1 + evaluation);

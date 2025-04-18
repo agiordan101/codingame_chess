@@ -251,11 +251,6 @@ Inside the file :
 
 - Next steps :
 
-    * Pawn are going too far too soon
-    * Rook should be more on the center
-
-    * Copy board changes from zobrist feature & Remove all transposition table and zobrist stuff from Board
-
     * In python script versus, write game results in a history file reserved for these opponents
 
     * DRAW offers (Need a winrate estimation first) :

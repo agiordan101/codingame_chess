@@ -14,9 +14,6 @@ void MinMaxAgent::get_qualities(Board *board, vector<Move> moves, vector<float> 
 {
     this->_start_time = clock();
 
-    // Debugging information for CG
-    cerr << std::bitset<64>(board->get_castling_rights()) << endl;
-
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 

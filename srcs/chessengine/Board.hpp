@@ -43,6 +43,10 @@ class Board
                             // rule)
 
     public:
+#if USE_VISUAL_BOARD == 1
+        VisualBoard visual_board;
+#endif
+
         int game_turn; // Game turn, incremented after each black move
 
         // FEN data: Pieces
@@ -58,6 +62,19 @@ class Board
         uint64_t black_rooks;
         uint64_t black_queens;
         uint64_t black_king;
+
+        uint64_t all_pieces_mask;       // All pieces on the board
+        uint64_t empty_cells_mask;      // All empty cells on the board
+        uint64_t white_pieces_mask;     // All white pieces on the board
+        uint64_t black_pieces_mask;     // All black pieces on the board
+        uint64_t not_white_pieces_mask; // All cells that are not a white piece
+        uint64_t not_black_pieces_mask; // All cells that are not a black piece
+
+        uint64_t uncheck_mask;      // Full set of bits to 1 means there is no check
+        uint64_t pawn_uncheck_mask; // Uncheck mask only available for pawns
+        uint64_t attacked_by_white_mask;
+        uint64_t attacked_by_black_mask;
+        uint64_t pin_masks[64]; // Each cell can have a pinned mask
 
         Board(
             string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
@@ -97,10 +114,6 @@ class Board
         bool moves_computed;
 
     private:
-#if USE_VISUAL_BOARD == 1
-        VisualBoard visual_board;
-#endif
-
         // Getters data
         bool         check_state;
         bool         double_check;
@@ -110,14 +123,6 @@ class Board
         bool         game_state_computed;
 
         // Engine variables
-        uint64_t white_pieces_mask;     // All white pieces on the board
-        uint64_t black_pieces_mask;     // All black pieces on the board
-        uint64_t not_white_pieces_mask; // All cells that are not a white piece
-        uint64_t not_black_pieces_mask; // All cells that are not a black piece
-
-        uint64_t all_pieces_mask;  // All pieces on the board
-        uint64_t empty_cells_mask; // All empty cells on the board
-
         uint64_t ally_king;
         uint64_t ally_pieces;
 
@@ -133,11 +138,6 @@ class Board
 
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
-
-        uint64_t uncheck_mask;        // Full set of bits to 1 means there is no check
-        uint64_t pawn_uncheck_mask;   // Uncheck mask only available for pawns
-        uint64_t attacked_cells_mask; // Squares attacked by the opponent
-        uint64_t pin_masks[64];       // Each cell can have a pinned mask
 
         // FEN history is used to check the Threefold Repetition rule
         // Each FEN is saved in the history after each move
@@ -182,7 +182,7 @@ class Board
         void _update_engine_at_turn_start();
         void _update_check_and_pins();
         void _update_pawn_check(int king_lkt_i);
-        void _update_attacked_cells_mask();
+        void _update_attacked_cells_masks();
         void _update_fen_history();
 
         // - Piece attacks -
@@ -218,6 +218,7 @@ class Board
 
         void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
+        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
 
         // - Bit operations -
 

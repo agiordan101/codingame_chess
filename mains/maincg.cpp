@@ -22,7 +22,7 @@ using namespace std;
 #define CHESS960_RULES 1
 
 #define USE_VISUAL_BOARD 0
-#define PRINT_DEBUG_DATA 0 & USE_VISUAL_BOARD
+#define PRINT_DEBUG_DATA 1 & USE_VISUAL_BOARD
 #define PRINT_TURNS      0 & USE_VISUAL_BOARD
 
 #define EMPTY_CELL '-'
@@ -275,6 +275,10 @@ class Board
         int      half_turn_rule;
 
     public:
+#if USE_VISUAL_BOARD == 1
+        VisualBoard visual_board;
+#endif
+
         int      game_turn;
         uint64_t white_pawns;
         uint64_t white_knights;
@@ -289,6 +293,17 @@ class Board
         uint64_t black_queens;
         uint64_t black_king;
 
+        uint64_t all_pieces_mask;
+        uint64_t empty_cells_mask;
+        uint64_t white_pieces_mask;
+        uint64_t black_pieces_mask;
+        uint64_t not_white_pieces_mask;
+        uint64_t not_black_pieces_mask;
+        uint64_t uncheck_mask;
+        uint64_t pawn_uncheck_mask;
+        uint64_t attacked_by_white_mask;
+        uint64_t attacked_by_black_mask;
+        uint64_t pin_masks[64];
         Board(
             string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
             bool   chess960_rule = true,
@@ -327,10 +342,6 @@ class Board
         bool moves_computed;
 
     private:
-#if USE_VISUAL_BOARD == 1
-        VisualBoard visual_board;
-#endif
-
         bool         check_state;
         bool         double_check;
         bool         engine_data_updated;
@@ -338,12 +349,6 @@ class Board
         float        game_state;
         bool         game_state_computed;
 
-        uint64_t white_pieces_mask;
-        uint64_t black_pieces_mask;
-        uint64_t not_white_pieces_mask;
-        uint64_t not_black_pieces_mask;
-        uint64_t all_pieces_mask;
-        uint64_t empty_cells_mask;
         uint64_t ally_king;
         uint64_t ally_pieces;
 
@@ -359,12 +364,8 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
-        uint64_t uncheck_mask;
-        uint64_t pawn_uncheck_mask;
-        uint64_t attacked_cells_mask;
-        uint64_t pin_masks[64];
-        string   fen_history[FEN_HISTORY_SIZE];
-        int      fen_history_index;
+        string fen_history[FEN_HISTORY_SIZE];
+        int    fen_history_index;
 
         void _main_parsing(
             string _board,
@@ -397,7 +398,7 @@ class Board
         void _update_engine_at_turn_start();
         void _update_check_and_pins();
         void _update_pawn_check(int king_lkt_i);
-        void _update_attacked_cells_mask();
+        void _update_attacked_cells_masks();
         void _update_fen_history();
 
         void _find_white_pawns_attacks(uint64_t src);
@@ -431,6 +432,7 @@ class Board
 
         void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
+        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
 
         void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
         uint64_t _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
@@ -520,6 +522,10 @@ class PiecesHeuristic : public AbstractHeuristic
             QUEEN_VALUE = 950
         } e_piece_values;
 
+        const int control_value_for_empty_cell = 4;
+        const int control_value_for_enemy_cell = 6;
+        const int control_value_for_ally_cell = 10;
+
         const int material_start_game =
             10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
         const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
@@ -528,8 +534,8 @@ class PiecesHeuristic : public AbstractHeuristic
         // clang-format off
                                 int white_pawn_sg_bonus_table[64] = {
              0,  0,  0,  0,  0,  0,  0,  0,
-            50, 50, 50, 50, 50, 50, 50, 50,
-            10, 10, 20, 20, 20, 20, 10, 10,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0,
              0,  0,  0,  0,  0,  0,  0,  0,
              0,  0,  0, 20, 20,  0,  0,  0,
              0,  0, 10,  0,  0, 10,  0,  0,
@@ -549,14 +555,14 @@ class PiecesHeuristic : public AbstractHeuristic
         };
         
         int black_pawn_sg_bonus_table[64] = {
-            0,  0,  0,  0,  0,  0,  0,  0,
-            5,  5, 5, -20,-20,  5,  5,  5,
-            0,  0, 10,  0,  0, 10,  0,  0,
-            0,  0,  0, 20, 20,  0,  0,  0,
-            0,  0,  0,  0,  0,  0,  0,  0,
-            10, 10, 20, 20, 20, 20, 10, 10,
-            50, 50, 50, 50, 50, 50, 50, 50,
-            0,  0,  0,  0,  0,  0,  0,  0
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5,  5, 5, -20,-20,  5,  5,  5,
+             0,  0, 10,  0,  0, 10,  0,  0,
+             0,  0,  0, 20, 20,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0
         };
 
         int black_pawn_eg_bonus_table[64] = {
@@ -1321,11 +1327,6 @@ void Board::_initialize_bitboards()
     not_black_pieces_mask = 0UL;
     all_pieces_mask = 0UL;
     empty_cells_mask = 0UL;
-
-    check_state = false;
-    double_check = false;
-    uncheck_mask = BITMASK_ALL_CELLS;
-    attacked_cells_mask = BITMASK_ALL_CELLS;
 }
 
 void Board::_parse_board(string fen_board)
@@ -1710,20 +1711,13 @@ void Board::_update_engine_at_turn_start()
     uncheck_mask = 0UL;
     pawn_uncheck_mask = 0UL;
     std::fill(std::begin(pin_masks), std::end(pin_masks), BITMASK_ALL_CELLS);
-    attacked_cells_mask = 0UL;
+    attacked_by_white_mask = 0UL;
+    attacked_by_black_mask = 0UL;
 
     _update_check_and_pins();
-    _update_attacked_cells_mask();
+    _update_attacked_cells_masks();
 
     pawn_uncheck_mask |= uncheck_mask;
-
-#if USE_VISUAL_BOARD == 1
-    if (PRINT_DEBUG_DATA)
-    {
-        this->visual_board.printSpecificBoard('A', attacked_cells_mask, "Attacked cells mask");
-        this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
-    }
-#endif
 
     engine_data_updated = true;
 }
@@ -1813,50 +1807,54 @@ void Board::_update_pawn_check(int king_lkt_i)
     }
 }
 
-void Board::_update_attacked_cells_mask()
+void Board::_update_attacked_cells_masks()
 {
-    if (white_turn)
-    {
-        _apply_function_on_all_pieces(
-            black_pawns, [this](uint64_t param) { _find_black_pawns_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            black_knights, [this](uint64_t param) { _find_black_knights_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            black_bishops, [this](uint64_t param) { _find_black_bishops_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            black_rooks, [this](uint64_t param) { _find_black_rooks_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            black_queens, [this](uint64_t param) { _find_black_queens_attacks(param); }
-        );
-        _find_black_king_attacks();
-    }
-    else
-    {
-        _apply_function_on_all_pieces(
-            white_pawns, [this](uint64_t param) { _find_white_pawns_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            white_knights, [this](uint64_t param) { _find_white_knights_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            white_bishops, [this](uint64_t param) { _find_white_bishops_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            white_rooks, [this](uint64_t param) { _find_white_rooks_attacks(param); }
-        );
-        _apply_function_on_all_pieces(
-            white_queens, [this](uint64_t param) { _find_white_queens_attacks(param); }
-        );
-        _find_white_king_attacks();
-    }
+    _apply_function_on_all_pieces(
+        black_pawns, [this](uint64_t param) { _find_black_pawns_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        black_knights, [this](uint64_t param) { _find_black_knights_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        black_bishops, [this](uint64_t param) { _find_black_bishops_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        black_rooks, [this](uint64_t param) { _find_black_rooks_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        black_queens, [this](uint64_t param) { _find_black_queens_attacks(param); }
+    );
+    _find_black_king_attacks();
+
+    _apply_function_on_all_pieces(
+        white_pawns, [this](uint64_t param) { _find_white_pawns_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        white_knights, [this](uint64_t param) { _find_white_knights_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        white_bishops, [this](uint64_t param) { _find_white_bishops_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        white_rooks, [this](uint64_t param) { _find_white_rooks_attacks(param); }
+    );
+    _apply_function_on_all_pieces(
+        white_queens, [this](uint64_t param) { _find_white_queens_attacks(param); }
+    );
+    _find_white_king_attacks();
 }
 
 void Board::_update_engine_at_turn_end()
 {
+#if USE_VISUAL_BOARD == 1
+    if (PRINT_DEBUG_DATA)
+    {
+        this->log(true);
+        this->visual_board.printSpecificBoard('W', attacked_by_white_mask, "Attacked by white");
+        this->visual_board.printSpecificBoard('B', attacked_by_black_mask, "Attacked by black");
+    }
+#endif
+
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
@@ -1886,28 +1884,28 @@ void Board::_update_fen_history()
 void Board::_find_white_pawns_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= pawn_captures_lookup[src_lkt_i][0];
+    attacked_by_white_mask |= pawn_captures_lookup[src_lkt_i][0];
 }
 
 void Board::_find_white_knights_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= knight_lookup[src_lkt_i];
+    attacked_by_white_mask |= knight_lookup[src_lkt_i];
 }
 
 void Board::_find_white_bishops_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king);
+    attacked_by_white_mask |= _get_diagonal_rays(src, white_king);
 }
 
 void Board::_find_white_rooks_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_line_rays(src, ally_king);
+    attacked_by_white_mask |= _get_line_rays(src, white_king);
 }
 
 void Board::_find_white_queens_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
+    attacked_by_white_mask |= _get_diagonal_rays(src, white_king) | _get_line_rays(src, white_king);
 }
 
 void Board::_find_white_king_attacks()
@@ -1915,35 +1913,35 @@ void Board::_find_white_king_attacks()
     if (white_king)
     {
         int src_lkt_i = _count_trailing_zeros(white_king);
-        attacked_cells_mask |= king_lookup[src_lkt_i];
+        attacked_by_white_mask |= king_lookup[src_lkt_i];
     }
 }
 
 void Board::_find_black_pawns_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= pawn_captures_lookup[src_lkt_i][1];
+    attacked_by_black_mask |= pawn_captures_lookup[src_lkt_i][1];
 }
 
 void Board::_find_black_knights_attacks(uint64_t src)
 {
     int src_lkt_i = _count_trailing_zeros(src);
-    attacked_cells_mask |= knight_lookup[src_lkt_i];
+    attacked_by_black_mask |= knight_lookup[src_lkt_i];
 }
 
 void Board::_find_black_bishops_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king);
+    attacked_by_black_mask |= _get_diagonal_rays(src, black_king);
 }
 
 void Board::_find_black_rooks_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_line_rays(src, ally_king);
+    attacked_by_black_mask |= _get_line_rays(src, black_king);
 }
 
 void Board::_find_black_queens_attacks(uint64_t src)
 {
-    attacked_cells_mask |= _get_diagonal_rays(src, ally_king) | _get_line_rays(src, ally_king);
+    attacked_by_black_mask |= _get_diagonal_rays(src, black_king) | _get_line_rays(src, black_king);
 }
 
 void Board::_find_black_king_attacks()
@@ -1951,7 +1949,7 @@ void Board::_find_black_king_attacks()
     if (black_king)
     {
         int src_lkt_i = _count_trailing_zeros(black_king);
-        attacked_cells_mask |= king_lookup[src_lkt_i];
+        attacked_by_black_mask |= king_lookup[src_lkt_i];
     }
 }
 
@@ -2077,7 +2075,7 @@ void Board::_find_white_king_moves()
     {
         int      src_lkt_i = _count_trailing_zeros(white_king);
         uint64_t legal_moves =
-            king_lookup[src_lkt_i] & not_white_pieces_mask & ~attacked_cells_mask;
+            king_lookup[src_lkt_i] & not_white_pieces_mask & ~attacked_by_black_mask;
 
         _create_piece_moves('K', white_king, legal_moves);
     }
@@ -2122,7 +2120,7 @@ void Board::_find_white_castle_moves(uint64_t rook)
         }
 
         if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL &&
-            (king_path & attacked_cells_mask) == 0UL &&
+            (king_path & attacked_by_black_mask) == 0UL &&
             pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS)
         {
             this->available_moves.push_back(Move('K', white_king, rook, 0, castle_info));
@@ -2194,7 +2192,7 @@ void Board::_find_black_king_moves()
     {
         int      src_lkt_i = _count_trailing_zeros(black_king);
         uint64_t legal_moves =
-            king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_cells_mask;
+            king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_by_white_mask;
 
         _create_piece_moves('k', black_king, legal_moves);
     }
@@ -2239,7 +2237,7 @@ void Board::_find_black_castle_moves(uint64_t rook)
         }
 
         if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL &&
-            (king_path & attacked_cells_mask) == 0UL &&
+            (king_path & attacked_by_white_mask) == 0UL &&
             (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS))
         {
             this->available_moves.push_back(Move('k', black_king, rook, 0, castle_info));
@@ -2251,13 +2249,13 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 {
     if (dst & BITMASK_LINE_81)
     {
-        this->available_moves.push_back(Move(piece, src, dst, 'n'));
-        this->available_moves.push_back(Move(piece, src, dst, 'b'));
-        this->available_moves.push_back(Move(piece, src, dst, 'r'));
-        this->available_moves.push_back(Move(piece, src, dst, 'q'));
+        _create_move(piece, src, dst, 'n');
+        _create_move(piece, src, dst, 'b');
+        _create_move(piece, src, dst, 'r');
+        _create_move(piece, src, dst, 'q');
     }
     else
-        this->available_moves.push_back(Move(piece, src, dst));
+        _create_move(piece, src, dst);
 }
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
@@ -2266,10 +2264,15 @@ void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
-        this->available_moves.push_back(Move(piece, src, dst));
+        _create_move(piece, src, dst);
 
         legal_moves ^= dst;
     }
+}
+
+void Board::_create_move(char piece, uint64_t src, uint64_t dst, char promotion)
+{
+    this->available_moves.push_back(Move(piece, src, dst, promotion));
 }
 
 void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
@@ -2861,8 +2864,6 @@ void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vecto
 {
     this->_start_time = clock();
 
-    cerr << std::bitset<64>(board->get_castling_rights()) << endl;
-
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(0);
 
@@ -2898,10 +2899,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-3.1.4");
+    stats.push_back("version=BbMmabPv-3.1.5");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-3.1.4\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-3.1.5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -3028,7 +3029,29 @@ float PiecesHeuristic::evaluate(Board *board)
     int pp_evaluation =
         _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
 
-    int evaluation = material_evaluation + pp_evaluation;
+    int white_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->empty_cells_mask);
+    int white_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->black_pieces_mask);
+    int white_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->white_pieces_mask);
+
+    int black_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->empty_cells_mask);
+    int black_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->white_pieces_mask);
+    int black_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->black_pieces_mask);
+
+    int control_evaluation = (white_control_on_empty_cell_count - black_control_on_empty_cell_count
+                             ) * control_value_for_empty_cell +
+                             (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count
+                             ) * control_value_for_enemy_cell +
+                             (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
+                                 control_value_for_ally_cell;
+
+    int evaluation = material_evaluation + pp_evaluation + control_evaluation;
+
     if (evaluation > 0)
         return 1 - 1.0 / (1 + evaluation);
     return -1 - 1.0 / (-1 + evaluation);

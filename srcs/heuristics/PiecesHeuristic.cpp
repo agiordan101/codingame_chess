@@ -20,15 +20,23 @@ float PiecesHeuristic::evaluate(Board *board)
     int material_evaluation = _material_evaluation(board, &white_material, &black_material);
 
     // --- Piece position evaluation ---
-    int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
-    int black_material_in_bound = min(max(black_material, material_end_game), material_start_game);
+    int white_material_in_bound =
+        min(max(white_material, material_middle_game_end), material_middle_game_start);
+    int black_material_in_bound =
+        min(max(black_material, material_middle_game_end), material_middle_game_start);
 
-    // Interpolate current material in start and end game interval, to a coefficient between 0 and 1
-    // 0 = start game, 1 = end game
+    // Interpolate current material in middle and end game interval, to a coefficient between 0 and
+    // 1 0 = middle game, 1 = end game
     float white_eg_coefficient =
-        (float)(material_start_game - white_material_in_bound) / material_start_end_game_diff;
+        (float)(material_middle_game_start - white_material_in_bound) / material_middle_game_diff;
     float black_eg_coefficient =
-        (float)(material_start_game - black_material_in_bound) / material_start_end_game_diff;
+        (float)(material_middle_game_start - black_material_in_bound) / material_middle_game_diff;
+
+    // if (white_eg_coefficient > 0.5 || black_eg_coefficient > 0.5)
+    // {
+    //     cerr << "white_eg_coefficient: " << white_eg_coefficient
+    //          << "black_eg_coefficient: " << black_eg_coefficient << endl;
+    // }
 
     int pp_evaluation =
         _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);

@@ -38,10 +38,10 @@ class PiecesHeuristic : public AbstractHeuristic
         const int control_value_for_ally_cell = 15;
 
         // Piece positions - Completely arbitrary estimation (but fast)
-        const int material_start_game =
-            10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
-        const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
-        const int material_start_end_game_diff = material_start_game - material_end_game;
+        const int material_middle_game_start =
+            QUEEN_VALUE + 2 * ROOK_VALUE + BISHOP_VALUE + KNIGHT_VALUE + 6 * PAWN_VALUE;
+        const int material_middle_game_end = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
+        const int material_middle_game_diff = material_middle_game_start - material_middle_game_end;
 
         // clang-format off
         // Pieces bonuses depending on their position

@@ -528,8 +528,8 @@ class PiecesHeuristic : public AbstractHeuristic
 
         const int material_start_game =
             10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
-        const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
-        const int material_start_end_game_diff = material_start_game - material_end_game;
+        const int material_middle_game_end = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
+        const int material_start_end_game_diff = material_start_game - material_middle_game_end;
 
         // clang-format off
                                 int white_pawn_sg_bonus_table[64] = {
@@ -3018,8 +3018,10 @@ float PiecesHeuristic::evaluate(Board *board)
     int black_material;
     int material_evaluation = _material_evaluation(board, &white_material, &black_material);
 
-    int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
-    int black_material_in_bound = min(max(black_material, material_end_game), material_start_game);
+    int white_material_in_bound =
+        min(max(white_material, material_middle_game_end), material_start_game);
+    int black_material_in_bound =
+        min(max(black_material, material_middle_game_end), material_start_game);
 
     float white_eg_coefficient =
         (float)(material_start_game - white_material_in_bound) / material_start_end_game_diff;

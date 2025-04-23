@@ -33,9 +33,9 @@ class PiecesHeuristic : public AbstractHeuristic
         } e_piece_values;
 
         // Cells control
-        const int control_value_for_empty_cell = 4;
-        const int control_value_for_enemy_cell = 6;
-        const int control_value_for_ally_cell = 10;
+        const int control_value_for_empty_cell = 5;
+        const int control_value_for_enemy_cell = 10;
+        const int control_value_for_ally_cell = 15;
 
         // Piece positions - Completely arbitrary estimation (but fast)
         const int material_start_game =

@@ -522,9 +522,9 @@ class PiecesHeuristic : public AbstractHeuristic
             QUEEN_VALUE = 950
         } e_piece_values;
 
-        const int control_value_for_empty_cell = 4;
-        const int control_value_for_enemy_cell = 6;
-        const int control_value_for_ally_cell = 10;
+        const int control_value_for_empty_cell = 5;
+        const int control_value_for_enemy_cell = 10;
+        const int control_value_for_ally_cell = 15;
 
         const int material_start_game =
             10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
@@ -2899,10 +2899,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-3.1.5");
+    stats.push_back("version=BbMmabPv-3.1.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-3.1.5\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-3.1.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

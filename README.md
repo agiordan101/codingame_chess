@@ -83,6 +83,15 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
+### BbMmabPv-3.1.6 (Best version)
+
+* Submit date: 29.04.2025 21H32
+* Overall ranking : 32/384
+* Ligue: Wood 1 (Best ligue)
+    * Rank: 32/66
+    * CG elo: 20,55
+    * Top 1 elo: 44,90
+
 ### BbMmabPv-3.1.3
 
 * Submit date: 17.04.2025 14H47
@@ -90,7 +99,7 @@ Before creating a new version :
 * Ligue: Wood 1 (Best ligue)
     * Rank: 31/66
     * CG elo: 20,77
-    * Top 1 elo: 44,9
+    * Top 1 elo: 44,90
 
 ### BbMmabPv-1 (-> BbMmabPv-3.1.2)
 
@@ -99,7 +108,7 @@ Before creating a new version :
 * Ligue: Wood 1 (Best ligue)
     * Rank: 34/60
     * CG elo: 19,13
-    * Top 1 elo: 44,9
+    * Top 1 elo: 44,90
 
 ### BbMmPv-6 (-> BbMmPv-3.2.2)
 
@@ -108,7 +117,7 @@ Before creating a new version :
 * Ligue: Wood 1 (Best ligue)
     * Rank: 42/60
     * CG elo: 15,78
-    * Top 1 elo: 44,9
+    * Top 1 elo: 44,90
 
 ### BbMmPv-5 (-> BbMmPv-2.2.2)
 
@@ -251,7 +260,29 @@ Inside the file :
 
 - Next steps :
 
+    * MCTS algorithms :
+        * Rebase zobrist board on main
+        * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
+        * At first, find which is the best between :
+            * BbMctsRo-3.1.1
+            * BbMctsPv-3.1.6
+            * BbzMctsttRo
+            * BbzMctsttPv
+
+    * Benchmark heuristics function and rollout average -> Understand BbMctsRo-3.1.1 vs BbMctsPv
+
+    * Create 2 heuristics: Why ?
+        * MaterialHeuristic: Just material
+        * PiecePositionHeuristic : Material + position + control
+        * KEEP HEURISTIC IDEAS FOR LATER FOR GOD SAKE !
+
+    * Try moves caching with zobrist hash as key. Save fen inside so we can detect collisions (fen is obligatory calculated for Five move repetition rule)
+
     * In python script versus, write game results in a history file reserved for these opponents
+
+    * BbMmabPv-3.1.6: It would be probably better to decrease the evaluation while backpropagating:
+        - The algorithm doesn't see a difference between a 1-turn win and a 10-turn win
+            So it takes time, until a DRAW, LOSE or treat is coming
 
     * DRAW offers (Need a winrate estimation first) :
         * You can offer a draw to your opponent by adding = right after the move, without a space:
@@ -262,6 +293,7 @@ Inside the file :
     * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
 
     * Optimize BitBoard :
+        * Re-implement Five repetition rule: Don't create FEN, save bitboard numbers instead
         * Switch some function pointer at engine start depending on the rule ?
             - It will speed up the engine
             - We won't use boards with different rules in the same executable

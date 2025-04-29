@@ -1895,17 +1895,17 @@ void Board::_find_white_knights_attacks(uint64_t src)
 
 void Board::_find_white_bishops_attacks(uint64_t src)
 {
-    attacked_by_white_mask |= _get_diagonal_rays(src, white_king);
+    attacked_by_white_mask |= _get_diagonal_rays(src, black_king);
 }
 
 void Board::_find_white_rooks_attacks(uint64_t src)
 {
-    attacked_by_white_mask |= _get_line_rays(src, white_king);
+    attacked_by_white_mask |= _get_line_rays(src, black_king);
 }
 
 void Board::_find_white_queens_attacks(uint64_t src)
 {
-    attacked_by_white_mask |= _get_diagonal_rays(src, white_king) | _get_line_rays(src, white_king);
+    attacked_by_white_mask |= _get_diagonal_rays(src, black_king) | _get_line_rays(src, black_king);
 }
 
 void Board::_find_white_king_attacks()
@@ -1931,17 +1931,17 @@ void Board::_find_black_knights_attacks(uint64_t src)
 
 void Board::_find_black_bishops_attacks(uint64_t src)
 {
-    attacked_by_black_mask |= _get_diagonal_rays(src, black_king);
+    attacked_by_black_mask |= _get_diagonal_rays(src, white_king);
 }
 
 void Board::_find_black_rooks_attacks(uint64_t src)
 {
-    attacked_by_black_mask |= _get_line_rays(src, black_king);
+    attacked_by_black_mask |= _get_line_rays(src, white_king);
 }
 
 void Board::_find_black_queens_attacks(uint64_t src)
 {
-    attacked_by_black_mask |= _get_diagonal_rays(src, black_king) | _get_line_rays(src, black_king);
+    attacked_by_black_mask |= _get_diagonal_rays(src, white_king) | _get_line_rays(src, white_king);
 }
 
 void Board::_find_black_king_attacks()

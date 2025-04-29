@@ -1,5 +1,6 @@
 #include "PiecesHeuristic.hpp"
 #include <algorithm>
+
 float PiecesHeuristic::evaluate(Board *board)
 {
     float state = board->get_game_state();

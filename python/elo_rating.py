@@ -229,7 +229,7 @@ if __name__ == "__main__":
     # Set random seed from current time
     random.seed(int(time.time()))
 
-    stockfish_elos = range(1000, 2000, 50)
+    stockfish_elos = range(100, 1000, 50)
     _elo_rating_ml(p1, stockfish_elos)
 
     # Stub data

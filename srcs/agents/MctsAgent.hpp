@@ -7,16 +7,26 @@
 
 struct Node
 {
-        Move  last_move;
-        Board board;
+        Move   last_move;
+        Board *board;       // Pointer to the board
+        bool   is_expanded; // Flag to check if the board has been expanded
 
         int   visits;
         int   value;
         float uct_value;
 
-        vector<Node *> children;
+        std::vector<std::unique_ptr<Node>> children;
+        std::vector<Move>                  available_moves; // Store unexplored moves
 
-        Node(Move m, Board b) : last_move(m), board(b), visits(0), value(0){};
+        Node(Move m) : last_move(m), board(nullptr), is_expanded(false), visits(0), value(0) {};
+
+        ~Node()
+        {
+            if (is_expanded && board != nullptr)
+            {
+                delete board;
+            }
+        };
 };
 
 class MctsAgent : public AbstractAgent
@@ -41,6 +51,8 @@ class MctsAgent : public AbstractAgent
 
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);
+        void  expand_children(Node *parent);
+        void  create_child_board(Node *parent, Node *node);
 
         bool  is_time_up();
         float elapsed_time();

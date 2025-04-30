@@ -7,8 +7,8 @@
 
 struct Node
 {
-        Move  *move;
-        Board *board;
+        Move  last_move;
+        Board board;
 
         int   visits;
         int   value;
@@ -16,12 +16,9 @@ struct Node
 
         vector<Node *> children;
 
-        Node(Move *b) : visits(0), value(0)
+        Node(Move m, Board b) : last_move(m), board(b), visits(0), value(0)
         {
-            Move move = *b;
-            this->move = &move;
         };
-        Node(Board *b) : board(b), visits(0), value(0){};
 };
 
 class MctsAgent : public AbstractAgent

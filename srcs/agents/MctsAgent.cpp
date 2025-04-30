@@ -17,17 +17,24 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
 {
     this->_start_time = clock();
 
-    Node root_node(board);
+    Node root_node(Move("a1b1"), *board);
+
     this->_nodes_explored = 0;
     while (!this->is_time_up())
     {
+        // cerr << "MctsAgent: Starting iteration " << this->_nodes_explored << endl;
+
         this->mcts(&root_node, 0);
         this->_nodes_explored++;
         // this->_depth_reached = max_depth;
     }
 
+    // cerr << "MctsAgent: Ending iterations " << this->_nodes_explored << endl;
+    // cerr << "MctsAgent: Move count: " << moves.size() << endl;
+    // cerr << "MctsAgent: Children count: " << root_node.children.size() << endl;
+
     for (size_t i = 0; i < moves.size(); i++)
-        qualities->at(i) = root_node.children[i]->value;
+        qualities->push_back(root_node.children[i]->value);
 
     float dtime = elapsed_time();
     if (dtime >= _ms_constraint)
@@ -55,35 +62,43 @@ string MctsAgent::get_name()
 
 float MctsAgent::mcts(Node *node, int depth)
 {
-    if (node->visits != 0)
+    float evaluation;
+
+    if (node->visits == 0)
+    {
+        // Expansion - Create the children
+        // cerr << "MctsAgent: Depth " << depth << " Expansion node " << node << endl;
+
+        vector<Move> available_moves = node->board.get_available_moves();
+        for (Move move : available_moves)
+        {
+            Board board = node->board;
+            board.apply_move(move);
+
+            node->children.push_back(new Node(move, board));
+        }
+
+        // Simulation -> Rollout | Heuristic
+        // cerr << "MctsAgent: Depth " << depth << " Simulation node " << node << endl;
+
+        int player = node->board.is_white_turn() ? 1 : -1;
+        evaluation = (1 + player * this->_heuristic->evaluate(&node->board)) / 2;
+    }
+    else
     {
         // Selection
-        Node *selectedNode = select_child(node);
-        float evaluation = 1 - mcts(selectedNode, depth + 1);
-
-        // Backpropagation
-        selectedNode->value += evaluation;
-        selectedNode->visits++;
-
-        return evaluation;
+        // cerr << "MctsAgent: Depth " << depth << " Selection node " << node << " after " << node->visits << " visits" << endl;
+    
+        Node *child_node = select_child(node);
+        evaluation = 1 - mcts(child_node, depth + 1);
     }
 
-    if (node->board == NULL)
-    {
-        // Expansion - Create the node board
-        Board board = *node->board;
-        board.apply_move(*node->move);
-        node->board = &board;
-    }
+    // Backpropagation
+    // cerr << "MctsAgent: Depth " << depth << " Backpropagation node " << node << " - Eval: " << evaluation << endl;
 
-    // Expansion - Create the children
-    vector<Move> available_moves = node->board->get_available_moves();
-    for (Move move : available_moves)
-        node->children.push_back(new Node(&move));
-
-    // Simulation -> Rollout | Heuristic
-    int player = node->board->is_white_turn() ? 1 : -1;
-    return (1 + player * this->_heuristic->evaluate(node->board)) / 2;
+    node->value += evaluation;
+    node->visits++;
+    return evaluation;
 }
 
 Node *MctsAgent::select_child(Node *parent)
@@ -99,8 +114,6 @@ Node *MctsAgent::select_child(Node *parent)
         parent->children.begin(), parent->children.end(),
         [](Node *a, Node *b) { return a->uct_value < b->uct_value; }
     );
-
-    return nullptr;
 }
 
 bool MctsAgent::is_time_up()

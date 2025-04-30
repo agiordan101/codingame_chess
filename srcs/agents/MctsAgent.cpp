@@ -46,10 +46,10 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsRo-rc");
+    stats.push_back("version=BbMctsPv-3.1.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMctsRo-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMctsPv-3.1.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -87,14 +87,16 @@ float MctsAgent::mcts(Node *node, int depth)
     else
     {
         // Selection
-        // cerr << "MctsAgent: Depth " << depth << " Selection node " << node << " after " << node->visits << " visits" << endl;
-    
+        // cerr << "MctsAgent: Depth " << depth << " Selection node " << node << " after " <<
+        // node->visits << " visits" << endl;
+
         Node *child_node = select_child(node);
         evaluation = 1 - mcts(child_node, depth + 1);
     }
 
     // Backpropagation
-    // cerr << "MctsAgent: Depth " << depth << " Backpropagation node " << node << " - Eval: " << evaluation << endl;
+    // cerr << "MctsAgent: Depth " << depth << " Backpropagation node " << node << " - Eval: " <<
+    // evaluation << endl;
 
     node->value += evaluation;
     node->visits++;

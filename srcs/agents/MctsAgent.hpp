@@ -16,9 +16,7 @@ struct Node
 
         vector<Node *> children;
 
-        Node(Move m, Board b) : last_move(m), board(b), visits(0), value(0)
-        {
-        };
+        Node(Move m, Board b) : last_move(m), board(b), visits(0), value(0){};
 };
 
 class MctsAgent : public AbstractAgent

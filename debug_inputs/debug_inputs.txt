@@ -1,0 +1,5 @@
+2
+crazyHouse 0
+maxMoves 125
+none
+rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1

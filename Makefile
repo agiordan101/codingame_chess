@@ -1,12 +1,14 @@
-
 TEST_EXEC = unittests
 PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
+
+DEBUG_EXEC = debug
+
 CG_EXEC = mychessbot
 BOT_EXEC = BbMctsPv-rc
 
-flag = -g -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
+flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
 SRCS_PATH = srcs
 ALL_FILES = $(wildcard $(SRCS_PATH)/*/*.cpp)
@@ -78,6 +80,10 @@ perft:
 cgtest:
 	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ../codingame-chess/$(CG_EXEC)
 
+### Compile the actual bot for debugging
+debug:
+	g++ -g3 $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/$(DEBUG_EXEC)
+
 ### Compile the actual bot (and run an engine to play against it ?)
 run:
 	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)
@@ -88,7 +94,7 @@ buildcg:
 	clang-format -i -- mains/maincg.cpp
 	g++ $(flag) mains/maincg.cpp -o ../codingame-chess/$(CG_EXEC)
 
-### Just test come cpp behaviors
+### Just test some cpp behaviors
 poc:
 	g++ $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/main_poc
 	./bins/main_poc

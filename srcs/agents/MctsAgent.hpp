@@ -12,7 +12,7 @@ struct Node
         bool   is_expanded; // Flag to check if the board has been expanded
 
         int   visits;
-        int   value;
+        float value;
         float uct_value;
 
         std::vector<std::unique_ptr<Node>> children;

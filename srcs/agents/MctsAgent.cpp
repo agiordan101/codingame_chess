@@ -18,7 +18,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     this->_start_time = clock();
 
     Node root_node(Move("a1b1"));
-    root_node.board = board;
+    root_node.board = board->clone();
     root_node.available_moves = moves;
     root_node.is_expanded = true;
 
@@ -32,7 +32,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
         // this->_depth_reached = max_depth;
     }
 
-    cerr << "MctsAgent: Ending iterations " << this->_nodes_explored << endl;
+    // cerr << "MctsAgent: Ending iterations " << this->_nodes_explored << endl;
     // cerr << "MctsAgent: Move count: " << moves.size() << endl;
     // cerr << "MctsAgent: Children count: " << root_node.children.size() << endl;
 

@@ -2,7 +2,6 @@
 
 BotPlayer::BotPlayer(AbstractAgent *agent)
 {
-
     this->_agent = agent;
 }
 

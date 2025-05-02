@@ -7,9 +7,12 @@
 
 struct Node
 {
-        Move   last_move;
-        Board *board;       // Pointer to the board
-        bool   is_expanded; // Flag to check if the board has been expanded
+        Move last_move;
+        bool is_expanded;
+
+        Board *board;
+        int    game_state;
+        bool   is_over;
 
         int   visits;
         float value;
@@ -18,7 +21,9 @@ struct Node
         std::vector<std::unique_ptr<Node>> children;
         std::vector<Move>                  available_moves; // Store unexplored moves
 
-        Node(Move m) : last_move(m), board(nullptr), is_expanded(false), visits(0), value(0) {};
+        Node(Move m)
+            : last_move(m), is_expanded(false), board(nullptr), game_state(GAME_CONTINUE),
+              is_over(false), visits(0), value(0), uct_value(0){};
 
         ~Node()
         {

@@ -261,15 +261,23 @@ Inside the file :
 - Next steps :
 
     * MCTS algorithms :
-        * Rebase zobrist board on main
-        * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
+        * Black is always losing !
         * At first, find which is the best between :
             * BbMctsRo-3.1.1
             * BbMctsPv-3.1.6
+
+    * MCTS zobrist algorithms :
+        * Rebase zobrist board on main
+        * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
+        * At first, find which is the best between :
             * BbzMctsttRo
             * BbzMctsttPv
 
     * Benchmark heuristics function and rollout average -> Understand BbMctsRo-3.1.1 vs BbMctsPv
+
+    * BbMmabPv-3.1.6: It would be probably better to decrease the evaluation while backpropagating:
+        - The algorithm doesn't see a difference between a 1-turn win and a 10-turn win
+            So it takes time, until a DRAW, LOSE or treat is coming
 
     * Create 2 heuristics: Why ?
         * MaterialHeuristic: Just material
@@ -279,10 +287,6 @@ Inside the file :
     * Try moves caching with zobrist hash as key. Save fen inside so we can detect collisions (fen is obligatory calculated for Five move repetition rule)
 
     * In python script versus, write game results in a history file reserved for these opponents
-
-    * BbMmabPv-3.1.6: It would be probably better to decrease the evaluation while backpropagating:
-        - The algorithm doesn't see a difference between a 1-turn win and a 10-turn win
-            So it takes time, until a DRAW, LOSE or treat is coming
 
     * DRAW offers (Need a winrate estimation first) :
         * You can offer a draw to your opponent by adding = right after the move, without a space:

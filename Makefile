@@ -48,6 +48,7 @@ setup:
 	@mkdir -p bins
 	pip install isort
 	pip install black
+	pip install "black[jupyter]"
 	pip install flake8
 
 ### Format python code

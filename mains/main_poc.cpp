@@ -13,11 +13,20 @@ int main()
 
     Board *board = new Board();
 
-    vector<Move> moves = board->get_available_moves();
-    Move         move = player->choose_from(board, moves);
+    float game_state = GAME_CONTINUE;
+    while (game_state == GAME_CONTINUE)
+    {
+        vector<Move> moves = board->get_available_moves();
+        Move         move = player->choose_from(board, moves);
 
-    cerr << "Move: " << move.to_uci() << endl;
-    board->log();
+        cerr << "Move: " << move.to_uci() << endl;
+        board->apply_move(move);
+        board->log();
+
+        game_state = board->get_game_state();
+    }
+
+    cerr << "\nGameEngine: Game is over : " << game_state << endl;
 
     return 0;
 }

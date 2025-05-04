@@ -42,7 +42,10 @@ class GameRunner:
                     winner=chess.WHITE if players_i == 1 else chess.BLACK,
                 )
 
-            outcome = board.outcome(claim_draw=True)
+            if board.turn >= 125:
+                outcome = chess.Outcome(chess.Termination.VARIANT_DRAW, None)
+            else:
+                outcome = board.outcome(claim_draw=True)
             players_i = (players_i + 1) % 2
 
         p1.stop()

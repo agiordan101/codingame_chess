@@ -261,6 +261,8 @@ Inside the file :
 - Next steps :
 
     * Why all promotinos are knight ???
+    * Node / ms :
+       * BbMctsPv-3.3.6 = 120
 
     * MCTS algorithms :
         * Find which is the best between :

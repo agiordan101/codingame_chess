@@ -39,7 +39,10 @@ def play_game_and_return_stats(p1: CGBot):
 
             board.push(chess.Move.from_uci(move))
 
-            outcome = board.outcome()
+            if board.turn >= 125:
+                outcome = chess.Outcome(chess.Termination.VARIANT_DRAW, None)
+            else:
+                outcome = board.outcome(claim_draw=True)
             players_i = (players_i + 1) % 2
 
     except Exception as e:
@@ -86,6 +89,12 @@ def _update_bot_plot(line, bot, bot_stats: dict):
     # Find the average nodes computed per millisecond, for each turns
     bot_stats["nodes_per_ms"] = nodes_per_turn / 50
 
+    # Show only X first tu
+    n_turns = 50
+    bot_stats["max_game_length"] = min(bot_stats["max_game_length"], n_turns)
+    if len(bot_stats["nodes_per_ms"]) > n_turns:
+        bot_stats["nodes_per_ms"] = bot_stats["nodes_per_ms"][:n_turns]
+
     # Update the line data
     xdata = np.arange(bot_stats["max_game_length"])
     ydata = np.array(bot_stats["nodes_per_ms"])
@@ -104,9 +113,10 @@ def _update(frame, fig, ax, lines: list, bots: list[CGBot], stats: dict):
 
     max_game_length = max(stats[bot.name]["max_game_length"] for bot in bots)
     max_nodes_per_ms = max(np.max(stats[bot.name]["nodes_per_ms"]) for bot in bots)
+    min_nodes_per_ms = min(np.min(stats[bot.name]["nodes_per_ms"]) for bot in bots)
 
     ax.set_xlim(0, max_game_length)
-    ax.set_ylim(0, max_nodes_per_ms * 1.1)
+    ax.set_ylim(min_nodes_per_ms * 0.9, max_nodes_per_ms * 1.1)
     ax.set_title(f"Explored Nodes per milliseconds ({frame + 1} games)")
 
     # TODO: Find intersection of the two last bot lines: stats[bot.name]["nodes_per_ms"]

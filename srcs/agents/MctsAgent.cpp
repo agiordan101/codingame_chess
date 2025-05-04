@@ -20,8 +20,6 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     Node root_node;
     root_node.resulting_board = board->clone();
     root_node.visits = 1;
-    // root_node.is_expanded = true;
-    // root_node.is_over = false;
 
     expand_node(&root_node);
 
@@ -32,12 +30,13 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
         float evaluation = this->mcts(&root_node, 0);
         // cerr << "MctsAgent: End iteration " << this->_nodes_explored << endl;
 
-        // Root node value/visits old the actual winrate estimation
-        root_node.value += 1 - evaluation;
+        // Save children move evaluations in root node
+        root_node.value += evaluation;
         root_node.visits++;
     }
 
     this->_nodes_explored = root_node.visits;
+    this->_winrate = root_node.value / root_node.visits;
 
     // cerr << "MctsAgent: Ending iterations " << this->_nodes_explored << endl;
     // cerr << "MctsAgent: Move count: " << moves.size() << endl;
@@ -59,10 +58,12 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.3.6");
+    stats.push_back("version=BbMctsPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMctsPv-3.3.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    stats.push_back("winrate=" + to_string(this->_winrate));
+    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+         << stats[3] << endl;
     return stats;
 }
 

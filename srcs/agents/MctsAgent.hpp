@@ -56,6 +56,7 @@ class MctsAgent : public AbstractAgent
 
         int _depth_reached;
         int _nodes_explored;
+        float _winrate;
 
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);

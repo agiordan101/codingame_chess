@@ -18,8 +18,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     this->_start_time = clock();
 
     Node root_node;
-    root_node.board = board->clone();
-    root_node.available_moves = moves;
+    root_node.resulting_board = board->clone();
     root_node.visits = 1;
     // root_node.is_expanded = true;
     // root_node.is_over = false;
@@ -60,10 +59,10 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.2.6");
+    stats.push_back("version=BbMctsPv-3.3.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMctsPv-3.2.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMctsPv-3.3.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -76,133 +75,74 @@ string MctsAgent::get_name()
 
 float MctsAgent::mcts(Node *node, int depth)
 {
-    float evaluation;
-
     if (depth > this->_depth_reached)
         this->_depth_reached = depth;
 
     // Selection
-    // cerr << "MctsAgent: Depth " << depth << " Selection after " << node->visits << "
-    // visits"
-    //  << endl;
     Node *child_node = select_child(node);
 
+    float evaluation;
     if (child_node->visits == 0)
     {
-        child_node->board = node->board->clone();
-        child_node->board->apply_move(child_node->last_move);
+        child_node->resulting_board = node->resulting_board->clone();
+        child_node->resulting_board->apply_move(child_node->move);
 
-        // cerr << "MctsAgent: Lazy expansion start" << endl;
-        expand_node(child_node);
-        // cerr << "MctsAgent: Lazy expansion end " << endl;
+        float game_state = child_node->resulting_board->get_game_state();
+        if (game_state == GAME_CONTINUE)
+        {
+            // Expansion
+            expand_node(child_node);
 
-        // Simulation -> Rollout | Heuristic
-        // cerr << "MctsAgent: Depth " << depth << " Simulation " << endl;
-        // cerr << "MctsAgent: Simulation start" << endl;
-
-        if (child_node->is_over)
-            evaluation = child_node->end_game_evaluation;
+            // Simulation -> Rollout | Heuristic
+            // Because the node value represent the strength of a move for both white and black,
+            //  we must invert the heuristic evaluation for black moves (when the resulting board is
+            //  white's turn)
+            int player = child_node->resulting_board->is_white_turn() ? -1 : 1;
+            evaluation = (1 + player * this->_heuristic->evaluate(child_node->resulting_board)) / 2;
+        }
         else
         {
-            // PLayer = -1 because we are rewarding the last opponent move.
-            // If Turn white -> Heuristic is made for white -> We revert it to get the black
-            // evaluation If Turn black -> Same logic
+            child_node->is_over = true;
+            child_node->end_game_evaluation = game_state == DRAW ? 0.5 : 1;
 
-            // int player = child_node->board->is_white_turn() ? 1 : -1;
-            int player = -1;
-            evaluation = (1 + player * this->_heuristic->evaluate(child_node->board)) / 2;
-        }
-        // cerr << "MctsAgent: Simulation end " << endl;
-    }
-    else
-    {
-        if (child_node->is_over)
             evaluation = child_node->end_game_evaluation;
-        else
-            evaluation = 1 - mcts(child_node, depth + 1);
+        }
     }
+    else if (child_node->is_over)
+        evaluation = child_node->end_game_evaluation;
+    else
+        evaluation = 1 - mcts(child_node, depth + 1);
 
     // Backpropagation
-    // cerr << "MctsAgent: Depth " << depth << " Backpropagation - Eval: " << evaluation << endl;
-
-    // cerr << "MctsAgent: Backpropagation start" << endl;
     child_node->value += evaluation;
     child_node->visits++;
-    // cerr << "MctsAgent: Backpropagation end " << endl;
 
     return evaluation;
 }
 
 Node *MctsAgent::select_child(Node *parent)
 {
-    // cerr << "MctsAgent: Selection - UCT - start" << endl;
     for (const auto &child : parent->children)
     {
         child->uct_value =
             (child->value / (child->visits + UTC_EPSILON)) +
             this->_exploration_constant * sqrt(log(parent->visits) / (child->visits + UTC_EPSILON));
     }
-    // cerr << "MctsAgent: Selection - UCT - end " << endl;
 
-    // cerr << "MctsAgent: Selection - Comparaison - start " << parent->children.size() << endl;
     auto max_child_it = std::max_element(
         parent->children.begin(), parent->children.end(),
         [](const std::unique_ptr<Node> &a, const std::unique_ptr<Node> &b)
         { return a->uct_value < b->uct_value; }
     );
-    // cerr << "MctsAgent: Selection - Comparaison - end " << endl;
 
     return max_child_it->get();
 }
 
 void MctsAgent::expand_node(Node *node)
 {
-    float game_state = node->board->get_game_state();
-    if (game_state == GAME_CONTINUE)
-    {
-        // cerr << "MctsAgent: Expansion - Game contine - start " << endl;
-        node->is_over = false;
-
-        // Create children nodes for each available move
-        node->available_moves = node->board->get_available_moves();
-        for (const Move &move : node->available_moves)
-        {
-            node->children.push_back(std::make_unique<Node>(move));
-        }
-        // cerr << "MctsAgent: Expansion - Game contine - end " << endl;
-    }
-    else
-    {
-        // cerr << "MctsAgent: Expansion - Game over - start " << endl;
-        node->is_over = true;
-
-        // int player = node->board->is_white_turn() ? 1 : -1;
-        // turn white . win black -> reward 1
-        // turn white . win white -> reward -1
-        // turn black . win black -> reward -1
-        // turn black . win white -> reward 1
-        if (game_state == DRAW)
-        {
-            node->end_game_evaluation = 0.5;
-        }
-        else
-        {
-            if (game_state == BLACK_WIN && node->board->is_white_turn() == false)
-            {
-                cerr << "MctsAgent: Expansion - Game over - BLACK_WIN on turn black ???" << endl;
-            }
-            if (game_state == WHITE_WIN && node->board->is_white_turn() == true)
-            {
-                cerr << "MctsAgent: Expansion - Game over - WHITE_WIN on turn white ???" << endl;
-            }
-
-            node->end_game_evaluation = 1;
-            // node->end_game_evaluation = (1 + player * game_state) / 2;
-        }
-        // cerr << "MctsAgent: Expansion - Game over - end " << endl;
-    }
-
-    node->is_expanded = true;
+    // Create children nodes for each available move
+    for (const Move &move : node->resulting_board->get_available_moves())
+        node->children.push_back(std::make_unique<Node>(move));
 }
 
 bool MctsAgent::is_time_up()

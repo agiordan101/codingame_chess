@@ -260,9 +260,10 @@ Inside the file :
 
 - Next steps :
 
+    * Why all promotinos are knight ???
+
     * MCTS algorithms :
-        * Black is always losing !
-        * At first, find which is the best between :
+        * Find which is the best between :
             * BbMctsRo-3.1.1
             * BbMctsPv-3.1.6
 
@@ -272,7 +273,6 @@ Inside the file :
         * At first, find which is the best between :
             * BbzMctsttRo
             * BbzMctsttPv
-
     * Benchmark heuristics function and rollout average -> Understand BbMctsRo-3.1.1 vs BbMctsPv
 
     * BbMmabPv-3.1.6: It would be probably better to decrease the evaluation while backpropagating:

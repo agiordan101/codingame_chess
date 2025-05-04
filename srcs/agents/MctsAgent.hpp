@@ -5,35 +5,34 @@
 
 #define UTC_EPSILON 1e-9
 
+// Nodes hold information about a move made on the parent node board
 struct Node
 {
-        Move last_move;
-        bool is_expanded;
-
-        Board *board;
-        bool   is_over;
-        float  end_game_evaluation;
-
+        Move  move;
         int   visits;
         float value;
         float uct_value;
+
+        Board *resulting_board;
+        bool   is_over;
+        float  end_game_evaluation;
 
         std::vector<std::unique_ptr<Node>> children;
         std::vector<Move>                  available_moves; // Store unexplored moves
 
         Node()
-            : last_move(Move("a1b1")), is_expanded(false), board(nullptr), is_over(false),
-              end_game_evaluation(0.5), visits(0), value(0), uct_value(0){};
+            : move(Move("a1b1")), visits(0), value(0), uct_value(0), resulting_board(nullptr),
+              is_over(false), end_game_evaluation(0.5){};
 
         Node(Move m)
-            : last_move(m), is_expanded(false), board(nullptr), is_over(false),
-              end_game_evaluation(0.5), visits(0), value(0), uct_value(0){};
+            : move(m), visits(0), value(0), uct_value(0), resulting_board(nullptr), is_over(false),
+              end_game_evaluation(0.5){};
 
         ~Node()
         {
-            if (is_expanded && board != nullptr)
+            if (resulting_board != nullptr)
             {
-                delete board;
+                delete resulting_board;
             }
         };
 };

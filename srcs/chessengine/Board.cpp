@@ -8,6 +8,10 @@ uint64_t Board::king_lookup[64];
 
 // --- PUBLIC METHODS ---
 
+Board::Board()
+{
+}
+
 Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule)
 {
     stringstream ss(_fen);
@@ -297,19 +301,31 @@ string Board::create_fen(bool with_turns)
     return fen_string;
 }
 
+// Board *Board::clone()
+// {
+//     // TODO: Create a new constructor, taking an instance in param, which then copy all the
+//     needed
+//     // data instead of creating and parsing FEN
+//     Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
+
+//     // Copy history
+//     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
+//     {
+//         if (this->fen_history[i].empty())
+//             break;
+//         cloned_board->fen_history[i] = this->fen_history[i];
+//     }
+
+//     return cloned_board;
+// }
+
 Board *Board::clone()
 {
-    // TODO: Create a new constructor, taking an instance in param, which then copy all the needed
-    // data instead of creating and parsing FEN
-    Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
+    // Create empty instance
+    Board *cloned_board = new Board();
 
-    // Copy history
-    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-    {
-        if (this->fen_history[i].empty())
-            break;
-        cloned_board->fen_history[i] = this->fen_history[i];
-    }
+    // Raw copy
+    *cloned_board = *this;
 
     return cloned_board;
 }

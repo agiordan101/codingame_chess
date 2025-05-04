@@ -76,11 +76,8 @@ class Board
         uint64_t attacked_by_black_mask;
         uint64_t pin_masks[64]; // Each cell can have a pinned mask
 
-        Board(
-            string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
-            bool   chess960_rule = true,
-            bool   codingame_rule = true
-        );
+        Board();
+        Board(string _fen, bool chess960_rule = true, bool codingame_rule = true);
         Board(
             string _board,
             string _color,

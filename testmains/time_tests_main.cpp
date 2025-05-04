@@ -62,7 +62,7 @@ void test_dataset(string file_name)
     }
 
     // PiecesHeuristic *heuristic = new PiecesHeuristic();
-    Board board = Board();
+    Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
 
     string lines;
     getline(file, lines, ',');

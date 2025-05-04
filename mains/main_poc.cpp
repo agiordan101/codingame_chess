@@ -11,7 +11,7 @@ int main()
 {
     BotPlayer *player = new BotPlayer(new MctsAgent(new PiecesHeuristic(), 50));
 
-    Board *board = new Board();
+    Board *board = new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
 
     float game_state = GAME_CONTINUE;
     while (game_state == GAME_CONTINUE)

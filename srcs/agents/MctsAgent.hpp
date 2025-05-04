@@ -17,8 +17,7 @@ struct Node
         bool   is_over;
         float  end_game_evaluation;
 
-        std::vector<std::unique_ptr<Node>> children;
-        std::vector<Move>                  available_moves; // Store unexplored moves
+        std::vector<std::unique_ptr<Node>> children_nodes;
 
         Node()
             : move(Move("a1b1")), visits(0), value(0), uct_value(0), resulting_board(nullptr),
@@ -54,16 +53,23 @@ class MctsAgent : public AbstractAgent
         float   _ms_turn_stop;
         clock_t _start_time;
 
-        int _depth_reached;
-        int _nodes_explored;
+        int   _depth_reached;
+        int   _nodes_explored;
         float _winrate;
+
+        float _ms_board_selection;
+        float _ms_board_cloning;
+        float _ms_board_applying;
+        float _ms_board_expansion;
+        float _ms_board_simulation;
+        float _ms_total;
 
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);
         void  expand_node(Node *node);
 
         bool  is_time_up();
-        float elapsed_time();
+        float elapsed_time(clock_t clock_start);
 };
 
 #endif

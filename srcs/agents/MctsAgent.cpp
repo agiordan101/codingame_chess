@@ -8,7 +8,15 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_ms_turn_stop = ms_constraint * 0.95;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
+    this->_winrate = 0.5;
     this->_start_time = 0;
+
+    this->_ms_board_selection = 0;
+    this->_ms_board_cloning = 0;
+    this->_ms_board_applying = 0;
+    this->_ms_board_expansion = 0;
+    this->_ms_board_simulation = 0;
+    this->_ms_total = 0;
 }
 
 // --- PRIVATE METHODS ---
@@ -38,17 +46,14 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     this->_nodes_explored = root_node.visits;
     this->_winrate = root_node.value / root_node.visits;
 
-    // cerr << "MctsAgent: Ending iterations " << this->_nodes_explored << endl;
-    // cerr << "MctsAgent: Move count: " << moves.size() << endl;
-    // cerr << "MctsAgent: Children count: " << root_node.children.size() << endl;
-
     // BotPlayer maximizes the score for white and minimizes it for black
     int player = board->is_white_turn() ? 1 : -1;
 
     for (size_t i = 0; i < moves.size(); i++)
-        qualities->push_back(player * root_node.children[i]->visits);
+        qualities->push_back(player * root_node.children_nodes[i]->visits);
 
-    float dtime = elapsed_time();
+    float dtime = elapsed_time(this->_start_time);
+    // this->_ms_total += dtime;
     if (dtime >= _ms_constraint)
         cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
              << endl;
@@ -58,72 +63,100 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-rc");
+    stats.push_back("version=BbMctsPv-3.4.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.4.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
+
+    // int percent_selection = (this->_ms_board_selection / this->_ms_total) * 100;
+    // int percent_cloning = (this->_ms_board_cloning / this->_ms_total) * 100;
+    // int percent_applying = (this->_ms_board_applying / this->_ms_total) * 100;
+    // int percent_expansion = (this->_ms_board_expansion / this->_ms_total) * 100;
+    // int percent_simulation = (this->_ms_board_simulation / this->_ms_total) * 100;
+    // int percent_remaining = 100 - percent_selection - percent_cloning - percent_applying -
+    //                         percent_expansion - percent_simulation;
+    // cerr << "BbMctsPv-3.4.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
+    //      << "% - Ap=" << percent_applying << "% - Ex=" << percent_expansion
+    //      << "% - Si=" << percent_simulation << "% - Remaining=" << percent_remaining << "%" <<
+    //      endl;
     return stats;
 }
 
 string MctsAgent::get_name()
 {
-    return Board::get_name() + ".MctsAgent[" + to_string(this->_ms_constraint) + "ms]";
+    return Board::get_name() + ".MctsAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
 }
 
 // --- PUBLIC METHODS ---
 
-float MctsAgent::mcts(Node *node, int depth)
+float MctsAgent::mcts(Node *parent_node, int depth)
 {
+    // clock_t start_time;
+
     if (depth > this->_depth_reached)
         this->_depth_reached = depth;
 
     // Selection
-    Node *child_node = select_child(node);
+    // start_time = clock();
+    Node *node = select_child(parent_node);
+    // this->_ms_board_selection += elapsed_time(start_time);
 
     float evaluation;
-    if (child_node->visits == 0)
+    if (node->visits == 0)
     {
-        child_node->resulting_board = node->resulting_board->clone();
-        child_node->resulting_board->apply_move(child_node->move);
+        // Tree leaf reached
+        // start_time = clock();
+        node->resulting_board = parent_node->resulting_board->clone();
+        // this->_ms_board_cloning += elapsed_time(start_time);
 
-        float game_state = child_node->resulting_board->get_game_state();
+        // start_time = clock();
+        node->resulting_board->apply_move(node->move);
+        // this->_ms_board_applying += elapsed_time(start_time);
+
+        float game_state = node->resulting_board->get_game_state();
         if (game_state == GAME_CONTINUE)
         {
             // Expansion
-            expand_node(child_node);
+            // start_time = clock();
+            expand_node(node);
+            // this->_ms_board_expansion += elapsed_time(start_time);
 
             // Simulation -> Rollout | Heuristic
             // Because the node value represent the strength of a move for both white and black,
             //  we must invert the heuristic evaluation for black moves (when the resulting board is
             //  white's turn)
-            int player = child_node->resulting_board->is_white_turn() ? -1 : 1;
-            evaluation = (1 + player * this->_heuristic->evaluate(child_node->resulting_board)) / 2;
+            // start_time = clock();
+            int player = node->resulting_board->is_white_turn() ? -1 : 1;
+            evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
+            // this->_ms_board_simulation += elapsed_time(start_time);
         }
         else
         {
-            child_node->is_over = true;
-            child_node->end_game_evaluation = game_state == DRAW ? 0.5 : 1;
+            // New terminal state encountered - No simulation needed
+            node->is_over = true;
+            node->end_game_evaluation = game_state == DRAW ? 0.5 : 1;
 
-            evaluation = child_node->end_game_evaluation;
+            evaluation = node->end_game_evaluation;
         }
     }
-    else if (child_node->is_over)
-        evaluation = child_node->end_game_evaluation;
+    else if (node->is_over)
+        evaluation = node->end_game_evaluation;
     else
-        evaluation = 1 - mcts(child_node, depth + 1);
+        evaluation = 1 - mcts(node, depth + 1);
 
     // Backpropagation
-    child_node->value += evaluation;
-    child_node->visits++;
+    node->value += evaluation;
+    node->visits++;
 
     return evaluation;
 }
 
 Node *MctsAgent::select_child(Node *parent)
 {
-    for (const auto &child : parent->children)
+    for (const auto &child : parent->children_nodes)
     {
         child->uct_value =
             (child->value / (child->visits + UTC_EPSILON)) +
@@ -131,7 +164,7 @@ Node *MctsAgent::select_child(Node *parent)
     }
 
     auto max_child_it = std::max_element(
-        parent->children.begin(), parent->children.end(),
+        parent->children_nodes.begin(), parent->children_nodes.end(),
         [](const std::unique_ptr<Node> &a, const std::unique_ptr<Node> &b)
         { return a->uct_value < b->uct_value; }
     );
@@ -141,17 +174,17 @@ Node *MctsAgent::select_child(Node *parent)
 
 void MctsAgent::expand_node(Node *node)
 {
-    // Create children nodes for each available move
+    // Create children_nodes nodes for each available move
     for (const Move &move : node->resulting_board->get_available_moves())
-        node->children.push_back(std::make_unique<Node>(move));
+        node->children_nodes.push_back(std::make_unique<Node>(move));
 }
 
 bool MctsAgent::is_time_up()
 {
-    return this->elapsed_time() >= this->_ms_turn_stop;
+    return this->elapsed_time(this->_start_time) >= this->_ms_turn_stop;
 }
 
-float MctsAgent::elapsed_time()
+float MctsAgent::elapsed_time(clock_t clock_start)
 {
-    return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
+    return (float)(clock() - clock_start) / CLOCKS_PER_SEC * 1000;
 }

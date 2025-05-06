@@ -260,9 +260,13 @@ Inside the file :
 
 - Next steps :
 
-    * Why all promotinos are knight ???
+    * Why all promotions are knight ???
     * Node / ms :
        * BbMctsPv-3.3.6 = 120
+       * BbMctsPv-3.4.6 = 150 -> 190
+       * BbMctsPv-3.5.6 = 180 -> 220
+
+    * Just save all FEN encounter in one turn, to anticipate how much transposition table will be helpful
 
     * MCTS algorithms :
         * Find which is the best between :

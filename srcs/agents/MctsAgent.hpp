@@ -11,21 +11,27 @@ struct Node
         Move  move;
         int   visits;
         float value;
+
+        float utc_exploitation;
+        float utc_exploration;
+        float utc_parent_exploration;
         float uct_value;
 
         Board *resulting_board;
         bool   is_over;
         float  end_game_evaluation;
 
-        std::vector<std::unique_ptr<Node>> children_nodes;
+        std::vector<Node *> children_nodes;
 
         Node()
-            : move(Move("a1b1")), visits(0), value(0), uct_value(0), resulting_board(nullptr),
-              is_over(false), end_game_evaluation(0.5){};
+            : move(Move("a1b1")), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
+              utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
 
         Node(Move m)
-            : move(m), visits(0), value(0), uct_value(0), resulting_board(nullptr), is_over(false),
-              end_game_evaluation(0.5){};
+            : move(m), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
+              utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
 
         ~Node()
         {
@@ -33,6 +39,8 @@ struct Node
             {
                 delete resulting_board;
             }
+            for (Node *child : children_nodes)
+                delete child;
         };
 };
 

@@ -3,7 +3,7 @@
 MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
 {
     this->_heuristic = heuristic;
-    this->_exploration_constant = 1.4142135623730951;
+    this->_exploration_constant = 2;
     this->_ms_constraint = ms_constraint;
     this->_ms_turn_stop = ms_constraint * 0.95;
     this->_depth_reached = 0;
@@ -63,11 +63,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.4.6");
+    stats.push_back("version=BbMctsPv-3.5.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.4.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.5.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
 
     // int percent_selection = (this->_ms_board_selection / this->_ms_total) * 100;
@@ -77,7 +77,7 @@ vector<string> MctsAgent::get_stats()
     // int percent_simulation = (this->_ms_board_simulation / this->_ms_total) * 100;
     // int percent_remaining = 100 - percent_selection - percent_cloning - percent_applying -
     //                         percent_expansion - percent_simulation;
-    // cerr << "BbMctsPv-3.4.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
+    // cerr << "BbMctsPv-3.5.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
     //      << "% - Ap=" << percent_applying << "% - Ex=" << percent_expansion
     //      << "% - Si=" << percent_simulation << "% - Remaining=" << percent_remaining << "%" <<
     //      endl;
@@ -150,6 +150,8 @@ float MctsAgent::mcts(Node *parent_node, int depth)
     // Backpropagation
     node->value += evaluation;
     node->visits++;
+    node->utc_exploitation = node->value / node->visits;
+    node->utc_parent_exploration = this->_exploration_constant * log(node->visits);
 
     return evaluation;
 }
@@ -158,25 +160,26 @@ Node *MctsAgent::select_child(Node *parent)
 {
     for (const auto &child : parent->children_nodes)
     {
+        if (child->visits == 0)
+            return child;
+
         child->uct_value =
-            (child->value / (child->visits + UTC_EPSILON)) +
-            this->_exploration_constant * sqrt(log(parent->visits) / (child->visits + UTC_EPSILON));
+            child->utc_exploitation + sqrt(parent->utc_parent_exploration / child->visits);
     }
 
-    auto max_child_it = std::max_element(
+    Node *max_child_it = *max_element(
         parent->children_nodes.begin(), parent->children_nodes.end(),
-        [](const std::unique_ptr<Node> &a, const std::unique_ptr<Node> &b)
-        { return a->uct_value < b->uct_value; }
+        [](Node *a, Node *b) { return a->uct_value < b->uct_value; }
     );
 
-    return max_child_it->get();
+    return max_child_it;
 }
 
 void MctsAgent::expand_node(Node *node)
 {
     // Create children_nodes nodes for each available move
     for (const Move &move : node->resulting_board->get_available_moves())
-        node->children_nodes.push_back(std::make_unique<Node>(move));
+        node->children_nodes.push_back(new Node(move));
 }
 
 bool MctsAgent::is_time_up()

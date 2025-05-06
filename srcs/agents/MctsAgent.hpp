@@ -3,8 +3,6 @@
 
 #include "AbstractAgent.hpp"
 
-#define UTC_EPSILON 1e-9
-
 // Nodes hold information about a move made on the parent node board
 struct Node
 {

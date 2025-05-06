@@ -28,6 +28,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     Node root_node;
     root_node.resulting_board = board->clone();
     root_node.visits = 1;
+    root_node.utc_parent_exploration = 1;
 
     expand_node(&root_node);
 
@@ -41,6 +42,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
         // Save children move evaluations in root node
         root_node.value += evaluation;
         root_node.visits++;
+        root_node.utc_parent_exploration = this->_exploration_constant * log(root_node.visits);
     }
 
     this->_nodes_explored = root_node.visits;

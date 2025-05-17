@@ -65,11 +65,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.5.6");
+    stats.push_back("version=BbMctsPv-3.6.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.5.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.6.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
 
     // int percent_selection = (this->_ms_board_selection / this->_ms_total) * 100;
@@ -79,7 +79,7 @@ vector<string> MctsAgent::get_stats()
     // int percent_simulation = (this->_ms_board_simulation / this->_ms_total) * 100;
     // int percent_remaining = 100 - percent_selection - percent_cloning - percent_applying -
     //                         percent_expansion - percent_simulation;
-    // cerr << "BbMctsPv-3.5.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
+    // cerr << "BbMctsPv-3.6.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
     //      << "% - Ap=" << percent_applying << "% - Ex=" << percent_expansion
     //      << "% - Si=" << percent_simulation << "% - Remaining=" << percent_remaining << "%" <<
     //      endl;

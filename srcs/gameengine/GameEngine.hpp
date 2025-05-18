@@ -24,6 +24,8 @@ class GameEngine
         bool _game;
         bool _score;
 
+        clock_t _turn_clock_start;
+
         BotPlayer   *_player;
         Move        *_cg_last_move;
         Board       *_cg_board;

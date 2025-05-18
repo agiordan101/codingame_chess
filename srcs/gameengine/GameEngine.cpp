@@ -40,6 +40,10 @@ void GameEngine::infinite_game_loop()
             cout << " " << stat;
         cout << endl;
 
+        clock_t turn_clock_end = clock();
+        float elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        cerr << "\nGameEngine: Turn duration: " << elapsed_time << "/50 ms" << endl;
+
         this->_board->apply_move(move);
 
         float game_state = this->_board->get_game_state();
@@ -98,6 +102,8 @@ void GameEngine::_parse_turn()
     string full_move_str;
 
     cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
+
+    this->_turn_clock_start = clock();
 
     int half_move_clock = stoi(half_move_clock_str);
     int full_move = stoi(full_move_str);

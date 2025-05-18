@@ -85,15 +85,15 @@ cgtest:
 debug:
 	g++ -g3 $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/$(DEBUG_EXEC)
 
-### Compile the actual bot (and run an engine to play against it ?)
+### Compile the actual bot
 run:
 	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)
 
-### Group source code in one file and compile it (to run it against the codingame engine)
+### Group source code in one file and compile it
 buildcg:
 	python3 python/codingame_file_creator.py
 	clang-format -i -- mains/maincg.cpp
-	g++ $(flag) mains/maincg.cpp -o ../codingame-chess/$(CG_EXEC)
+	g++ mains/maincg.cpp -o ./bins/$(BOT_EXEC)
 
 ### Just test some cpp behaviors
 poc:

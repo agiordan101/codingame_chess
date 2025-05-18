@@ -304,11 +304,8 @@ class Board
         uint64_t attacked_by_white_mask;
         uint64_t attacked_by_black_mask;
         uint64_t pin_masks[64];
-        Board(
-            string _fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
-            bool   chess960_rule = true,
-            bool   codingame_rule = true
-        );
+        Board();
+        Board(string _fen, bool chess960_rule = true, bool codingame_rule = true);
         Board(
             string _board,
             string _color,
@@ -738,17 +735,54 @@ class AbstractAgent
 #endif
 
 /*
-        Content of 'srcs/agents/MinMaxAlphaBetaAgent.hpp'
+        Content of 'srcs/agents/MctsAgent.hpp'
 */
 
-#ifndef MINMAXITERDEEPAGENT_HPP
-#define MINMAXITERDEEPAGENT_HPP
+#ifndef MCTSAGENT_HPP
+#define MCTSAGENT_HPP
 
-class MinMaxAlphaBetaAgent : public AbstractAgent
+struct Node
 {
+        Move  move;
+        int   visits;
+        float value;
 
+        float utc_exploitation;
+        float utc_exploration;
+        float utc_parent_exploration;
+        float uct_value;
+
+        Board *resulting_board;
+        bool   is_over;
+        float  end_game_evaluation;
+
+        std::vector<Node *> children_nodes;
+
+        Node()
+            : move(Move("a1b1")), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
+              utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+
+        Node(Move m)
+            : move(m), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
+              utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+
+        ~Node()
+        {
+            if (resulting_board != nullptr)
+            {
+                delete resulting_board;
+            }
+            for (Node *child : children_nodes)
+                delete child;
+        };
+};
+
+class MctsAgent : public AbstractAgent
+{
     public:
-        MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint);
+        MctsAgent(AbstractHeuristic *heuristic, int ms_constraint);
         virtual void
         get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
         virtual string get_name() override;
@@ -756,24 +790,29 @@ class MinMaxAlphaBetaAgent : public AbstractAgent
 
     private:
         AbstractHeuristic *_heuristic;
+        float              _exploration_constant;
 
         int     _ms_constraint;
         float   _ms_turn_stop;
         clock_t _start_time;
 
-        int _depth_reached;
-        int _nodes_explored;
+        int   _depth_reached;
+        int   _nodes_explored;
+        float _winrate;
 
-        float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
-        float max_node(
-            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
-        );
-        float min_node(
-            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
-        );
+        float _ms_board_selection;
+        float _ms_board_cloning;
+        float _ms_board_applying;
+        float _ms_board_expansion;
+        float _ms_board_simulation;
+        float _ms_total;
+
+        float mcts(Node *node, int depth);
+        Node *select_child(Node *node);
+        void  expand_node(Node *node);
 
         bool  is_time_up();
-        float elapsed_time();
+        float elapsed_time(clock_t clock_start);
 };
 
 #endif
@@ -848,6 +887,8 @@ class GameEngine
         bool _game;
         bool _score;
 
+        clock_t _turn_clock_start;
+
         BotPlayer   *_player;
         Move        *_cg_last_move;
         Board       *_cg_board;
@@ -899,6 +940,10 @@ void GameEngine::infinite_game_loop()
         for (string stat : stats)
             cout << " " << stat;
         cout << endl;
+
+        clock_t turn_clock_end = clock();
+        float   elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        cerr << "\nGameEngine: Turn duration: " << elapsed_time << "/50 ms" << endl;
 
         this->_board->apply_move(move);
 
@@ -953,6 +998,8 @@ void GameEngine::_parse_turn()
 
     cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
 
+    this->_turn_clock_start = clock();
+
     int half_move_clock = stoi(half_move_clock_str);
     int full_move = stoi(full_move_str);
 
@@ -972,6 +1019,10 @@ uint64_t Board::pawn_captures_lookup[64][2];
 uint64_t Board::knight_lookup[64];
 uint64_t Board::sliding_lookup[64][8];
 uint64_t Board::king_lookup[64];
+
+Board::Board()
+{
+}
 
 Board::Board(string _fen, bool _chess960_rule, bool _codingame_rule)
 {
@@ -1249,14 +1300,9 @@ string Board::create_fen(bool with_turns)
 
 Board *Board::clone()
 {
-    Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
+    Board *cloned_board = new Board();
 
-    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-    {
-        if (this->fen_history[i].empty())
-            break;
-        cloned_board->fen_history[i] = this->fen_history[i];
-    }
+    *cloned_board = *this;
 
     return cloned_board;
 }
@@ -2847,153 +2893,160 @@ bool Move::_is_move_in_movelst(Move *move, vector<Move> movelst)
 };
 
 /*
-        Content of 'srcs/agents/MinMaxAlphaBetaAgent.cpp'
+        Content of 'srcs/agents/MctsAgent.cpp'
 */
 
-MinMaxAlphaBetaAgent::MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint)
+MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
 {
     this->_heuristic = heuristic;
+    this->_exploration_constant = 2;
     this->_ms_constraint = ms_constraint;
     this->_ms_turn_stop = ms_constraint * 0.95;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
+    this->_winrate = 0.5;
     this->_start_time = 0;
+
+    this->_ms_board_selection = 0;
+    this->_ms_board_cloning = 0;
+    this->_ms_board_applying = 0;
+    this->_ms_board_expansion = 0;
+    this->_ms_board_simulation = 0;
+    this->_ms_total = 0;
 }
 
-void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
+void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
     this->_start_time = clock();
 
-    for (size_t i = 0; i < moves.size(); i++)
-        qualities->push_back(0);
+    Node root_node;
+    root_node.resulting_board = board->clone();
+    root_node.visits = 1;
+    root_node.utc_parent_exploration = 1;
 
-    int max_depth = 2;
+    expand_node(&root_node);
+
     this->_nodes_explored = 0;
     while (!this->is_time_up())
     {
-        for (size_t i = 0; i < moves.size(); i++)
-        {
-            Board new_board = *board;
-            new_board.apply_move(moves[i]);
+        float evaluation = this->mcts(&root_node, 0);
 
-            float move_quality = this->minmax(&new_board, max_depth, 1, -1, 1);
-
-            if (this->is_time_up())
-                break;
-
-            qualities->at(i) = move_quality;
-        }
-
-        max_depth++;
+        root_node.value += evaluation;
+        root_node.visits++;
+        root_node.utc_parent_exploration = this->_exploration_constant * log(root_node.visits);
     }
 
-    this->_depth_reached = max_depth;
+    this->_nodes_explored = root_node.visits;
+    this->_winrate = root_node.value / root_node.visits;
 
-    float dtime = elapsed_time();
+    int player = board->is_white_turn() ? 1 : -1;
+
+    for (size_t i = 0; i < moves.size(); i++)
+        qualities->push_back(player * root_node.children_nodes[i]->visits);
+
+    float dtime = elapsed_time(this->_start_time);
     if (dtime >= _ms_constraint)
-        cerr << "MinMaxAlphaBetaAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
-             << "ms" << endl;
+        cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
+             << endl;
 }
 
-vector<string> MinMaxAlphaBetaAgent::get_stats()
+vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-3.1.6");
+    stats.push_back("version=BbMctsPv-3.6.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-3.1.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    stats.push_back("winrate=" + to_string(this->_winrate));
+    cerr << "BbMctsPv-3.6.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+         << stats[3] << endl;
+
     return stats;
 }
 
-string MinMaxAlphaBetaAgent::get_name()
+string MctsAgent::get_name()
 {
-    return Board::get_name() + ".MinMaxAlphaBetaAgent[" + to_string(this->_ms_constraint) + "ms]." +
+    return Board::get_name() + ".MctsAgent[" + to_string(this->_ms_constraint) + "ms]." +
            this->_heuristic->get_name();
 }
 
-float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float alpha, float beta)
+float MctsAgent::mcts(Node *parent_node, int depth)
 {
-    this->_nodes_explored++;
 
-    if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
-        return this->_heuristic->evaluate(board);
+    if (depth > this->_depth_reached)
+        this->_depth_reached = depth;
 
-    vector<Move> moves = board->get_available_moves();
+    Node *node = select_child(parent_node);
 
-    float best_quality;
-    if (board->is_white_turn())
+    float evaluation;
+    if (node->visits == 0)
     {
-        best_quality = this->max_node(board, &moves, max_depth, depth, alpha, beta);
+        node->resulting_board = parent_node->resulting_board->clone();
+
+        node->resulting_board->apply_move(node->move);
+
+        float game_state = node->resulting_board->get_game_state();
+        if (game_state == GAME_CONTINUE)
+        {
+            expand_node(node);
+
+            int player = node->resulting_board->is_white_turn() ? -1 : 1;
+            evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
+        }
+        else
+        {
+            node->is_over = true;
+            node->end_game_evaluation = game_state == DRAW ? 0.5 : 1;
+
+            evaluation = node->end_game_evaluation;
+        }
     }
+    else if (node->is_over)
+        evaluation = node->end_game_evaluation;
     else
+        evaluation = 1 - mcts(node, depth + 1);
+
+    node->value += evaluation;
+    node->visits++;
+    node->utc_exploitation = node->value / node->visits;
+    node->utc_parent_exploration = this->_exploration_constant * log(node->visits);
+
+    return evaluation;
+}
+
+Node *MctsAgent::select_child(Node *parent)
+{
+    for (const auto &child : parent->children_nodes)
     {
-        best_quality = this->min_node(board, &moves, max_depth, depth, alpha, beta);
+        if (child->visits == 0)
+            return child;
+
+        child->uct_value =
+            child->utc_exploitation + sqrt(parent->utc_parent_exploration / child->visits);
     }
 
-    return best_quality;
+    Node *max_child_it = *max_element(
+        parent->children_nodes.begin(), parent->children_nodes.end(),
+        [](Node *a, Node *b) { return a->uct_value < b->uct_value; }
+    );
+
+    return max_child_it;
 }
 
-float MinMaxAlphaBetaAgent::max_node(
-    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
-)
+void MctsAgent::expand_node(Node *node)
 {
-    float best_quality = -1;
-    for (Move move : *moves)
-    {
-        Board new_board = *board;
-        new_board.apply_move(move);
-
-        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
-
-        if (this->is_time_up())
-            break;
-
-        best_quality = max(best_quality, child_quality);
-
-        if (beta <= best_quality)
-            return best_quality;
-
-        alpha = max(alpha, best_quality);
-    }
-
-    return best_quality;
+    for (const Move &move : node->resulting_board->get_available_moves())
+        node->children_nodes.push_back(new Node(move));
 }
 
-float MinMaxAlphaBetaAgent::min_node(
-    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
-)
+bool MctsAgent::is_time_up()
 {
-    float best_quality = 1;
-    for (Move move : *moves)
-    {
-        Board new_board = *board;
-        new_board.apply_move(move);
-
-        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
-
-        if (this->is_time_up())
-            break;
-
-        best_quality = min(best_quality, child_quality);
-
-        if (alpha >= best_quality)
-            return best_quality;
-
-        beta = min(beta, best_quality);
-    }
-
-    return best_quality;
+    return this->elapsed_time(this->_start_time) >= this->_ms_turn_stop;
 }
 
-bool MinMaxAlphaBetaAgent::is_time_up()
+float MctsAgent::elapsed_time(clock_t clock_start)
 {
-    return this->elapsed_time() >= this->_ms_turn_stop;
-}
-
-float MinMaxAlphaBetaAgent::elapsed_time()
-{
-    return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
+    return (float)(clock() - clock_start) / CLOCKS_PER_SEC * 1000;
 }
 
 /*
@@ -3001,6 +3054,7 @@ float MinMaxAlphaBetaAgent::elapsed_time()
 */
 
 #include <algorithm>
+
 float PiecesHeuristic::evaluate(Board *board)
 {
     float state = board->get_game_state();
@@ -3162,7 +3216,6 @@ int PiecesHeuristic::_lookup_bonuses_for_all_pieces(
 
 BotPlayer::BotPlayer(AbstractAgent *agent)
 {
-
     this->_agent = agent;
 }
 
@@ -3220,6 +3273,6 @@ using namespace std;
 int main()
 {
     GameEngine *game_engine =
-        new GameEngine(new BotPlayer(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 50)));
+        new GameEngine(new BotPlayer(new MctsAgent(new PiecesHeuristic(), 50)));
     game_engine->infinite_game_loop();
 }

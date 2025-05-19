@@ -13,13 +13,36 @@ void GameEngine::infinite_game_loop()
     this->_parse_first_turn();
     cout << "lastmove fen" << endl;
 
-    float elapsed_time;
+    // float elapsed_time;
     while (1)
     {
         _parse_turn();
 
+        // elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        // cerr << "\nGameEngine: After turn parsing: " << elapsed_time << "/50 ms" << endl;
+
+        // // First turns
+        // if (this->_cg_board->game_turn == 1)
+        // {
+        //     this->_board = this->_cg_board->clone();
+        //     // cerr << "\nGameEngine: Initial board:" << endl;
+        //     // this->_board->log();
+        // }
+        // else
+        //     this->_board->apply_move(*this->_cg_last_move);
+
+        // elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        // cerr << "\nGameEngine: Before move generation: " << elapsed_time << "/50 ms" << endl;
+
         vector<Move> moves = this->_board->get_available_moves();
-        Move         move = this->_player->choose_from(this->_board, moves);
+
+        // elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        // cerr << "\nGameEngine: Before algorithm: " << elapsed_time << "/50 ms" << endl;
+
+        Move move = this->_player->choose_from(this->_board, moves);
+
+        // elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        // cerr << "\nGameEngine: After algorithm: " << elapsed_time << "/50 ms" << endl;
 
         vector<string> stats = this->_player->get_stats();
 
@@ -28,6 +51,16 @@ void GameEngine::infinite_game_loop()
         for (string stat : stats)
             cout << " " << stat;
         cout << endl;
+
+        // clock_t turn_clock_end = clock();
+        // elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
+        // cerr << "\nGameEngine: Turn duration: " << elapsed_time << "/50 ms" << endl;
+
+        // if (elapsed_time > 50)
+        // {
+        //     cerr << "\nGameEngine: Turn duration is too long !" << endl;
+        //     exit(1);
+        // }
 
         this->_board->apply_move(move);
 

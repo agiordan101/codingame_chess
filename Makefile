@@ -77,23 +77,15 @@ perft:
 	@g++ testmains/perft_tests_main.cpp $(CHESS_ENGINE_SRCS) -o ./bins/$(PERFT_EXEC)
 	@./bins/$(PERFT_EXEC)
 
-### Compile the actual bot with a special GameEngine, to compare codingame chess engine and mine
-cgtest:
-	g++ testmains/cg_tests_main.cpp $(BOTTEST_SRCS) -o ../codingame-chess/$(CG_EXEC)
-
 ### Compile the actual bot for debugging
 debug:
 	g++ -g3 $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/$(DEBUG_EXEC)
 
-### Compile the actual bot
+### Group source code in one file and compile the actual bot
 run:
-	g++ $(flag) mains/main.cpp $(BOT_SRCS) -o ./bins/$(BOT_EXEC)
-
-### Group source code in one file and compile it
-buildcg:
 	python3 python/codingame_file_creator.py
 	clang-format -i -- mains/maincg.cpp
-	g++ mains/maincg.cpp -o ./bins/$(BOT_EXEC)
+	g++ $(flag) mains/maincg.cpp -o ./bins/$(BOT_EXEC)
 
 ### Just test some cpp behaviors
 poc:

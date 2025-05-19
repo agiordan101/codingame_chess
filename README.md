@@ -35,6 +35,30 @@ Displays a graph X: Stockfish ELO - Y: Winrate
     - Try n games different ELO
     - Linear regression degrees 1, 2, 3
 
+### Psyleague usage
+
+https://github.com/FakePsyho/psyleague
+
+All the following command must be executed at psyleague repository root.
+
+Config file is located at `./psyleague.cfg`
+
+Start psyleague server :
+
+`psyleague run`
+
+Add bots with :
+
+`psyleague bot add {BOT_NAME} -s {MAIN_SRC_PATH}`
+`psyleague bot add BbMmabPv-3.1.6 -s ../codingame_chess/mains/maincg`
+
+See current results with :
+
+`psyleague show`
+
+Reset league with :
+
+`rm psyleague.db && rm psyleague.games`
 
 ## Description
 
@@ -260,7 +284,32 @@ Inside the file :
 
 - Next steps :
 
-    * Psyleague
+    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers
+
+    * Brutaltester threads test :
+        Run 50 games between BbMctsPv-3.7.6 and BbMmabPv-3.1.6 (Result should be 0% / 100%)
+        * Format : P1 % wins / P2 % wins
+        * 1 threads :  0 / 100
+        * 2 threads :  0 /  98
+        * 3 threads :  8 /  92
+        * 4 threads : 22 /  78
+        * 5 threads : 22 /  78
+        * 6 threads : 32 /  68
+        * 7 threads : 40 /  60
+        * 8 threads : 60 /  40
+
+    * Psyleague results :
+        * 1 threads (80 games) :
+            Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+            ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+            1  BbMmabPv-3.1.6  25.60     80  16%  36.476  3.624       0  2025/05/19 21:59:37
+            2  BbMctsPv-3.7.6   2.65     80  16%  13.524  3.624      14  2025/05/19 22:00:49
+        * 7 threads (150 games) :
+            Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+            ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+            1  BbMmabPv-3.1.6  23.41    151  30%  25.281  0.624      69  2025/05/19 22:11:16
+            2  BbMctsPv-3.7.6  22.85    151  30%  24.719  0.624      78  2025/05/19 22:10:27
+
     * Callgrind
     * Keep MCTC tree and use it for next turns
 

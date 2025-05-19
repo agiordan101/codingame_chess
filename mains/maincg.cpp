@@ -907,13 +907,13 @@ void GameEngine::infinite_game_loop()
     this->_parse_first_turn();
     cout << "lastmove fen" << endl;
 
-    float elapsed_time;
     while (1)
     {
         _parse_turn();
 
         vector<Move> moves = this->_board->get_available_moves();
-        Move         move = this->_player->choose_from(this->_board, moves);
+
+        Move move = this->_player->choose_from(this->_board, moves);
 
         vector<string> stats = this->_player->get_stats();
 

@@ -768,15 +768,7 @@ struct Node
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
               resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
 
-        ~Node()
-        {
-            if (resulting_board != nullptr)
-            {
-                delete resulting_board;
-            }
-            for (Node *child : children_nodes)
-                delete child;
-        };
+        ~Node(){};
 };
 
 class MctsAgent : public AbstractAgent
@@ -890,8 +882,6 @@ class GameEngine
         clock_t _turn_clock_start;
 
         BotPlayer   *_player;
-        Move        *_cg_last_move;
-        Board       *_cg_board;
         Board       *_board;
         vector<Move> _possible_moves;
         int          _possible_moves_count;
@@ -909,8 +899,6 @@ class GameEngine
 GameEngine::GameEngine(BotPlayer *player)
 {
     this->_player = player;
-    this->_cg_last_move = NULL;
-    this->_cg_board = NULL;
     this->_board = NULL;
 }
 
@@ -919,20 +907,14 @@ void GameEngine::infinite_game_loop()
     this->_parse_first_turn();
     cout << "lastmove fen" << endl;
 
+    float elapsed_time;
     while (1)
     {
         _parse_turn();
 
-        if (this->_cg_board->game_turn == 1)
-        {
-            this->_board = this->_cg_board->clone();
-        }
-        else
-            this->_board->apply_move(*this->_cg_last_move);
-
         vector<Move> moves = this->_board->get_available_moves();
+        Move         move = this->_player->choose_from(this->_board, moves);
 
-        Move           move = this->_player->choose_from(this->_board, moves);
         vector<string> stats = this->_player->get_stats();
 
         cout << move.to_uci();
@@ -940,10 +922,6 @@ void GameEngine::infinite_game_loop()
         for (string stat : stats)
             cout << " " << stat;
         cout << endl;
-
-        clock_t turn_clock_end = clock();
-        float   elapsed_time = (float)(clock() - this->_turn_clock_start) / CLOCKS_PER_SEC * 1000;
-        cerr << "\nGameEngine: Turn duration: " << elapsed_time << "/50 ms" << endl;
 
         this->_board->apply_move(move);
 
@@ -987,8 +965,6 @@ void GameEngine::_parse_turn()
     string move;
     cin >> move;
 
-    this->_cg_last_move = move == "none" ? NULL : new Move(move);
-
     string board;
     string color;
     string castling;
@@ -1003,9 +979,10 @@ void GameEngine::_parse_turn()
     int half_move_clock = stoi(half_move_clock_str);
     int full_move = stoi(full_move_str);
 
-    if (this->_cg_board)
-        delete this->_cg_board;
-    this->_cg_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
+    if (full_move == 1)
+        this->_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
+    else
+        this->_board->apply_move(Move(move));
 
     cin.ignore();
 }
@@ -2945,6 +2922,7 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
         qualities->push_back(player * root_node.children_nodes[i]->visits);
 
     float dtime = elapsed_time(this->_start_time);
+
     if (dtime >= _ms_constraint)
         cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
              << endl;
@@ -2954,11 +2932,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.6.6");
+    stats.push_back("version=BbMctsPv-3.7.6");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.6.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.7.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
 
     return stats;

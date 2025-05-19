@@ -27,8 +27,6 @@ class GameEngine
         clock_t _turn_clock_start;
 
         BotPlayer   *_player;
-        Move        *_cg_last_move;
-        Board       *_cg_board;
         Board       *_board;
         vector<Move> _possible_moves;
         int          _possible_moves_count;

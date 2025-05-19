@@ -31,14 +31,14 @@ struct Node
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
               resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
 
-        ~Node()
-        {
-            if (resulting_board != nullptr)
-            {
-                delete resulting_board;
-            }
-            for (Node *child : children_nodes)
-                delete child;
+        ~Node(){
+            // if (resulting_board != nullptr)
+            // {
+            //     delete resulting_board;
+            // }
+            // for (Node *child : children_nodes)
+            //     delete child;
+            // children_nodes.clear();
         };
 };
 

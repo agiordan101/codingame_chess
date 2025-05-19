@@ -260,6 +260,10 @@ Inside the file :
 
 - Next steps :
 
+    * Psyleague
+    * Callgrind
+    * Keep MCTC tree and use it for next turns
+
     * Why all promotions are knight ???
     * Node / ms :
        * BbMctsPv-3.3.6 = 120

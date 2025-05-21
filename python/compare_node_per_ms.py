@@ -12,7 +12,7 @@ from bots_interfaces.StockfishBot import StockfishBot
 
 def play_game_and_return_stats(p1: CGBot):
 
-    p2 = StockfishBot(500, 1)
+    p2 = CGBot(p1.name)
     board = chess.Board.from_chess960_pos(random.randint(0, 959))
 
     stats = {

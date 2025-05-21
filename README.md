@@ -2,6 +2,16 @@
 
 CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 
+
+## Description
+
+I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
+
+The idea is to implement several algorithm and heuristic and benchmark them using python scripts, Stockfish and psyleague.
+
+External libraries are used to test & debug my own chess engine (times, valids moves from a position)
+
+
 ## Get started
 
 ### Setup
@@ -10,21 +20,17 @@ CodinGame bot programing chess : https://www.codingame.com/ide/puzzle/chess
 ### Run all tests to assure everything is ok
 `make test`
 
-### Compile actual bot
+### Copy actual bot source files in one .cpp & Compile it 
 `make run`
 
-### Compile a specific bot and copy the resulting executable into codingame chess engine folder, for its GameRunner/GameManager classes
-`make runcg`
-
-
-### Python tools usage
+## Internal python tools usages
 
 Bot names, as python script argument, could be :
 
-#### Versus
+### Versus
 `python3 python/versus.py {botName} {botName}`
 
-#### ELO rating algorithm
+### ELO rating algorithm
 
 Run a bunch of games against Stockfish instances with different ELO.
 From this dataset, we then fit linear regression algorithms to predict the given bot ELO. (i.e. With stockfish ELO would have a 50% win rate against the given bot)
@@ -35,7 +41,19 @@ Displays a graph X: Stockfish ELO - Y: Winrate
     - Try n games different ELO
     - Linear regression degrees 1, 2, 3
 
-### Psyleague usage
+
+## External tools usages
+
+### BrutalTester
+
+https://github.com/dreignier/cg-brutaltester
+
+Run a bunch of games between two bots, using multiple threads.
+Use this command line at repository root:
+
+`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "../codingame-chess/mychessbot" -p2 "../codingame-chess/mychessbot" -t 7 -n 10`
+
+### Psyleague
 
 https://github.com/FakePsyho/psyleague
 
@@ -60,15 +78,20 @@ Reset league with :
 
 `rm psyleague.db && rm psyleague.games`
 
-## Description
+### Callgrind
 
-I created my own chess engine compatible with both Standard and Chess960 rules. It can take a FEN in parameter and respond available and legal UCI moves. My bot executable can be used with CodinGame protocol through stdout.
+Callgrind is a profiling tool that records the call history among functions in a program's run as a call-graph.
+For graphical visualization of the data, we can use KCachegrind command. (apt install kcachegrind)
 
-The idea is to implement several algorithm and heuristic and benchmark them using python scripts and Stockfish.
-The actual best stable bot is BbMmabPv-1 (bitboard_minmaxalphabeta[50]_piecevalues). With ELO rating of ????
-The actual bot in development is BbMmabttPv-1 (bitboard_minmaxalphabetatranstable[50]_piecevalues). With ELO rating of ????
+https://valgrind.org/docs/manual/cl-manual.html
 
-External libraries are used to test & debug my own chess engine (times, valids moves from a position)
+Here is how we can use callgrind to profile our bot:
+
+`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-3.1.6" -p2 "../codingame_chess/bins/BbMmabPv-3.1.6" -t 1 -n 1`
+
+Then, we can visualize the generated callgrind.out file with KCachegrind:
+
+`kcachegrind callgrind.out.12345`
 
 
 ## Versionning
@@ -158,8 +181,8 @@ Before creating a new version :
 ### Branches
 
 - main  ->  Bot deployed in CodinGame
+- dev   ->  Last best bot version, with clean repository
 - tags  ->  Stable bot versions (Fully functionnal with CodinGame engine)
-- dev   ->  Last stable bot
 
 ### Entity heritage
 
@@ -243,6 +266,20 @@ Despite the rules, the final position after castling is always the same:
 - Transposition table: Hashing the position we can create an unique index to lookup a table (With the depth of the calculation! it is improtant). On each new level, we can run an ordering process thanks to values stored in the table, in order to prune more branches with Alpha-Beta. This is how the iterative deepening search is faster than the original MinMax with Alpha-Beta.
 - Hash function -  :
 
+#### MCTS algorithm
+
+* Rollout heuristic sucks in chess, due to: 
+    * Huge Branching Factor
+    * Draw Bias: Most random playouts between good engines or even random ones lead to draws, not wins/losses
+    * Noisy Evaluation in a complex game
+
+
+* Node / ms :
+    * BbMctsPv-3.3.6 = 120
+    * BbMctsPv-3.4.6 = 160 -> 210
+    * BbMctsPv-3.5.6 = 190 -> 220
+
+
 ### Python tools
 
 * What do I want from python :
@@ -284,7 +321,30 @@ Inside the file :
 
 - Next steps :
 
-    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers
+    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers :
+
+    * Main bottlenecks from BOARD class (callgrind statistics) :
+        * Board::create_fen() :
+            *  7% in BbMctsPv-3.7.6
+            * 11% in BbMmabPv-3.1.6
+        * Board::_compute_game_state() :
+            * 22% in BbMctsPv-3.7.6
+            * 28% in BbMmabPv-3.1.6
+        * Board::_find_move() :
+            * 12% in BbMctsPv-3.7.6
+            * 19% in BbMmabPv-3.1.6
+        * Board::_apply_move() :
+            *  8% in BbMctsPv-3.7.6
+            * 13% in BbMmabPv-3.1.6
+        * Board::_find_white_pawns_moves() :
+            *  5% in BbMctsPv-3.7.6
+            *  8% in BbMmabPv-3.1.6
+                * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
+                * Try to get rid of while()
+
+        * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
+            * 14% in BbMctsPv-3.7.6
+            * 22% in BbMmabPv-3.1.6
 
     * Brutaltester threads test :
         Run 50 games between BbMctsPv-3.7.6 and BbMmabPv-3.1.6 (Result should be 0% / 100%)
@@ -310,33 +370,42 @@ Inside the file :
             1  BbMmabPv-3.1.6  23.41    151  30%  25.281  0.624      69  2025/05/19 22:11:16
             2  BbMctsPv-3.7.6  22.85    151  30%  24.719  0.624      78  2025/05/19 22:10:27
 
-    * Callgrind
     * Keep MCTC tree and use it for next turns
 
     * Why all promotions are knight ???
-    * Node / ms :
-       * BbMctsPv-3.3.6 = 120
-       * BbMctsPv-3.4.6 = 150 -> 190
-       * BbMctsPv-3.5.6 = 180 -> 220
 
+    * Compare UTC lazy fix with previous
+        - games
+    * Compare sigmoid heuristic with previous
+        - node/ms
+        - games
+
+    * Current heuritic with very high or very low values is really bad for mcts
+        Because we're not just comparing values, we're additionating them.
+        Meaning, a win is very close to a small material advantage, and a LOSE is not thaaat bad comparing to a small material disadvantage !
+        -> I need a better heuristics evaluation
+    
     * Just save all FEN encounter in one turn, to anticipate how much transposition table will be helpful
-
-    * MCTS algorithms :
-        * Find which is the best between :
-            * BbMctsRo-3.1.1
-            * BbMctsPv-3.1.6
 
     * MCTS zobrist algorithms :
         * Rebase zobrist board on main
         * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
-        * At first, find which is the best between :
-            * BbzMctsttRo
-            * BbzMctsttPv
-    * Benchmark heuristics function and rollout average -> Understand BbMctsRo-3.1.1 vs BbMctsPv
+    
+    * MCMS: Monte Carlo Minimax Search
+        🔍 Core Idea:
+        MCMS combines minimax search with Monte Carlo sampling. Instead of evaluating every child node exhaustively (as in standard minimax), MCMS uses random sampling to reduce the branching factor.
 
-    * BbMmabPv-3.1.6: It would be probably better to decrease the evaluation while backpropagating:
-        - The algorithm doesn't see a difference between a 1-turn win and a 10-turn win
-            So it takes time, until a DRAW, LOSE or treat is coming
+        📦 How It Works:
+        At each node, instead of exploring all child moves:
+            * Sample a subset of actions randomly (Monte Carlo).
+            * Use minimax backup rules (max at your turn, min at opponent’s).
+            Optionally, simulate multiple playouts per node to stabilize the value.
+
+    * Why all promotions are knight ???
+
+    * A way to improve BbMmabPv-3.1.6 to BbMmabPv-3.2.6 :
+        * Use Node as MCTS to store game state and not recompute them (apply_move, get_game_state)
+        * Only expand the last depth
 
     * Create 2 heuristics: Why ?
         * MaterialHeuristic: Just material
@@ -400,50 +469,11 @@ Inside the file :
     * CG game engine returns illegal castling move ? Report the bug ?
 
 
-## Bot comments
-
-### BitBoard.MinMaxAgent[50ms].PiecesHeuristicBb
-
-- Timing comparaison with Board.MinMaxAgent[50ms].PiecesHeuristic
-    - heuristic->evaluate():    From 2066 ms to 254 ms  -> 8x faster
-    - Board():                  From 80 ms to 1500 ms  -> 18x slower .. (1780 & 1165)
-    - get_available_moves():    From 2350 ms to 268 ms ->  9x faster
-    - apply_move():             From 32 ms to 100 ms   ->  3x slower
-    - get_check_state():        From 18 ms to 18 ms    ->     Same
-    - get_game_state():         From 1750 ms to 30 ms  -> 60x faster
-    - 4 mains functions :       From 4700 ms to 550 ms ->  9x faster !!!!
-    - 4 mains functions + Board:From 5000 ms to 2500 ms->  2x faster ...
-
-- Explored nodes per turns
-    - Quantity of explored nodes per turn is constant ~19 npms (nodes per milliseconds)
-    - Where as the BMm50Pv begin at 40 npms and slow down to apprimately 10 npms at turn 30
-    - Until turn 12, BbMm50Pv compute less nodes
-
 
 ### Versus
 
 BbMmabPv-3.1.3   vs  BbMmabPv-3.1.2 : 0.621 / 228 games
 
-
-## Tests
-
-sf500 100ms  vs mm3         -> 97% win / 42 games
-
-sf1000 100ms vs sf800 None  -> 60% win
-sf1000 100ms vs sf1000 10ms -> 60.0% win / 50 games
-sf1000 100ms vs sf1000 50ms -> 46.6% win / 50 games
-sf1000 100ms vs sf1000 None -> 47.3% win / 74 games
-sf1000 50ms  vs sf1000 None -> 48.3% win / 208 games
-sf1500 50ms  vs sf1500 None -> 107W 26D 127L / 260 games
-
-In conclusion, time per turn associated to Stockfish doesn't matter above 50ms
-
-BbMm50Pv    vs  BMm50Pv -> 66% win / 200 games
-
-
-BbMmabttPv-rc basic                     vs BbMmabPv-1 -> 0.403 / 284 games
-BbMmabttPv-rc move ordering             vs BbMmabPv-1 -> 0.452 / 284 games
-BbMmabttPv-rc move ordering & ab save   vs BbMmabPv-1 ->  /  games
 
 ## Externals C++ libraries
 

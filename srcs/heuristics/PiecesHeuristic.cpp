@@ -1,6 +1,21 @@
 #include "PiecesHeuristic.hpp"
 #include <algorithm>
 
+PiecesHeuristic::PiecesHeuristic()
+{
+    for (int i = 0, eval = -EVALUATION_WINRATE_MAP_SIZE / 2; i < EVALUATION_WINRATE_MAP_SIZE;
+         i++, eval++)
+    {
+        // if (eval > 0)
+        //     _evaluation_winrate_map[i] = 1 - 1.0 / (1 + eval);
+        // else
+        //     _evaluation_winrate_map[i] = -1 - 1.0 / (-1 + eval);
+
+        // Sigmoid function (Between 0 and 1)
+        _evaluation_winrate_map[i] = 1.0 / (1.0 + std::exp(-0.003 * eval));
+    }
+}
+
 float PiecesHeuristic::evaluate(Board *board)
 {
     float state = board->get_game_state();
@@ -58,9 +73,8 @@ float PiecesHeuristic::evaluate(Board *board)
 
     int evaluation = material_evaluation + pp_evaluation + control_evaluation;
 
-    if (evaluation > 0)
-        return 1 - 1.0 / (1 + evaluation);
-    return -1 - 1.0 / (-1 + evaluation);
+    // Return an evaluation between 0 and 1, where 0 is a win for black, 0.5 is a draw and 1 is a win for white
+    return _evaluation_winrate_map[evaluation + EVALUATION_WINRATE_MAP_SIZE / 2];
 }
 
 string PiecesHeuristic::get_name()

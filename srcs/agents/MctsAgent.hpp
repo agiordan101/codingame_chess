@@ -24,14 +24,14 @@ struct Node
         Node()
             : move(Move("a1b1")), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
-              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5) {};
 
         Node(Move m)
             : move(m), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
-              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5) {};
 
-        ~Node(){
+        ~Node() {
             // if (resulting_board != nullptr)
             // {
             //     delete resulting_board;
@@ -73,6 +73,7 @@ class MctsAgent : public AbstractAgent
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);
         void  expand_node(Node *node);
+        float simulation(Node *node);
 
         bool  is_time_up();
         float elapsed_time(clock_t clock_start);

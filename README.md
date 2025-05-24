@@ -321,7 +321,15 @@ Inside the file :
 
 - Next steps :
 
-    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers :
+    * Fix ALL MCTS timeouts
+        * Keep MCTC tree and use it for next turns ?
+    * Improve Board performances
+    * Improve Heuristic
+
+    * Re-implemente transposition table ?
+        * Board zobrist :
+            * Rebase zobrist board on main
+            * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
 
     * Main bottlenecks from BOARD class (callgrind statistics) :
         * Board::create_fen() :
@@ -345,51 +353,37 @@ Inside the file :
         * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
             * 14% in BbMctsPv-3.7.6
             * 22% in BbMmabPv-3.1.6
+        
+    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers :
 
-    * Brutaltester threads test :
-        Run 50 games between BbMctsPv-3.7.6 and BbMmabPv-3.1.6 (Result should be 0% / 100%)
-        * Format : P1 % wins / P2 % wins
-        * 1 threads :  0 / 100
-        * 2 threads :  0 /  98
-        * 3 threads :  8 /  92
-        * 4 threads : 22 /  78
-        * 5 threads : 22 /  78
-        * 6 threads : 32 /  68
-        * 7 threads : 40 /  60
-        * 8 threads : 60 /  40
+        * Brutaltester threads test :
+            Run 50 games between BbMctsPv-3.7.6 and BbMmabPv-3.1.6 (Result should be 0% / 100%)
+            * Format : P1 % wins / P2 % wins
+            * 1 threads :  0 / 100
+            * 2 threads :  0 /  98
+            * 3 threads :  8 /  92
+            * 4 threads : 22 /  78
+            * 5 threads : 22 /  78
+            * 6 threads : 32 /  68
+            * 7 threads : 40 /  60
+            * 8 threads : 60 /  40
 
-    * Psyleague results :
-        * 1 threads (80 games) :
-            Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-            ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-            1  BbMmabPv-3.1.6  25.60     80  16%  36.476  3.624       0  2025/05/19 21:59:37
-            2  BbMctsPv-3.7.6   2.65     80  16%  13.524  3.624      14  2025/05/19 22:00:49
-        * 7 threads (150 games) :
-            Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-            ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-            1  BbMmabPv-3.1.6  23.41    151  30%  25.281  0.624      69  2025/05/19 22:11:16
-            2  BbMctsPv-3.7.6  22.85    151  30%  24.719  0.624      78  2025/05/19 22:10:27
-
-    * Keep MCTC tree and use it for next turns
+        * Psyleague results :
+            * 1 threads (80 games) :
+                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+                1  BbMmabPv-3.1.6  25.60     80  16%  36.476  3.624       0  2025/05/19 21:59:37
+                2  BbMctsPv-3.7.6   2.65     80  16%  13.524  3.624      14  2025/05/19 22:00:49
+            * 7 threads (150 games) :
+                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+                1  BbMmabPv-3.1.6  23.41    151  30%  25.281  0.624      69  2025/05/19 22:11:16
+                2  BbMctsPv-3.7.6  22.85    151  30%  24.719  0.624      78  2025/05/19 22:10:27
 
     * Why all promotions are knight ???
-
-    * Compare UTC lazy fix with previous
-        - games
-    * Compare sigmoid heuristic with previous
-        - node/ms
-        - games
-
-    * Current heuritic with very high or very low values is really bad for mcts
-        Because we're not just comparing values, we're additionating them.
-        Meaning, a win is very close to a small material advantage, and a LOSE is not thaaat bad comparing to a small material disadvantage !
-        -> I need a better heuristics evaluation
     
     * Just save all FEN encounter in one turn, to anticipate how much transposition table will be helpful
 
-    * MCTS zobrist algorithms :
-        * Rebase zobrist board on main
-        * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
     
     * MCMS: Monte Carlo Minimax Search
         🔍 Core Idea:
@@ -400,8 +394,6 @@ Inside the file :
             * Sample a subset of actions randomly (Monte Carlo).
             * Use minimax backup rules (max at your turn, min at opponent’s).
             Optionally, simulate multiple playouts per node to stabilize the value.
-
-    * Why all promotions are knight ???
 
     * A way to improve BbMmabPv-3.1.6 to BbMmabPv-3.2.6 :
         * Use Node as MCTS to store game state and not recompute them (apply_move, get_game_state)

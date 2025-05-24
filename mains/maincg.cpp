@@ -492,14 +492,20 @@ class AbstractHeuristic
 #ifndef PIECESHEURISTIC_HPP
 #define PIECESHEURISTIC_HPP
 
+#define EVALUATION_WINRATE_MAP_SIZE 40000
+
 class PiecesHeuristic : public AbstractHeuristic
 {
 
     public:
+        PiecesHeuristic();
+
         float  evaluate(Board *board) override;
         string get_name() override;
 
     private:
+        float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
+
         int _material_evaluation(Board *board, int *white_material, int *black_material);
         int _piece_positions_evaluation(
             Board *board, float white_eg_coefficient, float black_eg_coefficient
@@ -795,13 +801,16 @@ class MctsAgent : public AbstractAgent
         float _ms_board_selection;
         float _ms_board_cloning;
         float _ms_board_applying;
+        float _ms_board_boardupdates;
         float _ms_board_expansion;
         float _ms_board_simulation;
+        float _ms_board_backpropagation;
         float _ms_total;
 
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);
         void  expand_node(Node *node);
+        float simulation(Node *node);
 
         bool  is_time_up();
         float elapsed_time(clock_t clock_start);
@@ -2887,8 +2896,10 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_ms_board_selection = 0;
     this->_ms_board_cloning = 0;
     this->_ms_board_applying = 0;
+    this->_ms_board_boardupdates = 0;
     this->_ms_board_expansion = 0;
     this->_ms_board_simulation = 0;
+    this->_ms_board_backpropagation = 0;
     this->_ms_total = 0;
 }
 
@@ -2932,11 +2943,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.7.6");
+    stats.push_back("version=BbMctsPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.7.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
 
     return stats;
@@ -2968,8 +2979,7 @@ float MctsAgent::mcts(Node *parent_node, int depth)
         {
             expand_node(node);
 
-            int player = node->resulting_board->is_white_turn() ? -1 : 1;
-            evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
+            evaluation = simulation(node);
         }
         else
         {
@@ -3017,6 +3027,18 @@ void MctsAgent::expand_node(Node *node)
         node->children_nodes.push_back(new Node(move));
 }
 
+float MctsAgent::simulation(Node *node)
+{
+    float evaluation;
+
+    if (node->resulting_board->is_white_turn())
+        evaluation = 1 - this->_heuristic->evaluate(node->resulting_board);
+    else
+        evaluation = this->_heuristic->evaluate(node->resulting_board);
+
+    return evaluation;
+}
+
 bool MctsAgent::is_time_up()
 {
     return this->elapsed_time(this->_start_time) >= this->_ms_turn_stop;
@@ -3032,6 +3054,16 @@ float MctsAgent::elapsed_time(clock_t clock_start)
 */
 
 #include <algorithm>
+
+PiecesHeuristic::PiecesHeuristic()
+{
+    for (int i = 0, eval = -EVALUATION_WINRATE_MAP_SIZE / 2; i < EVALUATION_WINRATE_MAP_SIZE;
+         i++, eval++)
+    {
+
+        _evaluation_winrate_map[i] = 1.0 / (1.0 + std::exp(-0.003 * eval));
+    }
+}
 
 float PiecesHeuristic::evaluate(Board *board)
 {
@@ -3084,9 +3116,7 @@ float PiecesHeuristic::evaluate(Board *board)
 
     int evaluation = material_evaluation + pp_evaluation + control_evaluation;
 
-    if (evaluation > 0)
-        return 1 - 1.0 / (1 + evaluation);
-    return -1 - 1.0 / (-1 + evaluation);
+    return _evaluation_winrate_map[evaluation + EVALUATION_WINRATE_MAP_SIZE / 2];
 }
 
 string PiecesHeuristic::get_name()

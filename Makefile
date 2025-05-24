@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_EXEC = BbMctsPv-3.7.6
+BOT_EXEC = BbMctsPv-rc
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 

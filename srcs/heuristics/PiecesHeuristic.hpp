@@ -3,14 +3,20 @@
 
 #include "AbstractHeuristic.hpp"
 
+# define EVALUATION_WINRATE_MAP_SIZE 40000
+
 class PiecesHeuristic : public AbstractHeuristic
 {
 
     public:
+        PiecesHeuristic();
+
         float  evaluate(Board *board) override;
         string get_name() override;
 
     private:
+        float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
+
         int _material_evaluation(Board *board, int *white_material, int *black_material);
         int _piece_positions_evaluation(
             Board *board, float white_eg_coefficient, float black_eg_coefficient

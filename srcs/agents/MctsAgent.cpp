@@ -66,11 +66,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.7.6");
+    stats.push_back("version=BbMctsPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.7.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
 
     // int percent_selection = (this->_ms_board_selection / this->_ms_total) * 100;
@@ -127,14 +127,11 @@ float MctsAgent::mcts(Node *parent_node, int depth)
             expand_node(node);
             // this->_ms_board_expansion += elapsed_time(start_time);
 
-            // Simulation -> Rollout | Heuristic
+            // Simulation -> Not a rollout, but a simple Heuristic
             // Because the node value represent the strength of a move for both white and black,
             //  we must invert the heuristic evaluation for black moves (when the resulting board is
             //  white's turn)
-            // start_time = clock();
-            int player = node->resulting_board->is_white_turn() ? -1 : 1;
-            evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
-            // this->_ms_board_simulation += elapsed_time(start_time);
+            evaluation = simulation(node);
         }
         else
         {
@@ -183,6 +180,23 @@ void MctsAgent::expand_node(Node *node)
     // Create children_nodes nodes for each available move
     for (const Move &move : node->resulting_board->get_available_moves())
         node->children_nodes.push_back(new Node(move));
+}
+
+float MctsAgent::simulation(Node *node)
+{
+    float evaluation;
+
+    // Sigmoid version (Between 0 and 1)
+    if (node->resulting_board->is_white_turn())
+        evaluation = 1 - this->_heuristic->evaluate(node->resulting_board);
+    else
+        evaluation = this->_heuristic->evaluate(node->resulting_board);
+
+    // First Linear version (Between -1 and 1)
+    // int player = node->resulting_board->is_white_turn() ? -1 : 1;
+    // evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
+
+    return evaluation;
 }
 
 bool MctsAgent::is_time_up()

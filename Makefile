@@ -85,7 +85,7 @@ debug:
 run:
 	python3 python/codingame_file_creator.py
 	clang-format -i -- ./mains/maincg.cpp
-	cp ./mains/maincg.cpp ./cgmains/cgmain_$(BOT_VERSION)
+	cp ./mains/maincg.cpp ./cgmains/cgmain_$(BOT_VERSION).cpp
 
 	g++ $(flag) ./mains/maincg.cpp -o ./bins/mychessbot
 	cp ./bins/mychessbot ./bins/$(BOT_VERSION)

@@ -59,11 +59,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.7.7");
+    stats.push_back("version=BbMctsPv-3.7.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.7.7\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.7.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
     return stats;
 }

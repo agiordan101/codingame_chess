@@ -323,7 +323,31 @@ Inside the file :
 
     * Fix ALL MCTS timeouts
         * Keep MCTC tree and use it for next turns ?
+
     * Improve Board performances
+        * Main bottlenecks from BOARD class (callgrind statistics) :
+            * Board::create_fen() :
+                *  7% in BbMctsPv-3.7.6
+                * 11% in BbMmabPv-3.1.6
+            * Board::_compute_game_state() :
+                * 22% in BbMctsPv-3.7.6
+                * 28% in BbMmabPv-3.1.6
+            * Board::_find_move() :
+                * 12% in BbMctsPv-3.7.6
+                * 19% in BbMmabPv-3.1.6
+            * Board::_apply_move() :
+                *  8% in BbMctsPv-3.7.6
+                * 13% in BbMmabPv-3.1.6
+            * Board::_find_white_pawns_moves() :
+                *  5% in BbMctsPv-3.7.6
+                *  8% in BbMmabPv-3.1.6
+                    * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
+                    * Try to get rid of while()
+
+            * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
+                * 14% in BbMctsPv-3.7.6
+                * 22% in BbMmabPv-3.1.6
+
     * Improve Heuristic
 
     * Re-implemente transposition table ?
@@ -331,59 +355,20 @@ Inside the file :
             * Rebase zobrist board on main
             * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
 
-    * Main bottlenecks from BOARD class (callgrind statistics) :
-        * Board::create_fen() :
-            *  7% in BbMctsPv-3.7.6
-            * 11% in BbMmabPv-3.1.6
-        * Board::_compute_game_state() :
-            * 22% in BbMctsPv-3.7.6
-            * 28% in BbMmabPv-3.1.6
-        * Board::_find_move() :
-            * 12% in BbMctsPv-3.7.6
-            * 19% in BbMmabPv-3.1.6
-        * Board::_apply_move() :
-            *  8% in BbMctsPv-3.7.6
-            * 13% in BbMmabPv-3.1.6
-        * Board::_find_white_pawns_moves() :
-            *  5% in BbMctsPv-3.7.6
-            *  8% in BbMmabPv-3.1.6
-                * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
-                * Try to get rid of while()
-
-        * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
-            * 14% in BbMctsPv-3.7.6
-            * 22% in BbMmabPv-3.1.6
-        
     * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers :
+        * Seems like having multipe threads at the same time make bot crash randomly (probably by timeout ?)
 
-        * Brutaltester threads test :
-            Run 50 games between BbMctsPv-3.7.6 and BbMmabPv-3.1.6 (Result should be 0% / 100%)
-            * Format : P1 % wins / P2 % wins
-            * 1 threads :  0 / 100
-            * 2 threads :  0 /  98
-            * 3 threads :  8 /  92
-            * 4 threads : 22 /  78
-            * 5 threads : 22 /  78
-            * 6 threads : 32 /  68
-            * 7 threads : 40 /  60
-            * 8 threads : 60 /  40
-
-        * Psyleague results :
-            * 1 threads (80 games) :
-                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-                1  BbMmabPv-3.1.6  25.60     80  16%  36.476  3.624       0  2025/05/19 21:59:37
-                2  BbMctsPv-3.7.6   2.65     80  16%  13.524  3.624      14  2025/05/19 22:00:49
-            * 7 threads (150 games) :
-                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-                1  BbMmabPv-3.1.6  23.41    151  30%  25.281  0.624      69  2025/05/19 22:11:16
-                2  BbMctsPv-3.7.6  22.85    151  30%  24.719  0.624      78  2025/05/19 22:10:27
+        * Psyleague threads test :
+            * 1 threads (24 games) :
+                BbMmabPv-3.1.6 : 0 errors
+                BbMmabPv-3.1.5 : 0 errors
+            * 7 threads (66 games) :
+                BbMmabPv-3.1.6 : 32 errors
+                BbMmabPv-3.1.5 : 31 errors
 
     * Why all promotions are knight ???
     
     * Just save all FEN encounter in one turn, to anticipate how much transposition table will be helpful
-
     
     * MCMS: Monte Carlo Minimax Search
         🔍 Core Idea:
@@ -459,12 +444,6 @@ Inside the file :
 
     * Try using smart pointers
     * CG game engine returns illegal castling move ? Report the bug ?
-
-
-
-### Versus
-
-BbMmabPv-3.1.3   vs  BbMmabPv-3.1.2 : 0.621 / 228 games
 
 
 ## Externals C++ libraries

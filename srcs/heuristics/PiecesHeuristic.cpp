@@ -22,9 +22,9 @@ float PiecesHeuristic::evaluate(Board *board)
     if (state != GAME_CONTINUE)
     {
         if (state == BLACK_WIN)
-            return -1;
-        else if (state == DRAW)
             return 0;
+        else if (state == DRAW)
+            return 0.5;
         else
             return 1;
     }

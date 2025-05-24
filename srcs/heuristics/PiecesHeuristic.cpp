@@ -73,7 +73,8 @@ float PiecesHeuristic::evaluate(Board *board)
 
     int evaluation = material_evaluation + pp_evaluation + control_evaluation;
 
-    // Return an evaluation between 0 and 1, where 0 is a win for black, 0.5 is a draw and 1 is a win for white
+    // Return an evaluation between 0 and 1, where 0 is a win for black, 0.5 is a draw and 1 is a
+    // win for white
     return _evaluation_winrate_map[evaluation + EVALUATION_WINRATE_MAP_SIZE / 2];
 }
 

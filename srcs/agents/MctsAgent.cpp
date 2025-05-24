@@ -10,13 +10,6 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_nodes_explored = 0;
     this->_winrate = 0.5;
     this->_start_time = 0;
-
-    this->_ms_board_selection = 0;
-    this->_ms_board_cloning = 0;
-    this->_ms_board_applying = 0;
-    this->_ms_board_expansion = 0;
-    this->_ms_board_simulation = 0;
-    this->_ms_total = 0;
 }
 
 // --- PRIVATE METHODS ---
@@ -51,11 +44,11 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     // BotPlayer maximizes the score for white and minimizes it for black
     int player = board->is_white_turn() ? 1 : -1;
 
+    // Use child->utc_exploitation instead of visits ?
     for (size_t i = 0; i < moves.size(); i++)
         qualities->push_back(player * root_node.children_nodes[i]->visits);
 
     float dtime = elapsed_time(this->_start_time);
-    // this->_ms_total += dtime;
 
     if (dtime >= _ms_constraint)
         cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
@@ -66,24 +59,12 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-rc");
+    stats.push_back("version=BbMctsPv-3.7.7");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.7.7\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
-
-    // int percent_selection = (this->_ms_board_selection / this->_ms_total) * 100;
-    // int percent_cloning = (this->_ms_board_cloning / this->_ms_total) * 100;
-    // int percent_applying = (this->_ms_board_applying / this->_ms_total) * 100;
-    // int percent_expansion = (this->_ms_board_expansion / this->_ms_total) * 100;
-    // int percent_simulation = (this->_ms_board_simulation / this->_ms_total) * 100;
-    // int percent_remaining = 100 - percent_selection - percent_cloning - percent_applying -
-    //                         percent_expansion - percent_simulation;
-    // cerr << "BbMctsPv-3.7.6\t: times: Se=" << percent_selection << "% - Cl=" << percent_cloning
-    //      << "% - Ap=" << percent_applying << "% - Ex=" << percent_expansion
-    //      << "% - Si=" << percent_simulation << "% - Remaining=" << percent_remaining << "%" <<
-    //      endl;
     return stats;
 }
 
@@ -97,35 +78,25 @@ string MctsAgent::get_name()
 
 float MctsAgent::mcts(Node *parent_node, int depth)
 {
-    // clock_t start_time;
 
     if (depth > this->_depth_reached)
         this->_depth_reached = depth;
 
     // Selection
-    // start_time = clock();
     Node *node = select_child(parent_node);
-    // this->_ms_board_selection += elapsed_time(start_time);
 
     float evaluation;
     if (node->visits == 0)
     {
         // Tree leaf reached
-        // start_time = clock();
         node->resulting_board = parent_node->resulting_board->clone();
-        // this->_ms_board_cloning += elapsed_time(start_time);
-
-        // start_time = clock();
         node->resulting_board->apply_move(node->move);
-        // this->_ms_board_applying += elapsed_time(start_time);
 
         float game_state = node->resulting_board->get_game_state();
         if (game_state == GAME_CONTINUE)
         {
             // Expansion
-            // start_time = clock();
             expand_node(node);
-            // this->_ms_board_expansion += elapsed_time(start_time);
 
             // Simulation -> Not a rollout, but a simple Heuristic
             // Because the node value represent the strength of a move for both white and black,

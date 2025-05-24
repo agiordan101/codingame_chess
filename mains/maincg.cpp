@@ -798,15 +798,6 @@ class MctsAgent : public AbstractAgent
         int   _nodes_explored;
         float _winrate;
 
-        float _ms_board_selection;
-        float _ms_board_cloning;
-        float _ms_board_applying;
-        float _ms_board_boardupdates;
-        float _ms_board_expansion;
-        float _ms_board_simulation;
-        float _ms_board_backpropagation;
-        float _ms_total;
-
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);
         void  expand_node(Node *node);
@@ -2892,15 +2883,6 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_nodes_explored = 0;
     this->_winrate = 0.5;
     this->_start_time = 0;
-
-    this->_ms_board_selection = 0;
-    this->_ms_board_cloning = 0;
-    this->_ms_board_applying = 0;
-    this->_ms_board_boardupdates = 0;
-    this->_ms_board_expansion = 0;
-    this->_ms_board_simulation = 0;
-    this->_ms_board_backpropagation = 0;
-    this->_ms_total = 0;
 }
 
 void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
@@ -2943,13 +2925,12 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-rc");
+    stats.push_back("version=BbMctsPv-3.7.7");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.7.7\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
-
     return stats;
 }
 
@@ -2971,7 +2952,6 @@ float MctsAgent::mcts(Node *parent_node, int depth)
     if (node->visits == 0)
     {
         node->resulting_board = parent_node->resulting_board->clone();
-
         node->resulting_board->apply_move(node->move);
 
         float game_state = node->resulting_board->get_game_state();

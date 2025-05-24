@@ -112,8 +112,16 @@ def _update(frame, fig, ax, lines: list, bots: list[CGBot], stats: dict):
         _update_bot_plot(line, bot, stats[bot.name])
 
     max_game_length = max(stats[bot.name]["max_game_length"] for bot in bots)
-    max_nodes_per_ms = max(np.max(stats[bot.name]["nodes_per_ms"]) for bot in bots)
-    min_nodes_per_ms = min(np.min(stats[bot.name]["nodes_per_ms"]) for bot in bots)
+    max_nodes_per_ms = max(
+        np.max(stats[bot.name]["nodes_per_ms"])
+        for bot in bots
+        if len(stats[bot.name]["nodes_per_ms"]) > 0
+    )
+    min_nodes_per_ms = min(
+        np.min(stats[bot.name]["nodes_per_ms"])
+        for bot in bots
+        if len(stats[bot.name]["nodes_per_ms"]) > 0
+    )
 
     ax.set_xlim(0, max_game_length)
     ax.set_ylim(min_nodes_per_ms * 0.9, max_nodes_per_ms * 1.1)

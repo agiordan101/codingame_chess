@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_EXEC = BbMctsPv-rc
+BOT_VERSION = BbMctsPv-3.7.7
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -45,7 +45,7 @@ all: setup test run
 
 ### Install python tools for code formatting
 setup:
-	@mkdir -p bins
+	mkdir -p bins cgmains
 	pip install isort
 	pip install black
 	pip install "black[jupyter]"
@@ -81,11 +81,14 @@ perft:
 debug:
 	g++ -g3 $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/$(DEBUG_EXEC)
 
-### Group source code in one file and compile the actual bot
+### Group source code in one file mains/maincg.cpp, save it in local, and compile the bot
 run:
 	python3 python/codingame_file_creator.py
-	clang-format -i -- mains/maincg.cpp
-	g++ $(flag) mains/maincg.cpp -o ./bins/$(BOT_EXEC)
+	clang-format -i -- ./mains/maincg.cpp
+	cp ./mains/maincg.cpp ./cgmains/cgmain_$(BOT_VERSION)
+
+	g++ $(flag) ./mains/maincg.cpp -o ./bins/mychessbot
+	cp ./bins/mychessbot ./bins/$(BOT_VERSION)
 
 ### Just test some cpp behaviors
 poc:

@@ -21,6 +21,7 @@ struct Node
 
         std::vector<Node *> children_nodes;
 
+        // TODO: Set visits & utc_parent_exploration to 1
         Node()
             : move(Move("a1b1")), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
@@ -59,9 +60,12 @@ class MctsAgent : public AbstractAgent
         float   _ms_turn_stop;
         clock_t _start_time;
 
+        Node *_root_node;
         int   _depth_reached;
         int   _nodes_explored;
         float _winrate;
+
+        Node *find_child_node_played(Board *board);
 
         float mcts(Node *node, int depth);
         Node *select_child(Node *node);

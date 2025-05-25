@@ -1,12 +1,973 @@
-#include "Board.hpp"
+
+#pragma GCC optimize("O3")
+#pragma GCC optimize("inline")
+#pragma GCC optimize("omit-frame-pointer")
+
+/*
+        Content of 'srcs/chessengine/ChessEngine.hpp'
+*/
+
+#ifndef CHESSENGINE_HPP
+#define CHESSENGINE_HPP
+
+using namespace std;
+
+#include <bits/stdc++.h>
+#include <iostream>
+#include <locale>
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+
+#define CHESS960_RULES 1
+
+#define USE_VISUAL_BOARD 0
+#define PRINT_DEBUG_DATA 1 & USE_VISUAL_BOARD
+#define PRINT_TURNS      0 & USE_VISUAL_BOARD
+
+#define EMPTY_CELL '-'
+
+#define BITMASK_ALL_CELLS   0xFFFFFFFFFFFFFFFFUL
+#define BITMASK_WHITE_CELLS 0xAA55AA55AA55AA55UL
+#define BITMASK_BLACK_CELLS 0x55AA55AA55AA55AAUL
+
+#define BITMASK_LINE_81 0xFF000000000000FFUL
+#define BITMASK_LINE_7  0x000000000000FF00UL
+#define BITMASK_LINE_65 0x00000000FFFF0000UL
+#define BITMASK_LINE_43 0x0000FFFF00000000UL
+#define BITMASK_LINE_2  0x00FF000000000000UL
+
+#define BITMASK_CASTLE_BLACK_LEFT_KING  0x0000000000000004UL
+#define BITMASK_CASTLE_BLACK_LEFT_ROOK  0x0000000000000008UL
+#define BITMASK_CASTLE_BLACK_RIGHT_KING 0x0000000000000040UL
+#define BITMASK_CASTLE_BLACK_RIGHT_ROOK 0x0000000000000020UL
+#define BITMASK_CASTLE_WHITE_LEFT_KING  0x0400000000000000UL
+#define BITMASK_CASTLE_WHITE_LEFT_ROOK  0x0800000000000000UL
+#define BITMASK_CASTLE_WHITE_RIGHT_KING 0x4000000000000000UL
+#define BITMASK_CASTLE_WHITE_RIGHT_ROOK 0x2000000000000000UL
+
+/* ENUMS */
+
+#define GAME_CONTINUE -2
+#define BLACK_WIN     -1
+#define DRAW          0
+#define WHITE_WIN     1
+
+enum castle_info_e
+{
+    NOINFO,
+    NOTCASTLE,
+    WHITELEFT,
+    WHITERIGHT,
+    BLACKLEFT,
+    BLACKRIGHT
+};
+
+enum ray_dir_e
+{
+    NORTH,
+    NORTHEAST,
+    EAST,
+    SOUTHEAST,
+    SOUTH,
+    SOUTHWEST,
+    WEST,
+    NORTHWEST
+};
+
+/* PIECES FUNCTIONS */
+
+inline wchar_t convert_piece_to_unicode(char piece)
+{
+    switch (piece)
+    {
+    case 'P':
+        return L'♟';
+    case 'N':
+        return L'♞';
+    case 'B':
+        return L'♝';
+    case 'R':
+        return L'♜';
+    case 'Q':
+        return L'♛';
+    case 'K':
+        return L'♚';
+    case 'p':
+        return L'♙';
+    case 'n':
+        return L'♘';
+    case 'b':
+        return L'♗';
+    case 'r':
+        return L'♖';
+    case 'q':
+        return L'♕';
+    case 'k':
+        return L'♔';
+    default:
+        return piece;
+    }
+}
+
+/* NOTATION FUNCTIONS */
+
+inline int column_name_to_index(char column_name)
+{
+    return tolower(column_name) - 'a';
+}
+
+inline char column_index_to_name(int column_id)
+{
+    return column_id + 'a';
+}
+
+inline int line_number_to_index(char line_number)
+{
+    return 8 - (line_number - '0');
+}
+
+inline char line_index_to_number(int line_index)
+{
+    return (8 - line_index) + '0';
+}
+
+inline void algebraic_to_coord(string algebraic, int *x, int *y)
+{
+    const char *algebraic_char = algebraic.c_str();
+    *x = column_name_to_index(algebraic_char[0]);
+    *y = line_number_to_index(algebraic_char[1]);
+}
+
+inline string coord_to_algebraic(int x, int y)
+{
+    char algebraic[3];
+    algebraic[0] = (char)column_index_to_name(x);
+    algebraic[1] = (char)line_index_to_number(y);
+    algebraic[2] = '\0';
+
+    return string(algebraic);
+}
+
+inline uint64_t algebraic_to_bitboard(string algebraic)
+{
+    int x, y;
+    algebraic_to_coord(algebraic, &x, &y);
+    return 1UL << (y * 8 + x);
+}
+
+inline string bitboard_to_algebraic(uint64_t bitboard)
+{
+    uint64_t mask = 1UL;
+    for (int i = 0; i < 64; i++)
+    {
+        if (bitboard & mask)
+            return coord_to_algebraic(i % 8, i / 8);
+
+        mask <<= 1;
+    }
+
+    return "N/A";
+}
+
+/* BITWISE OPERATIONS */
+
+inline uint64_t _count_bits(uint64_t bitboard)
+{
+    return __builtin_popcountll(bitboard);
+}
+
+inline uint64_t _count_trailing_zeros(uint64_t bitboard)
+{
+    return __builtin_ctzll(bitboard);
+}
+
+inline uint64_t _count_leading_zeros(uint64_t bitboard)
+{
+    return 63 - __builtin_clzll(bitboard);
+}
+
+inline uint64_t _get_least_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_trailing_zeros(bitboard);
+}
+
+inline uint64_t _get_most_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_leading_zeros(bitboard);
+}
+
+#endif
+
+/*
+        Content of 'srcs/chessengine/Move.hpp'
+*/
+
+#ifndef MOVE_HPP
+#define MOVE_HPP
+
+using namespace std;
+
+class Move
+{
+
+    public:
+        string        uci;
+        uint64_t      src;
+        uint64_t      dst;
+        char          promotion;
+        char          piece;
+        castle_info_e castle_info;
+        Move(string _uci);
+        Move(
+            char          _piece,
+            uint64_t      src,
+            uint64_t      dst,
+            char          _promotion = 0,
+            castle_info_e _castle_info = NOTCASTLE
+        );
+
+        void   log();
+        string to_uci();
+        string to_uci(bool chess960_rules, bool castling);
+
+        bool operator==(Move *other);
+
+        static bool compare_move_vector(vector<Move> movelst1, vector<Move> movelst2);
+
+    private:
+        static bool _is_move_in_movelst(Move *move, vector<Move> movelst);
+};
+
+#endif
+
+/*
+        Content of 'srcs/chessengine/Board.hpp'
+*/
+
+#ifndef BOARD_HPP
+#define BOARD_HPP
+
+#pragma region Board
+
+#define FEN_HISTORY_SIZE 50
+
+class Board
+{
+        /*
+        Board represent all FEN data :
+        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1
+
+        White = Upper case = First indexes
+        Black = Lower case = Last indexes
+        */
+
+        bool chess960_rule;
+        bool codingame_rule;
+
+        bool white_turn;
+
+        uint64_t white_castles;
+        uint64_t black_castles;
+
+        uint64_t en_passant;
+        uint64_t next_turn_en_passant;
+        int      half_turn_rule;
+
+    public:
+#if USE_VISUAL_BOARD == 1
+        VisualBoard visual_board;
+#endif
+
+        int      game_turn;
+        uint64_t white_pawns;
+        uint64_t white_knights;
+        uint64_t white_bishops;
+        uint64_t white_rooks;
+        uint64_t white_queens;
+        uint64_t white_king;
+        uint64_t black_pawns;
+        uint64_t black_knights;
+        uint64_t black_bishops;
+        uint64_t black_rooks;
+        uint64_t black_queens;
+        uint64_t black_king;
+
+        uint64_t all_pieces_mask;
+        uint64_t empty_cells_mask;
+        uint64_t white_pieces_mask;
+        uint64_t black_pieces_mask;
+        uint64_t not_white_pieces_mask;
+        uint64_t not_black_pieces_mask;
+        uint64_t uncheck_mask;
+        uint64_t pawn_uncheck_mask;
+        uint64_t attacked_by_white_mask;
+        uint64_t attacked_by_black_mask;
+        uint64_t pin_masks[64];
+        Board();
+        Board(string _fen, bool chess960_rule = true, bool codingame_rule = true);
+        Board(
+            string _board,
+            string _color,
+            string _castling,
+            string _en_passant,
+            int    _half_turn_rule,
+            int    _full_move,
+            bool   chess960_rule = true,
+            bool   codingame_rule = true
+        );
+
+        inline bool is_white_turn()
+        {
+            return white_turn;
+        }
+        char          get_cell(int x, int y);
+        float         get_game_state();
+        bool          get_check_state();
+        uint64_t      get_castling_rights();
+        static string get_name();
+
+        string create_fen(bool with_turns = true);
+        Board *clone();
+
+        vector<Move> get_available_moves();
+        void         apply_move(Move move);
+
+        void log(bool raw = false);
+
+        bool operator==(Board *test_board);
+        bool moves_computed;
+
+    private:
+        bool         check_state;
+        bool         double_check;
+        bool         engine_data_updated;
+        vector<Move> available_moves;
+        float        game_state;
+        bool         game_state_computed;
+
+        uint64_t ally_king;
+        uint64_t ally_pieces;
+
+        uint64_t enemy_pawns;
+        uint64_t enemy_knights;
+        uint64_t enemy_bishops;
+        uint64_t enemy_rooks;
+        uint64_t enemy_queens;
+        uint64_t enemy_king;
+        uint64_t enemy_pieces;
+        uint64_t enemy_pieces_sliding_diag;
+        uint64_t enemy_pieces_sliding_line;
+        uint64_t capturable_by_white_pawns_mask;
+        uint64_t capturable_by_black_pawns_mask;
+
+        string fen_history[FEN_HISTORY_SIZE];
+        int    fen_history_index;
+
+        void _main_parsing(
+            string _board,
+            string _color,
+            string _castling,
+            string _en_passant,
+            int    _half_turn_rule,
+            int    _game_turn,
+            bool   _chess960_rule,
+            bool   _codingame_rule
+        );
+        void _initialize_bitboards();
+        void _parse_board(string fen_board);
+        void _parse_castling(string castling_fen);
+
+        char _get_cell(uint64_t mask);
+        void _create_fen_for_standard_castling(char *fen, int *fen_i);
+        void _create_fen_for_chess960_castling(char *fen, int *fen_i);
+
+        void _apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void _apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piece_mask);
+        void _move_white_pawn(uint64_t src, uint64_t dst, char promotion);
+        void _move_black_pawn(uint64_t src, uint64_t dst, char promotion);
+        void _move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
+        void _move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
+        void _capture_white_pieces(uint64_t dst);
+        void _capture_black_pieces(uint64_t dst);
+
+        void _update_engine_at_turn_end();
+        void _update_engine_at_turn_start();
+        void _update_check_and_pins();
+        void _update_pawn_check(int king_lkt_i);
+        void _update_attacked_cells_masks();
+        void _update_fen_history();
+
+        void _find_white_pawns_attacks(uint64_t src);
+        void _find_white_knights_attacks(uint64_t src);
+        void _find_white_bishops_attacks(uint64_t src);
+        void _find_white_rooks_attacks(uint64_t src);
+        void _find_white_queens_attacks(uint64_t src);
+        void _find_white_king_attacks();
+        void _find_black_pawns_attacks(uint64_t src);
+        void _find_black_knights_attacks(uint64_t src);
+        void _find_black_bishops_attacks(uint64_t src);
+        void _find_black_rooks_attacks(uint64_t src);
+        void _find_black_queens_attacks(uint64_t src);
+        void _find_black_king_attacks();
+
+        void _find_moves();
+        void _find_white_pawns_moves(uint64_t src);
+        void _find_white_knights_moves(uint64_t src);
+        void _find_white_bishops_moves(uint64_t src);
+        void _find_white_rooks_moves(uint64_t src);
+        void _find_white_queens_moves(uint64_t src);
+        void _find_white_king_moves();
+        void _find_white_castle_moves(uint64_t dst);
+        void _find_black_pawns_moves(uint64_t src);
+        void _find_black_knights_moves(uint64_t src);
+        void _find_black_bishops_moves(uint64_t src);
+        void _find_black_rooks_moves(uint64_t src);
+        void _find_black_queens_moves(uint64_t src);
+        void _find_black_king_moves();
+        void _find_black_castle_moves(uint64_t dst);
+
+        void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
+        void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
+        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
+
+        void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
+        uint64_t _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
+        uint64_t _get_line_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
+        uint64_t
+        _compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
+        uint64_t
+        _compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t piece_to_ignore);
+        void _compute_sliding_piece_positive_ray_checks_and_pins(
+            uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker
+        );
+        void _compute_sliding_piece_negative_ray_checks_and_pins(
+            uint64_t king_pos, ray_dir_e dir, uint64_t potential_attacker
+        );
+        bool     _is_sliding_piece_positive_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir);
+        bool     _is_sliding_piece_negative_diagonal_ray_behind(uint64_t pawn_pos, ray_dir_e dir);
+        uint64_t _compute_castling_positive_path(uint64_t src, uint64_t dst);
+        uint64_t _compute_castling_negative_path(uint64_t src, uint64_t dst);
+
+        float _compute_game_state();
+        bool  _threefold_repetition_rule();
+        bool  _insufficient_material_rule();
+
+        static bool     lookup_tables_initialized;
+        static uint64_t pawn_captures_lookup[64][2];
+        static uint64_t knight_lookup[64];
+        static uint64_t sliding_lookup[64][8];
+        static uint64_t king_lookup[64];
+
+        static void _initialize_lookup_tables();
+        static void _create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void _create_knight_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void _create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i);
+        static void _create_king_lookup_table(int y, int x, uint64_t position, int lkt_i);
+};
+
+#endif
+
+/*
+        Content of 'srcs/heuristics/AbstractHeuristic.hpp'
+*/
+
+#ifndef ABSTRACTHEURISTIC_HPP
+#define ABSTRACTHEURISTIC_HPP
+
+class AbstractHeuristic
+{
+
+    public:
+        virtual float  evaluate(Board *board) = 0;
+        virtual string get_name() = 0;
+};
+
+#endif
+
+/*
+        Content of 'srcs/heuristics/PiecesHeuristic.hpp'
+*/
+
+#ifndef PIECESHEURISTIC_HPP
+#define PIECESHEURISTIC_HPP
+
+#define EVALUATION_WINRATE_MAP_SIZE 40000
+
+class PiecesHeuristic : public AbstractHeuristic
+{
+
+    public:
+        PiecesHeuristic();
+
+        float  evaluate(Board *board) override;
+        string get_name() override;
+
+    private:
+        float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
+
+        int _material_evaluation(Board *board, int *white_material, int *black_material);
+        int _piece_positions_evaluation(
+            Board *board, float white_eg_coefficient, float black_eg_coefficient
+        );
+
+        int _lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard);
+        int _lookup_bonuses_for_all_pieces(
+            int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
+        );
+
+        typedef enum t_piece_values
+        {
+            PAWN_VALUE = 100,
+            KNIGHT_VALUE = 305,
+            BISHOP_VALUE = 333,
+            ROOK_VALUE = 563,
+            QUEEN_VALUE = 950
+        } e_piece_values;
+
+        const int control_value_for_empty_cell = 5;
+        const int control_value_for_enemy_cell = 10;
+        const int control_value_for_ally_cell = 15;
+
+        const int material_start_game =
+            10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
+        const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
+        const int material_start_end_game_diff = material_start_game - material_end_game;
+
+        // clang-format off
+                                int white_pawn_sg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0, 20, 20,  0,  0,  0,
+             0,  0, 10,  0,  0, 10,  0,  0,
+             5,  5, 5, -20,-20,  5,  5,  5,
+             0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int white_pawn_eg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            80, 80, 80, 80, 80, 80, 80, 80,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            30, 30, 30, 30, 30, 30, 30, 30,
+            20, 20, 20, 20, 20, 20, 20, 20,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+             0,  0,  0,  0,  0,  0,  0,  0,
+        };
+        
+        int black_pawn_sg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5,  5, 5, -20,-20,  5,  5,  5,
+             0,  0, 10,  0,  0, 10,  0,  0,
+             0,  0,  0, 20, 20,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+             0,  0,  0,  0,  0,  0,  0,  0,
+            20, 20, 20, 20, 20, 20, 20, 20,
+             0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int black_pawn_eg_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10, 10,
+            20, 20, 20, 20, 20, 20, 20, 20,
+            30, 30, 30, 30, 30, 30, 30, 30,
+            50, 50, 50, 50, 50, 50, 50, 50,
+            80, 80, 80, 80, 80, 80, 80, 80,
+             0,  0,  0,  0,  0,  0,  0,  0
+        };
+
+        int white_knight_bonus_table[64] = {
+            -20,-20,-10,-10,-10,-10,-20,-20,
+            -20,-20,  0,  5,  5,  0,-20,-20,
+            -10,  5, 10, 15, 15, 10,  5,-10,
+            -10,  5, 15, 20, 20, 15,  5,-10,
+            -10,  5, 15, 20, 20, 15,  5,-10,
+            -10,  5, 10, 15, 15, 10,  5,-10,
+            -20,-20,  0,  0,  0,  0,-20,-20,
+            -20,-20,-10,-10,-10,-10,-20,-20
+        };
+
+        int black_knight_bonus_table[64] = {
+            -50,-40,-30,-30,-30,-30,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -40,-20,  0,  5,  5,  0,-20,-40,
+            -50,-40,-30,-30,-30,-30,-40,-50,
+        };
+
+        int white_bishop_bonus_table[64] = {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20
+        };
+
+        int black_bishop_bonus_table[64] = {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  0,  5,  5,  5,  5,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20
+        };
+
+        int white_rook_bonus_table[64] = {
+             0,  0,  0,  0,  0,  0,  0,  0,
+             5, 10, 10, 10, 10, 10, 10,  5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+             0,  0, 10, 10, 10, 10,  0,  0
+        };
+
+        int black_rook_bonus_table[64] = {
+             0,  0, 10, 10, 10, 10,  0,  0,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+            -5,  0,  0,  0,  0,  0,  0, -5,
+             5, 10, 10, 10, 10, 10, 10,  5,
+             0,  0,  0,  0,  0,  0,  0,  0,
+        };
+
+        int white_queen_bonus_table[64] = {
+            -20,-10,-10, -5, -5,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -5,   0, 10, 15, 15, 10,  0, -5,
+            -5,   0, 10, 15, 15, 10,  0, -5,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10, -5, -5,-10,-10,-20
+        };
+
+        int black_queen_bonus_table[64] = {
+            -20,-10,-10, -5, -5,-10,-10,-20,
+            -10,  0,  5,  0,  0,  0,  0,-10,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -5,   0, 10, 15, 15, 10,  0, -5,
+            -5,   0, 10, 15, 15, 10,  0, -5,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -20,-10,-10, -5, -5,-10,-10,-20
+        };
+ 
+        int white_king_sg_bonus_table[64] = {
+            -60,-60,-60,-60,-60,-60,-60,-60,
+            -50,-50,-50,-50,-50,-50,-50,-50,
+            -40,-40,-40,-40,-40,-40,-40,-40,
+            -30,-30,-30,-30,-30,-30,-30,-30,
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -10,-10,-10,-10,-10,-10,-10,-10,
+              0,  0,  0,  0,  0,  0,  0,  0,
+              5,  5, 30,  0,  0,  0, 30,  5
+        };
+
+        int white_king_eg_bonus_table[64] = {
+            -50,-40,-20,-20,-20,-20,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -20,  0,  5,  5,  5,  5,  0,-20,
+            -20,  0,  5, 10, 10,  5,  0,-20,
+            -20,  0,  5, 10, 10,  5,  0,-20,
+            -20,  0,  5,  5,  5,  5,  0,-20,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -50,-40,-20,-20,-20,-20,-40,-50
+        };
+
+        int black_king_sg_bonus_table[64] = {
+              5,  5, 30,  0,  0,  0, 30,  5,
+              0,  0,  0,  0,  0,  0,  0,  0,
+            -10,-10,-10,-10,-10,-10,-10,-10,
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -30,-30,-30,-30,-30,-30,-30,-30,
+            -40,-40,-40,-40,-40,-40,-40,-40,
+            -50,-50,-50,-50,-50,-50,-50,-50,
+            -60,-60,-60,-60,-60,-60,-60,-60,
+        };
+
+        int black_king_eg_bonus_table[64] = {
+            -50,-40,-20,-20,-20,-20,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -20,  0,  5,  5,  5,  5,  0,-20,
+            -20,  0,  5, 10, 10,  5,  0,-20,
+            -20,  0,  5, 10, 10,  5,  0,-20,
+            -20,  0,  5,  5,  5,  5,  0,-20,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -50,-40,-20,-20,-20,-20,-40,-50
+        };
+        // clang-format on
+};
+
+#endif
+
+/*
+        Content of 'srcs/agents/AbstractAgent.hpp'
+*/
+
+#ifndef ABSTRACTAGENT_HPP
+#define ABSTRACTAGENT_HPP
+
+#include <tuple>
+#include <vector>
+
+class AbstractAgent
+{
+
+    public:
+        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) = 0;
+        virtual string get_name() = 0;
+
+        virtual vector<string> get_stats()
+        {
+            return vector<string>{};
+        };
+};
+
+#endif
+
+/*
+        Content of 'srcs/agents/MinMaxAlphaBetaAgent.hpp'
+*/
+
+#ifndef MINMAXITERDEEPAGENT_HPP
+#define MINMAXITERDEEPAGENT_HPP
+
+class MinMaxAlphaBetaAgent : public AbstractAgent
+{
+
+    public:
+        MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint);
+        virtual void
+        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual string get_name() override;
+        vector<string> get_stats() override;
+
+    private:
+        AbstractHeuristic *_heuristic;
+
+        int     _ms_constraint;
+        float   _ms_turn_stop;
+        clock_t _start_time;
+
+        int _depth_reached;
+        int _nodes_explored;
+
+        float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
+        float max_node(
+            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+        );
+        float min_node(
+            Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+        );
+
+        bool  is_time_up();
+        float elapsed_time();
+};
+
+#endif
+
+/*
+        Content of 'srcs/players/AbstractPlayer.hpp'
+*/
+
+#ifndef ABSTRACTPLAYER_HPP
+#define ABSTRACTPLAYER_HPP
+
+#include <vector>
+
+class AbstractPlayer
+{
+
+    public:
+        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
+        virtual string get_name() = 0;
+};
+
+#endif
+
+/*
+        Content of 'srcs/players/BotPlayer.hpp'
+*/
+
+#ifndef BOTPLAYER_HPP
+#define BOTPLAYER_HPP
+
+class BotPlayer : public AbstractPlayer
+{
+
+    public:
+        BotPlayer(AbstractAgent *agent);
+        vector<string> get_stats();
+
+        virtual Move   choose_from(Board *board, vector<Move> moves) override;
+        virtual string get_name() override;
+
+    private:
+        AbstractAgent *_agent;
+
+        float max_float(float a, float b);
+        float min_float(float a, float b);
+};
+
+#endif
+
+/*
+        Content of 'srcs/gameengine/GameEngine.hpp'
+*/
+
+#ifndef GAMEENGINE_HPP
+#define GAMEENGINE_HPP
+
+class GameEngine
+{
+
+    public:
+        GameEngine(BotPlayer *player);
+        void infinite_game_loop();
+
+    private:
+        bool crazy_house;
+        int  max_moves;
+
+        bool _lastmove;
+        bool _fen;
+        bool _moves;
+        bool _draw;
+        bool _game;
+        bool _score;
+
+        clock_t _turn_clock_start;
+
+        BotPlayer   *_player;
+        Board       *_board;
+        vector<Move> _possible_moves;
+        int          _possible_moves_count;
+
+        void _parse_first_turn();
+        void _parse_turn();
+};
+
+#endif
+
+/*
+        Content of 'srcs/gameengine/GameEngine.cpp'
+*/
+
+GameEngine::GameEngine(BotPlayer *player)
+{
+    this->_player = player;
+    this->_board = NULL;
+}
+
+void GameEngine::infinite_game_loop()
+{
+    this->_parse_first_turn();
+    cout << "lastmove fen" << endl;
+
+    while (1)
+    {
+        _parse_turn();
+
+        vector<Move> moves = this->_board->get_available_moves();
+
+        Move move = this->_player->choose_from(this->_board, moves);
+
+        vector<string> stats = this->_player->get_stats();
+
+        cout << move.to_uci();
+
+        for (string stat : stats)
+            cout << " " << stat;
+        cout << endl;
+
+        this->_board->apply_move(move);
+
+        float game_state = this->_board->get_game_state();
+        if (game_state != GAME_CONTINUE)
+        {
+            cerr << "\nGameEngine: Game is over : " << game_state << endl;
+            this->_board->log(true);
+        }
+    }
+}
+
+void GameEngine::_parse_first_turn()
+{
+    int    constants_count;
+    string name;
+    string value;
+    bool   crazy_house = false;
+    int    max_moves = 0;
+
+    cin >> constants_count;
+    cin.ignore();
+
+    for (int i = 0; i < constants_count; i++)
+    {
+        cin >> name >> value;
+        cin.ignore();
+
+        if (name == "crazyHouse")
+            crazy_house = value == "1";
+        else if (name == "maxMoves")
+            max_moves = stoi(value);
+    }
+
+    this->crazy_house = crazy_house;
+    this->max_moves = max_moves;
+}
+
+void GameEngine::_parse_turn()
+{
+    string move;
+    cin >> move;
+
+    string board;
+    string color;
+    string castling;
+    string en_passant;
+    string half_move_clock_str;
+    string full_move_str;
+
+    cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
+
+    this->_turn_clock_start = clock();
+
+    int half_move_clock = stoi(half_move_clock_str);
+    int full_move = stoi(full_move_str);
+
+    if (full_move == 1)
+        this->_board = new Board(board, color, castling, en_passant, half_move_clock, full_move);
+    else
+        this->_board->apply_move(Move(move));
+
+    cin.ignore();
+}
+
+/*
+        Content of 'srcs/chessengine/Board.cpp'
+*/
 
 bool     Board::lookup_tables_initialized = false;
 uint64_t Board::pawn_captures_lookup[64][2];
 uint64_t Board::knight_lookup[64];
 uint64_t Board::sliding_lookup[64][8];
 uint64_t Board::king_lookup[64];
-
-// --- PUBLIC METHODS ---
 
 Board::Board()
 {
@@ -56,7 +1017,6 @@ void Board::log(bool raw)
 {
     uint64_t rook;
 
-    // Find all individual rooks in white_castles
     string   white_castles_pos[2] = {"N/A", "N/A"};
     int      white_castles_pos_i = 0;
     uint64_t castle_tmp = white_castles;
@@ -65,11 +1025,9 @@ void Board::log(bool raw)
         rook = _get_least_significant_bit(castle_tmp);
         white_castles_pos[white_castles_pos_i++] = bitboard_to_algebraic(rook);
 
-        // Remove the actual rook from castle_tmp, so we can find the next one
         castle_tmp ^= rook;
     }
 
-    // Find all individual rooks in black_castles
     string black_castles_pos[2] = {"N/A", "N/A"};
     int    black_castles_pos_i = 0;
     castle_tmp = black_castles;
@@ -78,7 +1036,6 @@ void Board::log(bool raw)
         rook = _get_least_significant_bit(castle_tmp);
         black_castles_pos[black_castles_pos_i++] = bitboard_to_algebraic(rook);
 
-        // Remove the actual rook from castle_tmp, so we can find the next one
         castle_tmp ^= rook;
     }
 
@@ -108,7 +1065,6 @@ void Board::apply_move(Move move)
     if (!this->engine_data_updated)
         _update_engine_at_turn_start();
 
-    // TODO: Sort them by probability to optimize the if-else chain
     char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
     if (piece == 'P')
         _move_white_pawn(move.src, move.dst, move.promotion);
@@ -120,7 +1076,6 @@ void Board::apply_move(Move move)
     {
         _apply_regular_white_move(move.src, move.dst, &white_rooks);
 
-        // Disable castling for this rook
         white_castles &= ~move.src;
     }
     else if (piece == 'Q')
@@ -137,7 +1092,6 @@ void Board::apply_move(Move move)
     {
         _apply_regular_black_move(move.src, move.dst, &black_rooks);
 
-        // Disable castling for this rook
         black_castles &= ~move.src;
     }
     else if (piece == 'q')
@@ -225,14 +1179,11 @@ string Board::create_fen(bool with_turns)
 
     bzero(fen, 85);
 
-    // Write pieces
     int empty_cells_count = 0;
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
         {
-            // TODO: Don't use get_cell() but a mask we shift at each for loop beginning
-            //          And create get_cell(uint64_t mask) method, used inside get_cell(int, int)
             if (get_cell(x, y) == EMPTY_CELL)
             {
                 empty_cells_count++;
@@ -259,11 +1210,9 @@ string Board::create_fen(bool with_turns)
     }
     fen[fen_i++] = ' ';
 
-    // Write turn
     fen[fen_i++] = white_turn ? 'w' : 'b';
     fen[fen_i++] = ' ';
 
-    // Write castling
     if (white_castles || black_castles)
     {
         if (this->chess960_rule)
@@ -275,7 +1224,6 @@ string Board::create_fen(bool with_turns)
         fen[fen_i++] = '-';
     fen[fen_i++] = ' ';
 
-    // Write en passant
     if (en_passant)
     {
         string en_passant_str = bitboard_to_algebraic(en_passant);
@@ -291,53 +1239,22 @@ string Board::create_fen(bool with_turns)
     if (!with_turns)
         return fen_string;
 
-    // Write half turn rule
     fen_string += to_string(half_turn_rule);
     fen_string += string(" ");
 
-    // Write game turn
     fen_string += to_string(game_turn);
 
     return fen_string;
 }
 
-string Board::get_fen()
-{
-    return this->fen_history[this->fen_history_index - 1];
-}
-
-// Board *Board::clone()
-// {
-//     // TODO: Create a new constructor, taking an instance in param, which then copy all the
-//     needed
-//     // data instead of creating and parsing FEN
-//     Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
-
-//     // Copy history
-//     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-//     {
-//         if (this->fen_history[i].empty())
-//             break;
-//         cloned_board->fen_history[i] = this->fen_history[i];
-//     }
-
-//     return cloned_board;
-// }
-
 Board *Board::clone()
 {
-    // Create empty instance
     Board *cloned_board = new Board();
 
-    // Raw copy
     *cloned_board = *this;
 
     return cloned_board;
 }
-
-// --- PRIVATE METHODS ---
-
-// - Parsing -
 
 void Board::_main_parsing(
     string _board,
@@ -357,13 +1274,11 @@ void Board::_main_parsing(
     if (Board::lookup_tables_initialized == false)
         Board::_initialize_lookup_tables();
 
-    // Initialize private variables
     chess960_rule = _chess960_rule;
     codingame_rule = _codingame_rule;
 
     _initialize_bitboards();
 
-    // Parse FEN data
     _parse_board(_board);
     white_turn = _color == "w";
     _parse_castling(_castling);
@@ -372,7 +1287,6 @@ void Board::_main_parsing(
     half_turn_rule = _half_turn_rule;
     game_turn = _game_turn;
 
-    // Initialize engine variables
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
@@ -414,7 +1328,6 @@ void Board::_parse_board(string fen_board)
 {
     char pos_index = 0;
 
-    // Parse _board string into boards
     for (size_t i = 0; i < fen_board.length(); i++)
     {
         char piece = fen_board[i];
@@ -461,11 +1374,9 @@ void Board::_parse_board(string fen_board)
 
 void Board::_parse_castling(string castling_fen)
 {
-    // '-' means that no castling are available
     if (castling_fen == "-")
         return;
 
-    // Parse castling fen 'AHah' into bitboards
     for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
@@ -474,19 +1385,17 @@ void Board::_parse_castling(string castling_fen)
                 white_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '1');
             else
                 white_castles |=
-                    castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL; // Rooks
+                    castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL;
         }
         else
         {
             if (chess960_rule)
                 black_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '8');
             else
-                black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL; // Rooks
+                black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL;
         }
     }
 }
-
-// - Accessibility / Getters -
 
 char Board::_get_cell(uint64_t mask)
 {
@@ -520,7 +1429,6 @@ char Board::_get_cell(uint64_t mask)
 
 void Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
 {
-    // Loop over the castling boards from the right to the left
     uint64_t white_mask = 1UL << 63;
     for (int x = 7; x >= 0; x--)
     {
@@ -546,7 +1454,6 @@ void Board::_create_fen_for_standard_castling(char *fen, int *fen_i)
 
 void Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
 {
-    // Loop over the castling boards from the left to the right
     uint64_t white_mask = 1UL << 56;
     for (int x = 0; x < 8; x++)
     {
@@ -570,13 +1477,10 @@ void Board::_create_fen_for_chess960_castling(char *fen, int *fen_i)
     }
 }
 
-// - Move application -
-
 void Board::_apply_regular_white_move(uint64_t src, uint64_t dst, uint64_t *piece_mask)
 {
     _capture_black_pieces(dst);
 
-    // Remove the piece from its actual cell, and add the piece to the destination cell
     *piece_mask &= ~src;
     *piece_mask |= dst;
 }
@@ -585,32 +1489,24 @@ void Board::_apply_regular_black_move(uint64_t src, uint64_t dst, uint64_t *piec
 {
     _capture_white_pieces(dst);
 
-    // Remove the piece from its actual cell, and add the piece to the destination cell
     *piece_mask &= ~src;
     *piece_mask |= dst;
 }
 
 void Board::_move_white_pawn(uint64_t src, uint64_t dst, char promotion)
 {
-    // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be
-    // incremented at the end of the turn)
     half_turn_rule = -1;
 
-    // If the pawn move is an en passant, capture the opponent pawn
     if (dst == en_passant)
         black_pawns &= (~en_passant) << 8;
 
-    // If the pawn moves 2 squares, we generate an en-passant
     if ((src & 0x00FF000000000000UL) && (dst & 0x000000FF00000000UL))
         next_turn_en_passant = src >> 8;
 
     _capture_black_pieces(dst);
 
-    // Remove the piece from its actual cell
     white_pawns &= ~src;
 
-    // TODO: Sort them by probability to optimize the if-else chain
-    // Add the piece to the destination cell
     char final_piece = promotion ? toupper(promotion) : 'P';
     if (final_piece == 'P')
         white_pawns |= dst;
@@ -626,25 +1522,18 @@ void Board::_move_white_pawn(uint64_t src, uint64_t dst, char promotion)
 
 void Board::_move_black_pawn(uint64_t src, uint64_t dst, char promotion)
 {
-    // Fifty-Move rule: Reset half turn counter if a pawn is moved (-1 because it will be
-    // incremented at the end of the turn)
     half_turn_rule = -1;
 
-    // If the pawn move is an en passant, capture the opponent pawn
     if (dst == en_passant)
         white_pawns &= (~en_passant) >> 8;
 
-    // If the pawn moves 2 squares, we generate an en-passant
     if ((src & 0x000000000000FF00UL) && (dst & 0x00000000FF000000UL))
         next_turn_en_passant = src << 8;
 
     _capture_white_pieces(dst);
 
-    // Remove the piece from its actual cell
     black_pawns &= ~src;
 
-    // TODO: Sort them by probability to optimize the if-else chain
-    // Add the piece to the destination cell
     char final_piece = promotion ? promotion : 'p';
     if (final_piece == 'p')
         black_pawns |= dst;
@@ -674,7 +1563,6 @@ void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     {
         _capture_black_pieces(dst);
 
-        // Remove the piece from its actual cell, and add the piece to the destination cell
         white_king = dst;
     }
     else if (castle_info == WHITELEFT)
@@ -695,7 +1583,6 @@ void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_in
 
 void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
 {
-    // When move is created from UCI, there is no castle information, so we need to compute it
     if (castle_info == NOINFO)
     {
         if ((src & black_king) && (dst & black_rooks))
@@ -710,7 +1597,6 @@ void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     {
         _capture_white_pieces(dst);
 
-        // Remove the piece from its actual cell, and add the piece to the destination cell
         black_king = dst;
     }
     else if (castle_info == BLACKLEFT)
@@ -731,17 +1617,12 @@ void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_in
 
 void Board::_capture_white_pieces(uint64_t dst)
 {
-    // Detect if a piece is captured
     if (all_pieces_mask & dst)
     {
-        // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
-        // incremented at the end of the turn)
         half_turn_rule = -1;
 
         uint64_t not_dst_mask = ~dst;
 
-        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
-        // the rook
         if (dst & white_castles)
         {
             white_castles &= not_dst_mask;
@@ -749,7 +1630,6 @@ void Board::_capture_white_pieces(uint64_t dst)
             return;
         }
 
-        // Remove the captured piece
         white_pawns &= not_dst_mask;
         white_knights &= not_dst_mask;
         white_bishops &= not_dst_mask;
@@ -760,17 +1640,12 @@ void Board::_capture_white_pieces(uint64_t dst)
 
 void Board::_capture_black_pieces(uint64_t dst)
 {
-    // Detect if a piece is captured
     if (all_pieces_mask & dst)
     {
-        // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
-        // incremented at the end of the turn)
         half_turn_rule = -1;
 
         uint64_t not_dst_mask = ~dst;
 
-        // Detect if a potential castle cell is captured. If so, remove the castle possibility, and
-        // the rook
         if (dst & black_castles)
         {
             black_castles &= not_dst_mask;
@@ -778,7 +1653,6 @@ void Board::_capture_black_pieces(uint64_t dst)
             return;
         }
 
-        // Remove the captured piece
         black_pawns &= not_dst_mask;
         black_knights &= not_dst_mask;
         black_bishops &= not_dst_mask;
@@ -786,8 +1660,6 @@ void Board::_capture_black_pieces(uint64_t dst)
         black_queens &= not_dst_mask;
     }
 }
-
-// - Engine updates -
 
 void Board::_update_engine_at_turn_start()
 {
@@ -840,19 +1712,7 @@ void Board::_update_engine_at_turn_start()
     _update_check_and_pins();
     _update_attacked_cells_masks();
 
-    // pawn_uncheck_mask is only set for a the specific case, so we must add generic uncheck_mask to
-    // it
     pawn_uncheck_mask |= uncheck_mask;
-
-    // #if USE_VISUAL_BOARD == 1
-    //     if (PRINT_DEBUG_DATA)
-    //     {
-    //         this->visual_board.printSpecificBoard('A', attacked_by_ally_mask, "Attacked by ally
-    //         cells"); this->visual_board.printSpecificBoard('E', attacked_by_enemy_mask, "Attacked
-    //         by enemy cells"); this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck
-    //         mask");
-    //     }
-    // #endif
 
     engine_data_updated = true;
 }
@@ -866,14 +1726,10 @@ void Board::_update_check_and_pins()
         return;
     }
 
-    // If our king can take an opponent piece using its movements, then the opponent piece is
-    // checking our king.
     int king_lkt_i = _count_trailing_zeros(ally_king);
 
-    // Compute pawn attacks
     _update_pawn_check(king_lkt_i);
 
-    // Compute knight attacks
     uint64_t knight_attacks = knight_lookup[king_lkt_i] & enemy_knights;
     if (knight_attacks)
     {
@@ -881,7 +1737,6 @@ void Board::_update_check_and_pins()
         uncheck_mask |= knight_attacks;
     }
 
-    // Compute diagonale attacks
     _compute_sliding_piece_negative_ray_checks_and_pins(
         ally_king, NORTHEAST, enemy_pieces_sliding_diag
     );
@@ -895,7 +1750,6 @@ void Board::_update_check_and_pins()
         ally_king, NORTHWEST, enemy_pieces_sliding_diag
     );
 
-    // Compute line attacks
     _compute_sliding_piece_negative_ray_checks_and_pins(
         ally_king, NORTH, enemy_pieces_sliding_line
     );
@@ -905,7 +1759,6 @@ void Board::_update_check_and_pins()
     );
     _compute_sliding_piece_negative_ray_checks_and_pins(ally_king, WEST, enemy_pieces_sliding_line);
 
-    // If no checks found, then there are no move restrictions
     if (uncheck_mask == 0UL)
     {
         check_state = false;
@@ -917,21 +1770,18 @@ void Board::_update_pawn_check(int king_lkt_i)
 {
     int lkt_color = white_turn ? 0 : 1;
 
-    // Compute pawn attacks
     uint64_t attacking_pawn = pawn_captures_lookup[king_lkt_i][lkt_color] & enemy_pawns;
     if (attacking_pawn)
     {
         check_state = true;
         uncheck_mask |= attacking_pawn;
 
-        // Attacking pawn could be captured by taking the en-passant
         if (en_passant)
         {
             if (white_turn)
             {
                 if (attacking_pawn == (en_passant << 8))
                 {
-                    // But only if no opponent diagonal sliding piece is hidden behind it
                     if (!_is_sliding_piece_negative_diagonal_ray_behind(
                             attacking_pawn, ally_king == attacking_pawn - 9 ? NORTHWEST : NORTHEAST
                         ))
@@ -942,7 +1792,6 @@ void Board::_update_pawn_check(int king_lkt_i)
             {
                 if (attacking_pawn == (en_passant >> 8))
                 {
-                    // But only if no opponent diagonal sliding piece is hidden behind it
                     if (!_is_sliding_piece_positive_diagonal_ray_behind(
                             attacking_pawn, ally_king == attacking_pawn + 7 ? SOUTHWEST : SOUTHEAST
                         ))
@@ -998,22 +1847,18 @@ void Board::_update_engine_at_turn_end()
         this->log(true);
         this->visual_board.printSpecificBoard('W', attacked_by_white_mask, "Attacked by white");
         this->visual_board.printSpecificBoard('B', attacked_by_black_mask, "Attacked by black");
-        // this->visual_board.printSpecificBoard('C', uncheck_mask, "Uncheck mask");
     }
 #endif
 
-    // Reset engine state
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
 
-    // Switch turn
     en_passant = next_turn_en_passant;
     next_turn_en_passant = 0UL;
 
     half_turn_rule += 1;
 
-    // Only increment game turn after black turn
     if (!white_turn)
         game_turn += 1;
     white_turn = !white_turn;
@@ -1023,17 +1868,13 @@ void Board::_update_engine_at_turn_end()
 
 void Board::_update_fen_history()
 {
-    // Removing half turn rule and game turn (For future Threefold rule comparisons)
     string fen = create_fen(false);
 
-    // Loop the history
     if (fen_history_index == FEN_HISTORY_SIZE)
         fen_history_index = 0;
 
     fen_history[fen_history_index++] = fen;
 }
-
-// - Piece attacks -
 
 void Board::_find_white_pawns_attacks(uint64_t src)
 {
@@ -1064,7 +1905,6 @@ void Board::_find_white_queens_attacks(uint64_t src)
 
 void Board::_find_white_king_attacks()
 {
-    // TODO: This condition is only needed for testing purposes, when no king is on the board
     if (white_king)
     {
         int src_lkt_i = _count_trailing_zeros(white_king);
@@ -1101,7 +1941,6 @@ void Board::_find_black_queens_attacks(uint64_t src)
 
 void Board::_find_black_king_attacks()
 {
-    // TODO: This condition is only needed for testing purposes, when no king is on the board
     if (black_king)
     {
         int src_lkt_i = _count_trailing_zeros(black_king);
@@ -1109,11 +1948,8 @@ void Board::_find_black_king_attacks()
     }
 }
 
-// - Move creation -
-
 void Board::_find_moves()
 {
-    // Reset move list
     this->available_moves.clear();
 
     if (white_turn)
@@ -1172,7 +2008,6 @@ void Board::_find_moves()
 
 void Board::_find_white_pawns_moves(uint64_t src)
 {
-    // Generate pawn moves: (pawn position shifted) & ~ColumnA & enemy_pieces & check_mask &
     int src_lkt_i = _count_trailing_zeros(src);
 
     uint64_t capture_moves = pawn_captures_lookup[src_lkt_i][0] & capturable_by_white_pawns_mask;
@@ -1180,19 +2015,15 @@ void Board::_find_white_pawns_moves(uint64_t src)
     uint64_t legal_moves =
         (capture_moves | advance_move) & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // When pawn is on the 7th rank, it can move two squares forward
-    // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
         legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
         _add_regular_move_or_promotion('P', src, dst);
 
-        // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
     }
 }
@@ -1235,7 +2066,6 @@ void Board::_find_white_queens_moves(uint64_t src)
 
 void Board::_find_white_king_moves()
 {
-    // TODO: Only needed for unit tests ...
     if (white_king)
     {
         int      src_lkt_i = _count_trailing_zeros(white_king);
@@ -1284,10 +2114,6 @@ void Board::_find_white_castle_moves(uint64_t rook)
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_WHITE_RIGHT_ROOK);
         }
 
-        // Castle is legal if :
-        // - No pieces are blocking both king and rook paths
-        // - No cells are attacked in the king path
-        // - Rook isn't pinned
         if (((king_path | rook_path) & (all_pieces_mask ^ white_king ^ rook)) == 0UL &&
             (king_path & attacked_by_black_mask) == 0UL &&
             pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS)
@@ -1306,19 +2132,15 @@ void Board::_find_black_pawns_moves(uint64_t src)
     uint64_t legal_moves =
         (capture_moves | advance_move) & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // When pawn is on the 7th rank, it can move two squares forward
-    // We just need to check if the squares in front of it are empty
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
         legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
         _add_regular_move_or_promotion('p', src, dst);
 
-        // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
     }
 }
@@ -1361,7 +2183,6 @@ void Board::_find_black_queens_moves(uint64_t src)
 
 void Board::_find_black_king_moves()
 {
-    // TODO: Only needed for unit tests ...
     if (black_king)
     {
         int      src_lkt_i = _count_trailing_zeros(black_king);
@@ -1410,10 +2231,6 @@ void Board::_find_black_castle_moves(uint64_t rook)
                 rook_path = _compute_castling_negative_path(rook, BITMASK_CASTLE_BLACK_RIGHT_ROOK);
         }
 
-        // Castle is legal if :
-        // - No pieces are blocking both king and rook paths
-        // - No cells are attacked in the king path
-        // - Rook isn't pinned
         if (((king_path | rook_path) & (all_pieces_mask ^ black_king ^ rook)) == 0UL &&
             (king_path & attacked_by_white_mask) == 0UL &&
             (pin_masks[_count_trailing_zeros(rook)] == BITMASK_ALL_CELLS))
@@ -1427,7 +2244,6 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 {
     if (dst & BITMASK_LINE_81)
     {
-        // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
         _create_move(piece, src, dst, 'n');
         _create_move(piece, src, dst, 'b');
         _create_move(piece, src, dst, 'r');
@@ -1439,14 +2255,12 @@ void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t ds
 
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
-    // Find all individual bits in legal_moves
     uint64_t dst;
     while (legal_moves)
     {
         dst = _get_least_significant_bit(legal_moves);
         _create_move(piece, src, dst);
 
-        // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
     }
 }
@@ -1456,18 +2270,14 @@ void Board::_create_move(char piece, uint64_t src, uint64_t dst, char promotion)
     this->available_moves.push_back(Move(piece, src, dst, promotion));
 }
 
-// - Bit operations -
-
 void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
 {
-    // Find all individual bits in bitboard
     uint64_t piece;
     while (bitboard)
     {
         piece = _get_least_significant_bit(bitboard);
         func(piece);
 
-        // Remove the actual bit from bitboard, so we can find the next one
         bitboard ^= piece;
     }
 }
@@ -1494,18 +2304,14 @@ Board::_compute_sliding_piece_positive_ray(uint64_t src, ray_dir_e dir, uint64_t
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
-    // Find all pieces in the ray (Ignoring ally king when searching attacked cells)
     uint64_t blockers = attacks & (all_pieces_mask ^ piece_to_ignore);
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the smallest index)
         int src_lkt_i = _count_trailing_zeros(blockers);
 
-        // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
 
-    // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
 }
 
@@ -1515,19 +2321,15 @@ Board::_compute_sliding_piece_negative_ray(uint64_t src, ray_dir_e dir, uint64_t
     int      src_lkt_i = _count_trailing_zeros(src);
     uint64_t attacks = sliding_lookup[src_lkt_i][dir];
 
-    // Find all pieces in the ray (Ignoring ally king when searching attacked cells)
     uint64_t blockers = attacks & (all_pieces_mask ^ piece_to_ignore);
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the biggest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
         int      src_lkt_i = _count_trailing_zeros(blocker);
 
-        // Remove all squares behind the blocker from the attacks
         attacks ^= sliding_lookup[src_lkt_i][dir];
     }
 
-    // Blocker should be in the ray, so ~color_pieces_mask removes it if it's an ally
     return attacks;
 }
 
@@ -1538,43 +2340,34 @@ void Board::_compute_sliding_piece_positive_ray_checks_and_pins(
     int      king_lkt_i = _count_trailing_zeros(king_pos);
     uint64_t attacks = sliding_lookup[king_lkt_i][dir];
 
-    // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
 
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the smallest index)
         uint64_t blocker = _get_least_significant_bit(blockers);
         int      blocker_lkt_i = _count_trailing_zeros(blocker);
 
-        // If the blocker is a potential attacker, there is check
         if (blocker & potential_attacker)
         {
             if (check_state)
                 double_check = true;
             check_state = true;
 
-            // Remove all squares behind the blocker
             uncheck_mask |= attacks ^ sliding_lookup[blocker_lkt_i][dir];
         }
 
-        // If the blocker is an ally, it might be pinned
         else if (blocker & ally_pieces)
         {
-            // Remove this blocker from the mask, and look for further pieces in the ray
             blockers ^= blocker;
             if (blockers)
             {
                 blocker = _get_least_significant_bit(blockers);
 
-                // If the new blocker is a potential attacker, there is a pin
                 if (blocker & potential_attacker)
                 {
-                    // Remove all squares behind the blocker
                     int      second_blocker_lkt_i = _count_trailing_zeros(blocker);
                     uint64_t pin_ray = attacks ^ sliding_lookup[second_blocker_lkt_i][dir];
 
-                    // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
                 }
             }
@@ -1589,43 +2382,34 @@ void Board::_compute_sliding_piece_negative_ray_checks_and_pins(
     int      king_lkt_i = _count_trailing_zeros(king_pos);
     uint64_t attacks = sliding_lookup[king_lkt_i][dir];
 
-    // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
 
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the greatest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
         int      blocker_lkt_i = _count_trailing_zeros(blocker);
 
-        // If the blocker is a potential attacker, there is check
         if (blocker & potential_attacker)
         {
             if (check_state)
                 double_check = true;
             check_state = true;
 
-            // Remove all squares behind the blocker
             uncheck_mask |= attacks ^ sliding_lookup[blocker_lkt_i][dir];
         }
 
-        // If the blocker is an ally, it might be pinned
         else if (blocker & ally_pieces)
         {
-            // Remove this blocker from the mask, and look for further pieces in the ray
             blockers ^= blocker;
             if (blockers)
             {
                 blocker = _get_most_significant_bit(blockers);
 
-                // If the new blocker is a potential attacker, there is a pin
                 if (blocker & potential_attacker)
                 {
-                    // Remove all squares behind the blocker
                     int      second_blocker_lkt_i = _count_trailing_zeros(blocker);
                     uint64_t pin_ray = attacks ^ sliding_lookup[second_blocker_lkt_i][dir];
 
-                    // Save this pin ray on the ally blocker cell
                     pin_masks[blocker_lkt_i] = pin_ray;
                 }
             }
@@ -1638,11 +2422,9 @@ bool Board::_is_sliding_piece_positive_diagonal_ray_behind(uint64_t pawn_pos, ra
     int      pawn_lkt_i = _count_trailing_zeros(pawn_pos);
     uint64_t attacks = sliding_lookup[pawn_lkt_i][dir];
 
-    // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the smallest index)
         uint64_t blocker = _get_least_significant_bit(blockers);
 
         if (blocker & enemy_pieces_sliding_diag)
@@ -1657,11 +2439,9 @@ bool Board::_is_sliding_piece_negative_diagonal_ray_behind(uint64_t pawn_pos, ra
     int      pawn_lkt_i = _count_trailing_zeros(pawn_pos);
     uint64_t attacks = sliding_lookup[pawn_lkt_i][dir];
 
-    // Find all pieces in the ray
     uint64_t blockers = attacks & all_pieces_mask;
     if (blockers)
     {
-        // Find the first blocker in the ray (the one with the greatest index)
         uint64_t blocker = _get_most_significant_bit(blockers);
 
         if (blocker & enemy_pieces_sliding_diag)
@@ -1687,15 +2467,11 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
     return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
 }
 
-// - End game -
-
 float Board::_compute_game_state()
 {
-    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
         return DRAW;
 
-    // Convert this to PRE PROCESSING if ?
     if (codingame_rule)
     {
         if (game_turn > 125)
@@ -1704,7 +2480,6 @@ float Board::_compute_game_state()
 
     vector<Move> moves = get_available_moves();
 
-    // If no moves are available, it's either a Checkmate or a Stalemate
     if (moves.size() == 0)
     {
         if (get_check_state())
@@ -1720,8 +2495,6 @@ bool Board::_threefold_repetition_rule()
     int    actual_fen_index = fen_history_index - 1;
     string actual_fen = fen_history[actual_fen_index];
 
-    // Check if the actual FEN is already 2 times in the history
-    // Loop over all FEN_HISTORY_SIZE last moves, skipping the actual one
     bool fen_found = false;
     int  history_index = -1;
     while (++history_index < FEN_HISTORY_SIZE)
@@ -1744,7 +2517,6 @@ bool Board::_insufficient_material_rule()
     int black_knights_count = _count_bits(black_knights);
     int knights_count = white_knights_count + black_knights_count;
 
-    // If there is multiple knights, it's not a material insufficient
     if (knights_count > 1)
         return false;
 
@@ -1752,11 +2524,9 @@ bool Board::_insufficient_material_rule()
     int black_bishops_count = _count_bits(black_bishops);
     int bishops_count = white_bishops_count + black_bishops_count;
 
-    // If there is a knight and another piece, it's not a material insufficient
     if (knights_count == 1 && bishops_count > 0)
         return false;
 
-    // If there is more than one bishop, on opposite colors, it's not a material insufficient
     uint64_t all_bishops = white_bishops | black_bishops;
     if ((all_bishops & BITMASK_WHITE_CELLS) && (all_bishops & BITMASK_BLACK_CELLS))
         return false;
@@ -1764,15 +2534,10 @@ bool Board::_insufficient_material_rule()
     return true;
 }
 
-// --- OPERATORS ---
-
 bool Board::operator==(Board *test_board_abstracted)
 {
-    // TODO: move this in the Board class, as inlined method
-    return this->get_fen() == test_board_abstracted->get_fen();
+    return this->create_fen() == test_board_abstracted->create_fen();
 }
-
-// --- STATIC LOOKUP METHODS ---
 
 void Board::_initialize_lookup_tables()
 {
@@ -1787,7 +2552,6 @@ void Board::_initialize_lookup_tables()
     {
         for (int x = 0; x < 8; x++)
         {
-            // Create the lookup table for the current position
             _create_pawn_captures_lookup_table(y, x, pos_mask, lkt_i);
             _create_knight_lookup_table(y, x, pos_mask, lkt_i);
             _create_sliding_lookup_table(y, x, pos_mask, lkt_i);
@@ -1802,28 +2566,20 @@ void Board::_initialize_lookup_tables()
 
 void Board::_create_pawn_captures_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
-    // We need pawn attacks on lines 0 and 7, because we are using them to find checks (when kings
-    // are on those lines)
 
-    // - White pawns -
     uint64_t pawn_mask = 0UL;
 
-    // Left capture
     if (x > 0 && y > 0)
         pawn_mask |= (position >> 9);
-    // Right capture
     if (x < 7 && y > 0)
         pawn_mask |= (position >> 7);
 
     pawn_captures_lookup[lkt_i][0] = pawn_mask;
 
-    // - Black pawns -
     pawn_mask = 0UL;
 
-    // Left capture
     if (x > 0 && y < 7)
         pawn_mask |= position << 7;
-    // Right capture
     if (x < 7 && y < 7)
         pawn_mask |= position << 9;
 
@@ -1836,37 +2592,29 @@ void Board::_create_knight_lookup_table(int y, int x, uint64_t position, int lkt
 
     if (y > 0)
     {
-        // 2 left 1 down
         if (x > 1)
             knight_mask |= position >> 10;
-        // 2 right 1 down
         if (x < 6)
             knight_mask |= position >> 6;
     }
     if (y > 1)
     {
-        // 2 up 1 left
         if (x > 0)
             knight_mask |= position >> 17;
-        // 2 up 1 right
         if (x < 7)
             knight_mask |= position >> 15;
     }
     if (y < 6)
     {
-        // 2 down 1 left
         if (x > 0)
             knight_mask |= position << 15;
-        // 2 down 1 right
         if (x < 7)
             knight_mask |= position << 17;
     }
     if (y < 7)
     {
-        // 2 left 1 up
         if (x > 1)
             knight_mask |= position << 6;
-        // 2 right 1 up
         if (x < 6)
             knight_mask |= position << 10;
     }
@@ -1876,7 +2624,6 @@ void Board::_create_knight_lookup_table(int y, int x, uint64_t position, int lkt
 
 void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lkt_i)
 {
-    // North
     uint64_t sliding_pos = position;
     for (int j = y - 1; j >= 0; j--)
     {
@@ -1884,7 +2631,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][NORTH] |= sliding_pos;
     }
 
-    // North-East
     sliding_pos = position;
     for (int j = y - 1, i = x + 1; j >= 0 && i < 8; j--, i++)
     {
@@ -1892,7 +2638,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][NORTHEAST] |= sliding_pos;
     }
 
-    // East
     sliding_pos = position;
     for (int i = x + 1; i < 8; i++)
     {
@@ -1900,7 +2645,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][EAST] |= sliding_pos;
     }
 
-    // South-East
     sliding_pos = position;
     for (int j = y + 1, i = x + 1; j < 8 && i < 8; j++, i++)
     {
@@ -1908,7 +2652,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][SOUTHEAST] |= sliding_pos;
     }
 
-    // South
     sliding_pos = position;
     for (int j = y + 1; j < 8; j++)
     {
@@ -1916,7 +2659,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][SOUTH] |= sliding_pos;
     }
 
-    // South-West
     sliding_pos = position;
     for (int j = y + 1, i = x - 1; j < 8 && i >= 0; j++, i--)
     {
@@ -1924,7 +2666,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][SOUTHWEST] |= sliding_pos;
     }
 
-    // West
     sliding_pos = position;
     for (int i = x - 1; i >= 0; i--)
     {
@@ -1932,7 +2673,6 @@ void Board::_create_sliding_lookup_table(int y, int x, uint64_t position, int lk
         sliding_lookup[lkt_i][WEST] |= sliding_pos;
     }
 
-    // North-West
     sliding_pos = position;
     for (int j = y - 1, i = x - 1; j >= 0 && i >= 0; j--, i--)
     {
@@ -1946,32 +2686,543 @@ void Board::_create_king_lookup_table(int y, int x, uint64_t position, int lkt_i
     uint64_t king_mask = 0UL;
     if (x > 0)
     {
-        // 1 up left
         if (y > 0)
             king_mask |= position >> 9;
-        // 1 left
         king_mask |= position >> 1;
-        // 1 down left
         if (y < 7)
             king_mask |= position << 7;
     }
     if (x < 7)
     {
-        // 1 up right
         if (y > 0)
             king_mask |= position >> 7;
-        // 1 right
         king_mask |= position << 1;
-        // 1 down right
         if (y < 7)
             king_mask |= position << 9;
     }
-    // 1 up
     if (y > 0)
         king_mask |= position >> 8;
-    // 1 down
     if (y < 7)
         king_mask |= position << 8;
 
     king_lookup[lkt_i] = king_mask;
+}
+
+/*
+        Content of 'srcs/chessengine/Move.cpp'
+*/
+
+Move::Move(string _uci)
+{
+    this->uci = _uci;
+
+    this->src = algebraic_to_bitboard(_uci.substr(0, 2));
+    this->dst = algebraic_to_bitboard(_uci.substr(2, 2));
+
+    this->promotion = _uci.length() > 4 ? _uci[4] : 0;
+
+    this->piece = EMPTY_CELL;
+    this->castle_info = NOINFO;
+}
+
+Move::Move(char _piece, uint64_t _src, uint64_t _dst, char _promotion, castle_info_e _castle_info)
+{
+    this->piece = _piece;
+    this->src = _src;
+    this->dst = _dst;
+    this->promotion = _promotion;
+
+    this->uci = "";
+    this->castle_info = _castle_info;
+}
+
+void Move::log()
+{
+    cerr << "Move: Piece = " << this->piece << endl;
+    cerr << "Move: src = " << bitboard_to_algebraic(this->src) << endl;
+    cerr << "Move: dst = " << bitboard_to_algebraic(this->dst) << endl;
+    cerr << "Move: Promote to " << (char)(this->promotion ? this->promotion : EMPTY_CELL) << endl;
+    cerr << "Move: Castle info = " << this->castle_info << endl;
+    cerr << "Move UCI: " << this->to_uci() << endl;
+}
+
+string Move::to_uci()
+{
+    return this->to_uci(CHESS960_RULES, this->castle_info > 1);
+}
+
+string Move::to_uci(bool chess960_rules, bool castling)
+{
+
+    if (this->uci != "")
+        return this->uci;
+
+    /*
+        In my implementation, castling moves are always
+       represented by a king moving to its own rook, as Chess960
+       rules. With standard rules, the UCI representation of a
+       castle is the king moving of 2 cells. So when the rules
+       are standard, the destination position must be hardcoded
+       so the UCI representation is correct.
+    */
+    uint64_t tmp_dst = this->dst;
+    if (castling && !chess960_rules)
+    {
+        if (this->dst & 0xFFUL)
+            tmp_dst = this->dst < this->src ? 1UL << 2 : 1UL << 6;
+        else
+            tmp_dst = this->dst < this->src ? 1UL << 58 : 1UL << 62;
+    }
+
+    string uci = bitboard_to_algebraic(this->src) + bitboard_to_algebraic(tmp_dst);
+
+    if (this->promotion)
+        uci += string(1, tolower(this->promotion));
+
+    this->uci = uci;
+    return uci;
+}
+
+bool Move::operator==(Move *other)
+{
+    return this->to_uci() == other->to_uci() &&
+           (this->piece == other->piece || this->piece == EMPTY_CELL || other->piece == EMPTY_CELL
+           ) &&
+           this->src == other->src && this->dst == other->dst &&
+           tolower(this->promotion) == tolower(other->promotion) &&
+           this->castle_info == other->castle_info;
+}
+
+bool Move::compare_move_vector(vector<Move> movelst1, vector<Move> movelst2)
+{
+    bool success = true;
+
+    for (Move move_f : movelst1)
+    {
+        if (!_is_move_in_movelst(&move_f, movelst2))
+        {
+            cerr << "- Move "
+                    "from "
+                    "vector 1 "
+                    "isn't in "
+                    "vector 2 : "
+                 << move_f.to_uci() << endl;
+            move_f.log();
+            success = false;
+        }
+    }
+
+    for (Move move_f : movelst2)
+    {
+        if (!_is_move_in_movelst(&move_f, movelst1))
+        {
+            cerr << "- Move "
+                    "from "
+                    "vector 2 "
+                    "isn't in "
+                    "vector 1 : "
+                 << move_f.to_uci() << endl;
+            move_f.log();
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+bool Move::_is_move_in_movelst(Move *move, vector<Move> movelst)
+{
+    for (Move move_f : movelst)
+    {
+        if (*move == &move_f)
+            return true;
+    }
+
+    return false;
+};
+
+/*
+        Content of 'srcs/agents/MinMaxAlphaBetaAgent.cpp'
+*/
+
+MinMaxAlphaBetaAgent::MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_constraint)
+{
+    this->_heuristic = heuristic;
+    this->_ms_constraint = ms_constraint;
+    this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_depth_reached = 0;
+    this->_nodes_explored = 0;
+    this->_start_time = 0;
+}
+
+void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
+{
+    this->_start_time = clock();
+
+    for (size_t i = 0; i < moves.size(); i++)
+        qualities->push_back(0);
+
+    int max_depth = 2;
+    this->_nodes_explored = 0;
+    while (!this->is_time_up())
+    {
+        for (size_t i = 0; i < moves.size(); i++)
+        {
+            Board new_board = *board;
+            new_board.apply_move(moves[i]);
+
+            float move_quality = this->minmax(&new_board, max_depth, 1, -1, 1);
+
+            if (this->is_time_up())
+                break;
+
+            qualities->at(i) = move_quality;
+        }
+
+        max_depth++;
+    }
+
+    this->_depth_reached = max_depth;
+
+    float dtime = elapsed_time();
+    if (dtime >= _ms_constraint)
+        cerr << "MinMaxAlphaBetaAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
+             << "ms" << endl;
+}
+
+vector<string> MinMaxAlphaBetaAgent::get_stats()
+{
+    vector<string> stats;
+
+    stats.push_back("version=BbMmabPv-3.1.8");
+    stats.push_back("depth=" + to_string(this->_depth_reached));
+    stats.push_back("states=" + to_string(this->_nodes_explored));
+    cerr << "BbMmabPv-3.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    return stats;
+}
+
+string MinMaxAlphaBetaAgent::get_name()
+{
+    return Board::get_name() + ".MinMaxAlphaBetaAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
+}
+
+float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float alpha, float beta)
+{
+    this->_nodes_explored++;
+
+    if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
+        return this->_heuristic->evaluate(board);
+
+    vector<Move> moves = board->get_available_moves();
+
+    float best_quality;
+    if (board->is_white_turn())
+    {
+        best_quality = this->max_node(board, &moves, max_depth, depth, alpha, beta);
+    }
+    else
+    {
+        best_quality = this->min_node(board, &moves, max_depth, depth, alpha, beta);
+    }
+
+    return best_quality;
+}
+
+float MinMaxAlphaBetaAgent::max_node(
+    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+)
+{
+    float best_quality = -1;
+    for (Move move : *moves)
+    {
+        Board new_board = *board;
+        new_board.apply_move(move);
+
+        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
+
+        if (this->is_time_up())
+            break;
+
+        best_quality = max(best_quality, child_quality);
+
+        if (beta <= best_quality)
+            return best_quality;
+
+        alpha = max(alpha, best_quality);
+    }
+
+    return best_quality;
+}
+
+float MinMaxAlphaBetaAgent::min_node(
+    Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta
+)
+{
+    float best_quality = 1;
+    for (Move move : *moves)
+    {
+        Board new_board = *board;
+        new_board.apply_move(move);
+
+        float child_quality = this->minmax(&new_board, max_depth, depth + 1, alpha, beta);
+
+        if (this->is_time_up())
+            break;
+
+        best_quality = min(best_quality, child_quality);
+
+        if (alpha >= best_quality)
+            return best_quality;
+
+        beta = min(beta, best_quality);
+    }
+
+    return best_quality;
+}
+
+bool MinMaxAlphaBetaAgent::is_time_up()
+{
+    return this->elapsed_time() >= this->_ms_turn_stop;
+}
+
+float MinMaxAlphaBetaAgent::elapsed_time()
+{
+    return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
+}
+
+/*
+        Content of 'srcs/heuristics/PiecesHeuristic.cpp'
+*/
+
+#include <algorithm>
+
+PiecesHeuristic::PiecesHeuristic()
+{
+    for (int i = 0, eval = -EVALUATION_WINRATE_MAP_SIZE / 2; i < EVALUATION_WINRATE_MAP_SIZE;
+         i++, eval++)
+    {
+
+        _evaluation_winrate_map[i] = 1.0 / (1.0 + std::exp(-0.003 * eval));
+    }
+}
+
+float PiecesHeuristic::evaluate(Board *board)
+{
+    float state = board->get_game_state();
+    if (state != GAME_CONTINUE)
+    {
+        if (state == BLACK_WIN)
+            return 0;
+        else if (state == DRAW)
+            return 0.5;
+        else
+            return 1;
+    }
+
+    int white_material;
+    int black_material;
+    int material_evaluation = _material_evaluation(board, &white_material, &black_material);
+
+    int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
+    int black_material_in_bound = min(max(black_material, material_end_game), material_start_game);
+
+    float white_eg_coefficient =
+        (float)(material_start_game - white_material_in_bound) / material_start_end_game_diff;
+    float black_eg_coefficient =
+        (float)(material_start_game - black_material_in_bound) / material_start_end_game_diff;
+
+    int pp_evaluation =
+        _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
+
+    int white_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->empty_cells_mask);
+    int white_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->black_pieces_mask);
+    int white_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_white_mask & board->white_pieces_mask);
+
+    int black_control_on_empty_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->empty_cells_mask);
+    int black_control_on_enemy_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->white_pieces_mask);
+    int black_control_on_ally_cell_count =
+        _count_bits(board->attacked_by_black_mask & board->black_pieces_mask);
+
+    int control_evaluation = (white_control_on_empty_cell_count - black_control_on_empty_cell_count
+                             ) * control_value_for_empty_cell +
+                             (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count
+                             ) * control_value_for_enemy_cell +
+                             (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
+                                 control_value_for_ally_cell;
+
+    int evaluation = material_evaluation + pp_evaluation + control_evaluation;
+
+    return _evaluation_winrate_map[evaluation + EVALUATION_WINRATE_MAP_SIZE / 2];
+}
+
+string PiecesHeuristic::get_name()
+{
+    return "PiecesHeuristic";
+}
+
+int PiecesHeuristic::_material_evaluation(Board *board, int *white_material, int *black_material)
+{
+    int white_pawn_count = _count_bits(board->white_pawns);
+    int white_knight_count = _count_bits(board->white_knights);
+    int white_bishop_count = _count_bits(board->white_bishops);
+    int white_rook_count = _count_bits(board->white_rooks);
+    int white_queen_count = _count_bits(board->white_queens);
+    int black_pawn_count = _count_bits(board->black_pawns);
+    int black_knight_count = _count_bits(board->black_knights);
+    int black_bishop_count = _count_bits(board->black_bishops);
+    int black_rook_count = _count_bits(board->black_rooks);
+    int black_queen_count = _count_bits(board->black_queens);
+
+    *white_material = white_pawn_count * PAWN_VALUE + white_knight_count * KNIGHT_VALUE +
+                      white_bishop_count * BISHOP_VALUE + white_rook_count * ROOK_VALUE +
+                      white_queen_count * QUEEN_VALUE;
+    *black_material = black_pawn_count * PAWN_VALUE + black_knight_count * KNIGHT_VALUE +
+                      black_bishop_count * BISHOP_VALUE + black_rook_count * ROOK_VALUE +
+                      black_queen_count * QUEEN_VALUE;
+
+    return *white_material - *black_material;
+}
+
+int PiecesHeuristic::_piece_positions_evaluation(
+    Board *board, float white_eg_coefficient, float black_eg_coefficient
+)
+{
+    int pp_eval = 0;
+
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_pawn_sg_bonus_table, white_pawn_eg_bonus_table, white_eg_coefficient,
+        board->white_pawns
+    );
+    pp_eval += _lookup_bonuses_for_all_pieces(white_knight_bonus_table, board->white_knights);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_bishop_bonus_table, board->white_bishops);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_rook_bonus_table, board->white_rooks);
+    pp_eval += _lookup_bonuses_for_all_pieces(white_queen_bonus_table, board->white_queens);
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_king_sg_bonus_table, white_king_eg_bonus_table, white_eg_coefficient,
+        board->white_king
+    );
+
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_pawn_sg_bonus_table, black_pawn_eg_bonus_table, black_eg_coefficient,
+        board->black_pawns
+    );
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_knight_bonus_table, board->black_knights);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_bishop_bonus_table, board->black_bishops);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_rook_bonus_table, board->black_rooks);
+    pp_eval -= _lookup_bonuses_for_all_pieces(black_queen_bonus_table, board->black_queens);
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_king_sg_bonus_table, black_king_eg_bonus_table, black_eg_coefficient,
+        board->black_king
+    );
+
+    return pp_eval;
+}
+
+int PiecesHeuristic::_lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard)
+{
+    int bonuses = 0;
+
+    while (bitboard)
+    {
+        int first_piece_i = _count_trailing_zeros(bitboard);
+
+        bonuses += bonus_table[first_piece_i];
+
+        bitboard ^= 1UL << first_piece_i;
+    }
+
+    return bonuses;
+}
+
+int PiecesHeuristic::_lookup_bonuses_for_all_pieces(
+    int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
+)
+{
+    int   bonuses = 0;
+    float sg_coef = 1 - eg_coef;
+
+    while (bitboard)
+    {
+        int first_piece_i = _count_trailing_zeros(bitboard);
+
+        bonuses +=
+            sg_bonus_table[first_piece_i] * sg_coef + eg_bonus_table[first_piece_i] * eg_coef;
+
+        bitboard ^= 1UL << first_piece_i;
+    }
+
+    return bonuses;
+}
+
+/*
+        Content of 'srcs/players/BotPlayer.cpp'
+*/
+
+BotPlayer::BotPlayer(AbstractAgent *agent)
+{
+    this->_agent = agent;
+}
+
+Move BotPlayer::choose_from(Board *board, vector<Move> moves)
+{
+    vector<float> qualities;
+    this->_agent->get_qualities(board, moves, &qualities);
+
+    float (BotPlayer::*best_heuristic_choose)(float, float) =
+        board->is_white_turn() ? &BotPlayer::max_float : &BotPlayer::min_float;
+
+    int   best_index = 0;
+    float best_quality = qualities.at(0);
+    float new_best_quality;
+    for (size_t i = 1; i < qualities.size(); i++)
+    {
+        new_best_quality = (this->*best_heuristic_choose)(best_quality, qualities.at(i));
+
+        if (best_quality != new_best_quality)
+        {
+            best_index = i;
+            best_quality = new_best_quality;
+        }
+    }
+
+    return moves.at(best_index);
+}
+
+vector<string> BotPlayer::get_stats()
+{
+    return this->_agent->get_stats();
+}
+
+string BotPlayer::get_name()
+{
+    return "Bot." + this->_agent->get_name();
+}
+
+float BotPlayer::max_float(float a, float b)
+{
+    return max(a, b);
+}
+
+float BotPlayer::min_float(float a, float b)
+{
+    return min(a, b);
+}
+
+/*
+        Content of 'mains/main.cpp'
+*/
+
+using namespace std;
+
+int main()
+{
+    GameEngine *game_engine =
+        new GameEngine(new BotPlayer(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 50)));
+    game_engine->infinite_game_loop();
 }

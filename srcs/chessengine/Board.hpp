@@ -99,6 +99,7 @@ class Board
         uint64_t      get_castling_rights();
         static string get_name();
 
+        string get_fen();
         string create_fen(bool with_turns = true);
         Board *clone();
 

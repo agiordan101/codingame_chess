@@ -6,6 +6,7 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_exploration_constant = 2;
     this->_ms_constraint = ms_constraint;
     this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_root_node = NULL;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
     this->_winrate = 0.5;
@@ -18,35 +19,41 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
 {
     this->_start_time = clock();
 
-    Node root_node;
-    root_node.resulting_board = board->clone();
-    root_node.visits = 1;
-    root_node.utc_parent_exploration = 1;
+    if (this->_root_node == NULL)
+    {
+        this->_root_node = new Node();
+        this->_root_node->resulting_board = board->clone();
+        this->_root_node->visits = 1;
+        this->_root_node->utc_parent_exploration = 1;
 
-    expand_node(&root_node);
+        expand_node(this->_root_node);
+    }
+    else
+        this->_root_node = find_child_node_played(board);
 
     this->_nodes_explored = 0;
     while (!this->is_time_up())
     {
-        // cerr << "MctsAgent: Starting iteration " << this->_nodes_explored << endl;
-        float evaluation = this->mcts(&root_node, 0);
-        // cerr << "MctsAgent: End iteration " << this->_nodes_explored << endl;
+        // cerr << "MctsAgent: Starting iteration " << this->_root_node->visits << endl;
+        float evaluation = this->mcts(this->_root_node, 0);
+        // cerr << "MctsAgent: End iteration " << this->_root_node->visits << endl;
 
         // Save children move evaluations in root node
-        root_node.value += evaluation;
-        root_node.visits++;
-        root_node.utc_parent_exploration = this->_exploration_constant * log(root_node.visits);
+        this->_root_node->value += evaluation;
+        this->_root_node->visits++;
+        this->_root_node->utc_parent_exploration =
+            this->_exploration_constant * log(this->_root_node->visits);
     }
 
-    this->_nodes_explored = root_node.visits;
-    this->_winrate = root_node.value / root_node.visits;
+    this->_nodes_explored = this->_root_node->visits;
+    this->_winrate = this->_root_node->value / this->_root_node->visits;
 
     // BotPlayer maximizes the score for white and minimizes it for black
     int player = board->is_white_turn() ? 1 : -1;
 
     // Use child->utc_exploitation instead of visits ?
     for (size_t i = 0; i < moves.size(); i++)
-        qualities->push_back(player * root_node.children_nodes[i]->visits);
+        qualities->push_back(player * this->_root_node->children_nodes[i]->visits);
 
     float dtime = elapsed_time(this->_start_time);
 
@@ -59,11 +66,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.7.8");
+    stats.push_back("version=BbMctsPv-3.8.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.7.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.8.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
     return stats;
 }
@@ -76,9 +83,27 @@ string MctsAgent::get_name()
 
 // --- PUBLIC METHODS ---
 
+Node *MctsAgent::find_child_node_played(Board *board)
+{
+    string actual_fen = board->get_fen();
+
+    for (Node *child : this->_root_node->children_nodes)
+    {
+        for (Node *grandchild : child->children_nodes)
+        {
+            if (actual_fen == grandchild->resulting_board->get_fen())
+            {
+                return grandchild;
+            }
+        }
+    }
+
+    cerr << "MctsAgent: find_child_node_played(): ERROR: child not found" << endl;
+    return NULL;
+}
+
 float MctsAgent::mcts(Node *parent_node, int depth)
 {
-
     if (depth > this->_depth_reached)
         this->_depth_reached = depth;
 

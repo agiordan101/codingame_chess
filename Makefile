@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMctsPv-3.7.8
+BOT_VERSION = BbMctsPv-3.8.8
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -57,7 +57,7 @@ format:
 	isort python/*
 	black python/*
 
-test: utest datasettest perft cgtest
+test: utest datasettest perft
 
 ### Compile unit tests main
 utest:

@@ -321,6 +321,18 @@ Inside the file :
 
 - Next steps :
 
+    * Revert Heuristic version 6 ?
+       Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
+        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
+        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
+        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
+
+    * Refacto of GameEngine -> Agent move choices
+        * Remove BotPlayer class, so GameEngine directly uses Agent class, and pass through the last move made.
+        * Agent.get_qualities() make their own choice using std::max_element()/std::min_element()
+        * At the start of MCTS.get_qualities(), set root_node to a child of the last move made by itself
+        * At the end of MCTS.get_qualities(), set root_node to the choosen move
+
     * Fix ALL MCTS timeouts
         * Keep MCTC tree and use it for next turns ?
 

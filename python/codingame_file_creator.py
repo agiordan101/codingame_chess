@@ -10,15 +10,12 @@ input_filenames = [
     "srcs/heuristics/PiecesHeuristic.hpp",
     "srcs/agents/AbstractAgent.hpp",
     "srcs/agents/MctsAgent.hpp",
-    "srcs/players/AbstractPlayer.hpp",
-    "srcs/players/BotPlayer.hpp",
     "srcs/gameengine/GameEngine.hpp",
     "srcs/gameengine/GameEngine.cpp",
     "srcs/chessengine/Board.cpp",
     "srcs/chessengine/Move.cpp",
     "srcs/agents/MctsAgent.cpp",
     "srcs/heuristics/PiecesHeuristic.cpp",
-    "srcs/players/BotPlayer.cpp",
     "mains/main.cpp",
 ]
 

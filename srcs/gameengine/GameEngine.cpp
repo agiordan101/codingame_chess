@@ -2,9 +2,9 @@
 
 // --- PUBLIC METHODS ---
 
-GameEngine::GameEngine(BotPlayer *player)
+GameEngine::GameEngine(AbstractAgent *agent)
 {
-    this->_player = player;
+    this->_agent = agent;
     this->_board = NULL;
 }
 
@@ -19,10 +19,10 @@ void GameEngine::infinite_game_loop()
 
         vector<Move> moves = this->_board->get_available_moves();
 
-        Move move = this->_player->choose_from(this->_board, moves);
+        Move move = this->_agent->choose_from(this->_board, moves);
         cout << move.to_uci();
 
-        vector<string> stats = this->_player->get_stats();
+        vector<string> stats = this->_agent->get_stats();
         for (string stat : stats)
             cout << " " << stat;
         cout << endl;

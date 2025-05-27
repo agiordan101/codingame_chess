@@ -47,8 +47,7 @@ class MctsAgent : public AbstractAgent
 {
     public:
         MctsAgent(AbstractHeuristic *heuristic, int ms_constraint);
-        virtual void
-        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual Move   choose_from(Board *board, vector<Move> moves) override;
         virtual string get_name() override;
         vector<string> get_stats() override;
 
@@ -65,6 +64,7 @@ class MctsAgent : public AbstractAgent
         int   _nodes_explored;
         float _winrate;
 
+        void  get_qualities(Board *board, vector<float> *qualities);
         Node *find_child_node_played(Board *board);
 
         float mcts(Node *node, int depth);

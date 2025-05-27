@@ -12,7 +12,7 @@ class AbstractAgent
 {
 
     public:
-        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) = 0;
+        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
         virtual string get_name() = 0;
 
         virtual vector<string> get_stats()

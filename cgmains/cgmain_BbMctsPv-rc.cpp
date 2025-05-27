@@ -730,7 +730,7 @@ class AbstractAgent
 {
 
     public:
-        virtual void get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) = 0;
+        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
         virtual string get_name() = 0;
 
         virtual vector<string> get_stats()
@@ -782,8 +782,7 @@ class MctsAgent : public AbstractAgent
 {
     public:
         MctsAgent(AbstractHeuristic *heuristic, int ms_constraint);
-        virtual void
-        get_qualities(Board *board, vector<Move> moves, vector<float> *qualities) override;
+        virtual Move   choose_from(Board *board, vector<Move> moves) override;
         virtual string get_name() override;
         vector<string> get_stats() override;
 
@@ -800,6 +799,7 @@ class MctsAgent : public AbstractAgent
         int   _nodes_explored;
         float _winrate;
 
+        void  get_qualities(Board *board, vector<float> *qualities);
         Node *find_child_node_played(Board *board);
 
         float mcts(Node *node, int depth);
@@ -809,51 +809,6 @@ class MctsAgent : public AbstractAgent
 
         bool  is_time_up();
         float elapsed_time(clock_t clock_start);
-};
-
-#endif
-
-/*
-        Content of 'srcs/players/AbstractPlayer.hpp'
-*/
-
-#ifndef ABSTRACTPLAYER_HPP
-#define ABSTRACTPLAYER_HPP
-
-#include <vector>
-
-class AbstractPlayer
-{
-
-    public:
-        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
-        virtual string get_name() = 0;
-};
-
-#endif
-
-/*
-        Content of 'srcs/players/BotPlayer.hpp'
-*/
-
-#ifndef BOTPLAYER_HPP
-#define BOTPLAYER_HPP
-
-class BotPlayer : public AbstractPlayer
-{
-
-    public:
-        BotPlayer(AbstractAgent *agent);
-        vector<string> get_stats();
-
-        virtual Move   choose_from(Board *board, vector<Move> moves) override;
-        virtual string get_name() override;
-
-    private:
-        AbstractAgent *_agent;
-
-        float max_float(float a, float b);
-        float min_float(float a, float b);
 };
 
 #endif
@@ -869,7 +824,7 @@ class GameEngine
 {
 
     public:
-        GameEngine(BotPlayer *player);
+        GameEngine(AbstractAgent *agent);
         void infinite_game_loop();
 
     private:
@@ -885,10 +840,10 @@ class GameEngine
 
         clock_t _turn_clock_start;
 
-        BotPlayer   *_player;
-        Board       *_board;
-        vector<Move> _possible_moves;
-        int          _possible_moves_count;
+        AbstractAgent *_agent;
+        Board         *_board;
+        vector<Move>   _possible_moves;
+        int            _possible_moves_count;
 
         void _parse_first_turn();
         void _parse_turn();
@@ -900,9 +855,9 @@ class GameEngine
         Content of 'srcs/gameengine/GameEngine.cpp'
 */
 
-GameEngine::GameEngine(BotPlayer *player)
+GameEngine::GameEngine(AbstractAgent *agent)
 {
-    this->_player = player;
+    this->_agent = agent;
     this->_board = NULL;
 }
 
@@ -917,10 +872,10 @@ void GameEngine::infinite_game_loop()
 
         vector<Move> moves = this->_board->get_available_moves();
 
-        Move move = this->_player->choose_from(this->_board, moves);
+        Move move = this->_agent->choose_from(this->_board, moves);
         cout << move.to_uci();
 
-        vector<string> stats = this->_player->get_stats();
+        vector<string> stats = this->_agent->get_stats();
         for (string stat : stats)
             cout << " " << stat;
         cout << endl;
@@ -2885,7 +2840,7 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_heuristic = heuristic;
     this->_exploration_constant = 2;
     this->_ms_constraint = ms_constraint;
-    this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_ms_turn_stop = ms_constraint * 0.50;
     this->_root_node = NULL;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
@@ -2893,7 +2848,20 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_start_time = 0;
 }
 
-void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
+Move MctsAgent::choose_from(Board *board, vector<Move> moves)
+{
+    vector<float> qualities;
+    get_qualities(board, &qualities);
+
+    auto best_it = board->is_white_turn() ? std::max_element(qualities.begin(), qualities.end())
+                                          : std::min_element(qualities.begin(), qualities.end());
+
+    size_t best_index = std::distance(qualities.begin(), best_it);
+
+    return moves.at(best_index);
+}
+
+void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
 {
     this->_start_time = clock();
 
@@ -2925,7 +2893,13 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
 
     int player = board->is_white_turn() ? 1 : -1;
 
-    for (size_t i = 0; i < moves.size(); i++)
+    if (qualities->size() != this->_root_node->children_nodes.size())
+    {
+        cerr << "MctsAgent: ERROR: moves.size() != this->_root_node->children_nodes.size() "
+             << endl;
+    }
+
+    for (size_t i = 0; i < qualities->size(); i++)
         qualities->push_back(player * this->_root_node->children_nodes[i]->visits);
 
     float dtime = elapsed_time(this->_start_time);
@@ -3231,60 +3205,6 @@ int PiecesHeuristic::_lookup_bonuses_for_all_pieces(
 }
 
 /*
-        Content of 'srcs/players/BotPlayer.cpp'
-*/
-
-BotPlayer::BotPlayer(AbstractAgent *agent)
-{
-    this->_agent = agent;
-}
-
-Move BotPlayer::choose_from(Board *board, vector<Move> moves)
-{
-    vector<float> qualities;
-    this->_agent->get_qualities(board, moves, &qualities);
-
-    float (BotPlayer::*best_heuristic_choose)(float, float) =
-        board->is_white_turn() ? &BotPlayer::max_float : &BotPlayer::min_float;
-
-    int   best_index = 0;
-    float best_quality = qualities.at(0);
-    float new_best_quality;
-    for (size_t i = 1; i < qualities.size(); i++)
-    {
-        new_best_quality = (this->*best_heuristic_choose)(best_quality, qualities.at(i));
-
-        if (best_quality != new_best_quality)
-        {
-            best_index = i;
-            best_quality = new_best_quality;
-        }
-    }
-
-    return moves.at(best_index);
-}
-
-vector<string> BotPlayer::get_stats()
-{
-    return this->_agent->get_stats();
-}
-
-string BotPlayer::get_name()
-{
-    return "Bot." + this->_agent->get_name();
-}
-
-float BotPlayer::max_float(float a, float b)
-{
-    return max(a, b);
-}
-
-float BotPlayer::min_float(float a, float b)
-{
-    return min(a, b);
-}
-
-/*
         Content of 'mains/main.cpp'
 */
 
@@ -3292,7 +3212,6 @@ using namespace std;
 
 int main()
 {
-    GameEngine *game_engine =
-        new GameEngine(new BotPlayer(new MctsAgent(new PiecesHeuristic(), 50)));
+    GameEngine *game_engine = new GameEngine(new MctsAgent(new PiecesHeuristic(), 50));
     game_engine->infinite_game_loop();
 }

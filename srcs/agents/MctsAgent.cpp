@@ -15,7 +15,22 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
 
 // --- PRIVATE METHODS ---
 
-void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
+Move MctsAgent::choose_from(Board *board, vector<Move> moves)
+{
+    vector<float> qualities;
+    get_qualities(board, &qualities);
+
+    // Determine whether to find the max or min element based on the player's turn
+    auto best_it = board->is_white_turn() ? std::max_element(qualities.begin(), qualities.end())
+                                          : std::min_element(qualities.begin(), qualities.end());
+
+    // Calculate the index of the best quality
+    size_t best_index = std::distance(qualities.begin(), best_it);
+
+    return moves.at(best_index);
+}
+
+void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
 {
     this->_start_time = clock();
 
@@ -51,8 +66,14 @@ void MctsAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *q
     // BotPlayer maximizes the score for white and minimizes it for black
     int player = board->is_white_turn() ? 1 : -1;
 
+    if (qualities->size() != this->_root_node->children_nodes.size())
+    {
+        cerr << "MctsAgent: ERROR: moves.size() != this->_root_node->children_nodes.size() "
+             << endl;
+    }
+
     // Use child->utc_exploitation instead of visits ?
-    for (size_t i = 0; i < moves.size(); i++)
+    for (size_t i = 0; i < qualities->size(); i++)
         qualities->push_back(player * this->_root_node->children_nodes[i]->visits);
 
     float dtime = elapsed_time(this->_start_time);
@@ -66,11 +87,11 @@ vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.8.8");
+    stats.push_back("version=BbMctsPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.8.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
     return stats;
 }

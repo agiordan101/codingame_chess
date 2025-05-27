@@ -2,13 +2,13 @@
 #define GAMEENGINE_HPP
 
 #include "../chessengine/Board.hpp"
-#include "../players/BotPlayer.hpp"
+#include "../srcs/agents/AbstractAgent.hpp"
 
 class GameEngine
 {
 
     public:
-        GameEngine(BotPlayer *player);
+        GameEngine(AbstractAgent *agent);
         void infinite_game_loop();
 
     private:
@@ -26,10 +26,10 @@ class GameEngine
 
         clock_t _turn_clock_start;
 
-        BotPlayer   *_player;
-        Board       *_board;
-        vector<Move> _possible_moves;
-        int          _possible_moves_count;
+        AbstractAgent *_agent;
+        Board         *_board;
+        vector<Move>   _possible_moves;
+        int            _possible_moves_count;
 
         void _parse_first_turn();
         void _parse_turn();

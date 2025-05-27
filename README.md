@@ -328,13 +328,11 @@ Inside the file :
         2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
 
     * Refacto of GameEngine -> Agent move choices
-        * Remove BotPlayer class, so GameEngine directly uses Agent class, and pass through the last move made.
-        * Agent.get_qualities() make their own choice using std::max_element()/std::min_element()
         * At the start of MCTS.get_qualities(), set root_node to a child of the last move made by itself
         * At the end of MCTS.get_qualities(), set root_node to the choosen move
+        * Send turn_start_time
 
-    * Fix ALL MCTS timeouts
-        * Keep MCTC tree and use it for next turns ?
+    * Is there a way to continue MCTS iterations while opponent is thinking ?
 
     * Improve Board performances
         * Main bottlenecks from BOARD class (callgrind statistics) :

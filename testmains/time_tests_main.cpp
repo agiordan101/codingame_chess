@@ -1,7 +1,6 @@
 
 #include "../srcs/gameengine/GameEngineIntTests.hpp"
 #include "../srcs/heuristics/PiecesHeuristic.hpp"
-#include "../srcs/players/BotPlayer.hpp"
 
 using namespace std;
 

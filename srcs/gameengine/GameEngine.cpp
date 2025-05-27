@@ -17,9 +17,7 @@ void GameEngine::infinite_game_loop()
     {
         _parse_turn();
 
-        vector<Move> moves = this->_board->get_available_moves();
-
-        Move move = this->_agent->choose_from(this->_board, moves);
+        Move move = this->_agent->choose_from(this->_board, this->_turn_start_clock);
         cout << move.to_uci();
 
         vector<string> stats = this->_agent->get_stats();
@@ -82,7 +80,7 @@ void GameEngine::_parse_turn()
 
     cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
 
-    this->_turn_clock_start = clock();
+    this->_turn_start_clock = clock();
 
     int half_move_clock = stoi(half_move_clock_str);
     int full_move = stoi(full_move_str);

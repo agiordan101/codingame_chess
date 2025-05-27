@@ -730,7 +730,7 @@ class AbstractAgent
 {
 
     public:
-        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
+        virtual Move   choose_from(Board *board, clock_t turn_start_clock) = 0;
         virtual string get_name() = 0;
 
         virtual vector<string> get_stats()
@@ -782,7 +782,7 @@ class MctsAgent : public AbstractAgent
 {
     public:
         MctsAgent(AbstractHeuristic *heuristic, int ms_constraint);
-        virtual Move   choose_from(Board *board, vector<Move> moves) override;
+        virtual Move   choose_from(Board *board, clock_t _turn_start_clock) override;
         virtual string get_name() override;
         vector<string> get_stats() override;
 
@@ -792,7 +792,7 @@ class MctsAgent : public AbstractAgent
 
         int     _ms_constraint;
         float   _ms_turn_stop;
-        clock_t _start_time;
+        clock_t _turn_start_clock;
 
         Node *_root_node;
         int   _depth_reached;
@@ -838,7 +838,7 @@ class GameEngine
         bool _game;
         bool _score;
 
-        clock_t _turn_clock_start;
+        clock_t _turn_start_clock;
 
         AbstractAgent *_agent;
         Board         *_board;
@@ -870,9 +870,7 @@ void GameEngine::infinite_game_loop()
     {
         _parse_turn();
 
-        vector<Move> moves = this->_board->get_available_moves();
-
-        Move move = this->_agent->choose_from(this->_board, moves);
+        Move move = this->_agent->choose_from(this->_board, this->_turn_start_clock);
         cout << move.to_uci();
 
         vector<string> stats = this->_agent->get_stats();
@@ -931,7 +929,7 @@ void GameEngine::_parse_turn()
 
     cin >> board >> color >> castling >> en_passant >> half_move_clock_str >> full_move_str;
 
-    this->_turn_clock_start = clock();
+    this->_turn_start_clock = clock();
 
     int half_move_clock = stoi(half_move_clock_str);
     int full_move = stoi(full_move_str);
@@ -2840,16 +2838,18 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_heuristic = heuristic;
     this->_exploration_constant = 2;
     this->_ms_constraint = ms_constraint;
-    this->_ms_turn_stop = ms_constraint * 0.50;
+    this->_ms_turn_stop = ms_constraint * 0.90;
     this->_root_node = NULL;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
     this->_winrate = 0.5;
-    this->_start_time = 0;
+    this->_turn_start_clock = 0;
 }
 
-Move MctsAgent::choose_from(Board *board, vector<Move> moves)
+Move MctsAgent::choose_from(Board *board, clock_t turn_start_clock)
 {
+    this->_turn_start_clock = turn_start_clock;
+
     vector<float> qualities;
     get_qualities(board, &qualities);
 
@@ -2858,24 +2858,39 @@ Move MctsAgent::choose_from(Board *board, vector<Move> moves)
 
     size_t best_index = std::distance(qualities.begin(), best_it);
 
-    return moves.at(best_index);
+    this->_root_node = this->_root_node->children_nodes.at(best_index);
+
+    return this->_root_node->move;
 }
 
 void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
 {
-    this->_start_time = clock();
-
     if (this->_root_node == NULL)
     {
         this->_root_node = new Node();
         this->_root_node->resulting_board = board->clone();
         this->_root_node->visits = 1;
         this->_root_node->utc_parent_exploration = 1;
-
-        expand_node(this->_root_node);
     }
     else
+    {
         this->_root_node = find_child_node_played(board);
+
+        if (this->_root_node == NULL)
+        {
+            cerr << "MctsAgent: ERROR: find_child_node_played returned NULL" << endl;
+        }
+        if (this->_root_node->children_nodes.size() == 0)
+        {
+            cerr << "MctsAgent: ERROR: find_child_node_played returned a node with no children"
+                 << endl;
+        }
+    }
+
+    if (this->_root_node == NULL || this->_root_node->children_nodes.size() == 0)
+    {
+        expand_node(this->_root_node);
+    }
 
     this->_nodes_explored = 0;
     while (!this->is_time_up())
@@ -2893,16 +2908,19 @@ void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
 
     int player = board->is_white_turn() ? 1 : -1;
 
-    if (qualities->size() != this->_root_node->children_nodes.size())
-    {
-        cerr << "MctsAgent: ERROR: moves.size() != this->_root_node->children_nodes.size() "
-             << endl;
-    }
-
-    for (size_t i = 0; i < qualities->size(); i++)
+    for (size_t i = 0; i < this->_root_node->children_nodes.size(); i++)
         qualities->push_back(player * this->_root_node->children_nodes[i]->visits);
 
-    float dtime = elapsed_time(this->_start_time);
+    if (qualities->size() != this->_root_node->children_nodes.size())
+    {
+        cerr << "MctsAgent: ERROR: qualities.size() != this->_root_node->children_nodes.size() "
+             << endl;
+        cerr << "qualities.size() = " << qualities->size() << endl;
+        cerr << "this->_root_node->children_nodes.size() = "
+             << this->_root_node->children_nodes.size() << endl;
+    }
+
+    float dtime = elapsed_time(this->_turn_start_clock);
 
     if (dtime >= _ms_constraint)
         cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
@@ -2934,12 +2952,9 @@ Node *MctsAgent::find_child_node_played(Board *board)
 
     for (Node *child : this->_root_node->children_nodes)
     {
-        for (Node *grandchild : child->children_nodes)
+        if (actual_fen == child->resulting_board->get_fen())
         {
-            if (actual_fen == grandchild->resulting_board->get_fen())
-            {
-                return grandchild;
-            }
+            return child;
         }
     }
 
@@ -3027,7 +3042,7 @@ float MctsAgent::simulation(Node *node)
 
 bool MctsAgent::is_time_up()
 {
-    return this->elapsed_time(this->_start_time) >= this->_ms_turn_stop;
+    return this->elapsed_time(this->_turn_start_clock) >= this->_ms_turn_stop;
 }
 
 float MctsAgent::elapsed_time(clock_t clock_start)

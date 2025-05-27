@@ -12,7 +12,7 @@ class AbstractAgent
 {
 
     public:
-        virtual Move   choose_from(Board *board, vector<Move> moves) = 0;
+        virtual Move   choose_from(Board *board, clock_t turn_start_clock) = 0;
         virtual string get_name() = 0;
 
         virtual vector<string> get_stats()

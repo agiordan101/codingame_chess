@@ -24,7 +24,7 @@ class GameEngine
         bool _game;
         bool _score;
 
-        clock_t _turn_clock_start;
+        clock_t _turn_start_clock;
 
         AbstractAgent *_agent;
         Board         *_board;

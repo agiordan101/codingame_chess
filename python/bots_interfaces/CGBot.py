@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 from bots_interfaces.AbstractBot import AbstractBot
 from chess import Board
@@ -48,9 +49,14 @@ class CGBot(AbstractBot):
 
         self._send_info(board)
 
+        start_time = time.time_ns() // 1_000_000
         line = self.process.stdout.readline().strip()
-        move = line.split(" ")[0]
+        end_time = time.time_ns() // 1_000_000
 
+        if end_time - start_time > 50:
+            print("TIME LIMIT EXCEEDED : ", end_time - start_time, " ms (> 50)")
+
+        move = line.split(" ")[0]
         return move
 
     def get_next_move_and_stat(self, board: Board) -> dict[str, object]:
@@ -58,8 +64,8 @@ class CGBot(AbstractBot):
         self._send_info(board)
 
         line = self.process.stdout.readline().strip()
-        responses = line.split(" ")
 
+        responses = line.split(" ")
         data = {"move": responses[0]}
         try:
             data.update(dict(map(lambda x: x.split("="), responses[1:])))

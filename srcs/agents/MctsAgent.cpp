@@ -13,7 +13,26 @@ MctsAgent::MctsAgent(AbstractHeuristic *heuristic, int ms_constraint)
     this->_turn_start_clock = 0;
 }
 
-// --- PRIVATE METHODS ---
+// --- PUBLIC METHODS ---
+
+string MctsAgent::get_name()
+{
+    return Board::get_name() + ".MctsAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
+}
+
+vector<string> MctsAgent::get_stats()
+{
+    vector<string> stats;
+
+    stats.push_back("version=BbMmabPv-rc");
+    stats.push_back("depth=" + to_string(this->_depth_reached));
+    stats.push_back("states=" + to_string(this->_nodes_explored));
+    stats.push_back("winrate=" + to_string(this->_winrate));
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+         << stats[3] << endl;
+    return stats;
+}
 
 Move MctsAgent::choose_from(Board *board, clock_t turn_start_clock)
 {
@@ -39,6 +58,8 @@ Move MctsAgent::choose_from(Board *board, clock_t turn_start_clock)
 
     return this->_root_node->move;
 }
+
+// --- PRIVATE METHODS ---
 
 void MctsAgent::get_qualities(Board *board)
 {
@@ -78,27 +99,6 @@ void MctsAgent::get_qualities(Board *board)
     this->_nodes_explored = this->_root_node->visits;
     this->_winrate = this->_root_node->value / this->_root_node->visits;
 }
-
-vector<string> MctsAgent::get_stats()
-{
-    vector<string> stats;
-
-    stats.push_back("version=BbMctsPv-3.10.8");
-    stats.push_back("depth=" + to_string(this->_depth_reached));
-    stats.push_back("states=" + to_string(this->_nodes_explored));
-    stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.10.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
-         << stats[3] << endl;
-    return stats;
-}
-
-string MctsAgent::get_name()
-{
-    return Board::get_name() + ".MctsAgent[" + to_string(this->_ms_constraint) + "ms]." +
-           this->_heuristic->get_name();
-}
-
-// --- PUBLIC METHODS ---
 
 void MctsAgent::create_root_node(Board *board)
 {

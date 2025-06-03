@@ -85,7 +85,7 @@ For graphical visualization of the data, we can use KCachegrind command. (apt in
 
 https://valgrind.org/docs/manual/cl-manual.html
 
-Here is how we can use callgrind to profile our bot:
+Here is how we can use callgrind to profile our bot, at cg-brutaltester repository root:
 
 `java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-3.1.6" -p2 "../codingame_chess/bins/BbMmabPv-3.1.6" -t 1 -n 1`
 
@@ -328,24 +328,30 @@ Inside the file :
             * Board::create_fen() :
                 *  7% in BbMctsPv-3.7.6
                 * 11% in BbMmabPv-3.1.6
+                *  8% in BbMmabPv-3.1.8
             * Board::_compute_game_state() :
                 * 22% in BbMctsPv-3.7.6
                 * 28% in BbMmabPv-3.1.6
+                * 20% in BbMmabPv-3.1.8
             * Board::_find_move() :
                 * 12% in BbMctsPv-3.7.6
                 * 19% in BbMmabPv-3.1.6
+                * 14% in BbMmabPv-3.1.8
             * Board::_apply_move() :
                 *  8% in BbMctsPv-3.7.6
                 * 13% in BbMmabPv-3.1.6
+                *  9% in BbMmabPv-3.1.8
             * Board::_find_white_pawns_moves() :
                 *  5% in BbMctsPv-3.7.6
                 *  8% in BbMmabPv-3.1.6
+                *  6% in BbMmabPv-3.1.8
                     * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
                     * Try to get rid of while()
 
             * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
                 * 14% in BbMctsPv-3.7.6
                 * 22% in BbMmabPv-3.1.6
+                * 17% in BbMmabPv-3.1.8
 
     * Improve Heuristic
 

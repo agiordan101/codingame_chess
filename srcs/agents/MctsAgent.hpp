@@ -47,9 +47,9 @@ class MctsAgent : public AbstractAgent
 {
     public:
         MctsAgent(AbstractHeuristic *heuristic, int ms_constraint);
-        virtual Move   choose_from(Board *board, clock_t _turn_start_clock) override;
         virtual string get_name() override;
         vector<string> get_stats() override;
+        virtual Move   choose_from(Board *board, clock_t _turn_start_clock) override;
 
     private:
         AbstractHeuristic *_heuristic;

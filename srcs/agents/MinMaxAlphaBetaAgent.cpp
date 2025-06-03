@@ -5,18 +5,61 @@ MinMaxAlphaBetaAgent::MinMaxAlphaBetaAgent(AbstractHeuristic *heuristic, int ms_
     this->_heuristic = heuristic;
     this->_ms_constraint = ms_constraint;
     this->_ms_turn_stop = ms_constraint * 0.95;
+    this->_turn_start_clock = 0;
     this->_depth_reached = 0;
     this->_nodes_explored = 0;
-    this->_start_time = 0;
 }
+
+// --- PUBLIC METHODS ---
+
+string MinMaxAlphaBetaAgent::get_name()
+{
+    return Board::get_name() + ".MinMaxAlphaBetaAgent[" + to_string(this->_ms_constraint) + "ms]." +
+           this->_heuristic->get_name();
+}
+
+vector<string> MinMaxAlphaBetaAgent::get_stats()
+{
+    vector<string> stats;
+
+    stats.push_back("version=BbMmabPv-rc");
+    stats.push_back("depth=" + to_string(this->_depth_reached));
+    stats.push_back("states=" + to_string(this->_nodes_explored));
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    return stats;
+}
+
+Move MinMaxAlphaBetaAgent::choose_from(Board *board, clock_t turn_start_clock)
+{
+    this->_turn_start_clock = turn_start_clock;
+
+    vector<Move>   moves = board->get_available_moves();
+    vector<float> *qualities = new vector<float>(moves.size());
+
+    get_qualities(board, moves, qualities);
+
+    // White wants to maximize, black wants to minimize
+    auto comparator = board->is_white_turn()
+                          ? std::max_element(qualities->begin(), qualities->end())
+                          : std::min_element(qualities->begin(), qualities->end());
+
+    // Get the index of the result
+    size_t selectedIndex = std::distance(qualities->begin(), comparator);
+
+    Move move = moves[selectedIndex];
+
+    float dtime = elapsed_time(this->_turn_start_clock);
+    if (dtime >= _ms_constraint)
+        cerr << "MinMaxAlphaBetaAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
+             << "ms" << endl;
+
+    return move;
+}
+
+// --- PRIVATE METHODS ---
 
 void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vector<float> *qualities)
 {
-    this->_start_time = clock();
-
-    for (size_t i = 0; i < moves.size(); i++)
-        qualities->push_back(0);
-
     // If the max_depth is too low, it would recalculate too much moves !
     // All position at depth max_depth MUST be computed, else some moves won't have a quality
     int max_depth = 2;
@@ -42,28 +85,6 @@ void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vecto
     }
 
     this->_depth_reached = max_depth;
-
-    float dtime = elapsed_time();
-    if (dtime >= _ms_constraint)
-        cerr << "MinMaxAlphaBetaAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint
-             << "ms" << endl;
-}
-
-vector<string> MinMaxAlphaBetaAgent::get_stats()
-{
-    vector<string> stats;
-
-    stats.push_back("version=BbMmabPv-3.1.6");
-    stats.push_back("depth=" + to_string(this->_depth_reached));
-    stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-3.1.6\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
-    return stats;
-}
-
-string MinMaxAlphaBetaAgent::get_name()
-{
-    return Board::get_name() + ".MinMaxAlphaBetaAgent[" + to_string(this->_ms_constraint) + "ms]." +
-           this->_heuristic->get_name();
 }
 
 float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float alpha, float beta)
@@ -156,10 +177,10 @@ float MinMaxAlphaBetaAgent::min_node(
 
 bool MinMaxAlphaBetaAgent::is_time_up()
 {
-    return this->elapsed_time() >= this->_ms_turn_stop;
+    return this->elapsed_time(this->_turn_start_clock) >= this->_ms_turn_stop;
 }
 
-float MinMaxAlphaBetaAgent::elapsed_time()
+float MinMaxAlphaBetaAgent::elapsed_time(clock_t clock_start)
 {
-    return (float)(clock() - this->_start_time) / CLOCKS_PER_SEC * 1000;
+    return (float)(clock() - clock_start) / CLOCKS_PER_SEC * 1000;
 }

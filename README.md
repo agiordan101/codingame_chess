@@ -321,6 +321,11 @@ Inside the file :
 
 - Next steps :
 
+    * Trying to optimize _find_white_pawn_moves() :
+
+        * Incl.| Self timings
+        * 5.67 | 1.83 for BbMmabPv-3.1.8
+
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
     * Improve Board performances

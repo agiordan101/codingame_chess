@@ -226,16 +226,18 @@ string Board::create_fen(bool with_turns)
     bzero(fen, 85);
 
     // Write pieces
-    int empty_cells_count = 0;
+    int      empty_cells_count = 0;
+    uint64_t pos_mask = 1UL;
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
         {
-            // TODO: Don't use get_cell() but a mask we shift at each for loop beginning
-            //          And create get_cell(uint64_t mask) method, used inside get_cell(int, int)
-            if (get_cell(x, y) == EMPTY_CELL)
+            char piece = _get_cell(pos_mask);
+
+            if (piece == EMPTY_CELL)
             {
                 empty_cells_count++;
+                pos_mask <<= 1;
                 continue;
             }
 
@@ -245,7 +247,8 @@ string Board::create_fen(bool with_turns)
                 empty_cells_count = 0;
             }
 
-            fen[fen_i++] = get_cell(x, y);
+            fen[fen_i++] = piece;
+            pos_mask <<= 1;
         }
 
         if (empty_cells_count > 0)

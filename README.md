@@ -321,17 +321,6 @@ Inside the file :
 
 - Next steps :
 
-    * Revert Heuristic version 6 ?
-       Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
-        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
-        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
-        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
-
-    * Refacto of GameEngine -> Agent move choices
-        * At the start of MCTS.get_qualities(), set root_node to a child of the last move made by itself
-        * At the end of MCTS.get_qualities(), set root_node to the choosen move
-        * Send turn_start_time
-
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
     * Improve Board performances
@@ -360,6 +349,12 @@ Inside the file :
 
     * Improve Heuristic
 
+    * Revert Heuristic version 6 ? Do that when upgrading the heuristic
+       Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
+        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
+        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
+        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
+
     * Re-implemente transposition table ?
         * Board zobrist :
             * Rebase zobrist board on main
@@ -369,12 +364,16 @@ Inside the file :
         * Seems like having multipe threads at the same time make bot crash randomly (probably by timeout ?)
 
         * Psyleague threads test :
-            * 1 threads (24 games) :
-                BbMmabPv-3.1.6 : 0 errors
-                BbMmabPv-3.1.5 : 0 errors
-            * 7 threads (66 games) :
-                BbMmabPv-3.1.6 : 32 errors
-                BbMmabPv-3.1.5 : 31 errors
+            * 1 threads (102 games) :
+                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+                1  BbMmabPv-3.1.5  23.62    102  20%  25.703  0.695       0  2025/05/28 15:06:04
+                2  BbMmabPv-3.1.6  22.21    102  20%  24.297  0.695       8  2025/05/28 15:06:06
+            * 7 threads (408 games) :
+                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
+                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
+                1  BbMmabPv-3.1.6  23.97    408  81%  25.039  0.356     117  2025/05/28 14:56:35
+                2  BbMmabPv-3.1.5  23.89    408  81%  24.961  0.356     122  2025/05/28 14:56:35
 
     * Why all promotions are knight ???
     

@@ -65,7 +65,8 @@ class MctsAgent : public AbstractAgent
         float _winrate;
 
         // TODO: Add underscores
-        void  get_qualities(Board *board, vector<float> *qualities);
+        void  create_root_node(Board *board);
+        void  get_qualities(Board *board);
         Node *find_child_node_played(Board *board);
 
         float mcts(Node *node, int depth);

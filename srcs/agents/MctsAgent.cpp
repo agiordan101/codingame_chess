@@ -19,49 +19,46 @@ Move MctsAgent::choose_from(Board *board, clock_t turn_start_clock)
 {
     this->_turn_start_clock = turn_start_clock;
 
-    vector<float> qualities;
-    get_qualities(board, &qualities);
+    get_qualities(board);
 
-    // Determine whether to find the max or min element based on the player's turn
-    auto best_it = board->is_white_turn() ? std::max_element(qualities.begin(), qualities.end())
-                                          : std::min_element(qualities.begin(), qualities.end());
+    auto comparator = [](Node *a, Node *b) { return a->visits < b->visits; };
 
-    // Calculate the index of the best quality
-    size_t best_index = std::distance(qualities.begin(), best_it);
+    // Use std::max_element with a custom comparator to find the node with the maximum visits
+    auto best_it = std::max_element(
+        this->_root_node->children_nodes.begin(), this->_root_node->children_nodes.end(), comparator
+    );
 
     // Update root node to the best child node
-    this->_root_node = this->_root_node->children_nodes.at(best_index);
+    this->_root_node = *best_it;
+
+    float dtime = elapsed_time(this->_turn_start_clock);
+
+    if (dtime >= _ms_constraint)
+        cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
+             << endl;
 
     return this->_root_node->move;
 }
 
-void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
+void MctsAgent::get_qualities(Board *board)
 {
     if (this->_root_node == NULL)
     {
-        this->_root_node = new Node();
-        this->_root_node->resulting_board = board->clone();
-        this->_root_node->visits = 1;
-        this->_root_node->utc_parent_exploration = 1;
+        create_root_node(board);
     }
     else
     {
         this->_root_node = find_child_node_played(board);
 
-        // if (this->_root_node == NULL)
-        // {
-        //     cerr << "MctsAgent: ERROR: find_child_node_played returned NULL" << endl;
-        // }
-        // if (this->_root_node->children_nodes.size() == 0)
-        // {
-        //     cerr << "MctsAgent: ERROR: find_child_node_played returned a node with no children"
-        //          << endl;
-        // }
-    }
-
-    if (this->_root_node == NULL || this->_root_node->children_nodes.size() == 0)
-    {
-        expand_node(this->_root_node);
+        // Sometimes we haven't explore the move played by the opponent yet.
+        // The parent node could be expanded but the child not visited yet.
+        if (this->_root_node == NULL || this->_root_node->resulting_board == NULL)
+        {
+            cerr << "MctsAgent: get_qualities(): ERROR: this->_root_node == NULL or "
+                    "this->_root_node->resulting_board == NULL"
+                 << endl;
+            create_root_node(board);
+        }
     }
 
     this->_nodes_explored = 0;
@@ -80,39 +77,17 @@ void MctsAgent::get_qualities(Board *board, vector<float> *qualities)
 
     this->_nodes_explored = this->_root_node->visits;
     this->_winrate = this->_root_node->value / this->_root_node->visits;
-
-    // BotPlayer maximizes the score for white and minimizes it for black
-    int player = board->is_white_turn() ? 1 : -1;
-
-    // Use child->utc_exploitation instead of visits ?
-    for (size_t i = 0; i < this->_root_node->children_nodes.size(); i++)
-        qualities->push_back(player * this->_root_node->children_nodes[i]->visits);
-
-    // if (qualities->size() != this->_root_node->children_nodes.size())
-    // {
-    //     cerr << "MctsAgent: ERROR: qualities.size() != this->_root_node->children_nodes.size() "
-    //          << endl;
-    //     cerr << "qualities.size() = " << qualities->size() << endl;
-    //     cerr << "this->_root_node->children_nodes.size() = "
-    //          << this->_root_node->children_nodes.size() << endl;
-    // }
-
-    float dtime = elapsed_time(this->_turn_start_clock);
-
-    if (dtime >= _ms_constraint)
-        cerr << "MctsAgent: TIMEOUT: dtime=" << dtime << "/" << this->_ms_constraint << "ms"
-             << endl;
 }
 
 vector<string> MctsAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMctsPv-3.9.8");
+    stats.push_back("version=BbMctsPv-3.10.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
     stats.push_back("winrate=" + to_string(this->_winrate));
-    cerr << "BbMctsPv-3.9.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
+    cerr << "BbMctsPv-3.10.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << " "
          << stats[3] << endl;
     return stats;
 }
@@ -124,6 +99,16 @@ string MctsAgent::get_name()
 }
 
 // --- PUBLIC METHODS ---
+
+void MctsAgent::create_root_node(Board *board)
+{
+    this->_root_node = new Node();
+    this->_root_node->resulting_board = board->clone();
+    this->_root_node->visits = 1;
+    this->_root_node->utc_parent_exploration = 1;
+
+    expand_node(this->_root_node);
+}
 
 Node *MctsAgent::find_child_node_played(Board *board)
 {

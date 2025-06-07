@@ -217,16 +217,15 @@ class Board
         void _create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst);
         void _create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
-        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
+        void _create_promotion_move(char piece, uint64_t src, uint64_t dst, char promotion);
+        void _create_move(char piece, uint64_t src, uint64_t dst);
 
         // - Bit operations -
+        using methodAddrWith3Params = void (Board::*)(char, uint64_t, uint64_t);
 
         void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
         void _apply_function_on_all_pieces(
-            uint64_t                                      bitboard,
-            std::function<void(char, uint64_t, uint64_t)> func,
-            char                                          param1,
-            uint64_t                                      param2
+            methodAddrWith3Params func, uint64_t bitboard, char param1, uint64_t param2
         );
         uint64_t _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
         uint64_t _get_line_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);

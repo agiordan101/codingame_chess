@@ -31,11 +31,12 @@ using namespace std;
 #define BITMASK_WHITE_CELLS 0xAA55AA55AA55AA55UL
 #define BITMASK_BLACK_CELLS 0x55AA55AA55AA55AAUL
 
-#define BITMASK_LINE_81 0xFF000000000000FFUL
+#define BITMASK_LINE_8  0x00000000000000FFUL
 #define BITMASK_LINE_7  0x000000000000FF00UL
 #define BITMASK_LINE_65 0x00000000FFFF0000UL
 #define BITMASK_LINE_43 0x0000FFFF00000000UL
 #define BITMASK_LINE_2  0x00FF000000000000UL
+#define BITMASK_LINE_1  0xFF00000000000000UL
 
 #define BITMASK_CASTLE_BLACK_LEFT_KING  0x0000000000000004UL
 #define BITMASK_CASTLE_BLACK_LEFT_ROOK  0x0000000000000008UL
@@ -428,11 +429,18 @@ class Board
         void _find_black_king_moves();
         void _find_black_castle_moves(uint64_t dst);
 
-        void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
+        void _create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst);
+        void _create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
-        void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
+        void _create_promotion_move(char piece, uint64_t src, uint64_t dst, char promotion);
+        void _create_move(char piece, uint64_t src, uint64_t dst);
+
+        using methodAddrWith3Params = void (Board::*)(char, uint64_t, uint64_t);
 
         void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
+        void _apply_function_on_all_pieces(
+            methodAddrWith3Params func, uint64_t bitboard, char param1, uint64_t param2
+        );
         uint64_t _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
         uint64_t _get_line_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
         uint64_t
@@ -1980,14 +1988,13 @@ void Board::_find_white_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
         legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        _add_regular_move_or_promotion('P', src, dst);
+    uint64_t legal_advances = legal_moves & ~BITMASK_LINE_8;
+    uint64_t legal_promotions = legal_moves & BITMASK_LINE_8;
 
-        legal_moves ^= dst;
-    }
+    _apply_function_on_all_pieces(&Board::_create_move, legal_advances, 'P', src);
+    _apply_function_on_all_pieces(
+        &Board::_create_white_pawn_promotions, legal_promotions, 'P', src
+    );
 }
 
 void Board::_find_white_knights_moves(uint64_t src)
@@ -2097,14 +2104,13 @@ void Board::_find_black_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
         legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        _add_regular_move_or_promotion('p', src, dst);
+    uint64_t legal_advances = legal_moves & ~BITMASK_LINE_1;
+    uint64_t legal_promotions = legal_moves & BITMASK_LINE_1;
 
-        legal_moves ^= dst;
-    }
+    _apply_function_on_all_pieces(&Board::_create_move, legal_advances, 'p', src);
+    _apply_function_on_all_pieces(
+        &Board::_create_black_pawn_promotions, legal_promotions, 'p', src
+    );
 }
 
 void Board::_find_black_knights_moves(uint64_t src)
@@ -2202,19 +2208,6 @@ void Board::_find_black_castle_moves(uint64_t rook)
     }
 }
 
-void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
-{
-    if (dst & BITMASK_LINE_81)
-    {
-        _create_move(piece, src, dst, 'n');
-        _create_move(piece, src, dst, 'b');
-        _create_move(piece, src, dst, 'r');
-        _create_move(piece, src, dst, 'q');
-    }
-    else
-        _create_move(piece, src, dst);
-}
-
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
     uint64_t dst;
@@ -2227,9 +2220,30 @@ void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
     }
 }
 
-void Board::_create_move(char piece, uint64_t src, uint64_t dst, char promotion)
+void Board::_create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst)
+{
+    _create_promotion_move(piece, src, dst, 'N');
+    _create_promotion_move(piece, src, dst, 'B');
+    _create_promotion_move(piece, src, dst, 'R');
+    _create_promotion_move(piece, src, dst, 'Q');
+}
+
+void Board::_create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst)
+{
+    _create_promotion_move(piece, src, dst, 'n');
+    _create_promotion_move(piece, src, dst, 'b');
+    _create_promotion_move(piece, src, dst, 'r');
+    _create_promotion_move(piece, src, dst, 'q');
+}
+
+void Board::_create_promotion_move(char piece, uint64_t src, uint64_t dst, char promotion)
 {
     this->available_moves.push_back(Move(piece, src, dst, promotion));
+}
+
+void Board::_create_move(char piece, uint64_t src, uint64_t dst)
+{
+    this->available_moves.push_back(Move(piece, src, dst));
 }
 
 void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
@@ -2239,6 +2253,20 @@ void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(
     {
         piece = _get_least_significant_bit(bitboard);
         func(piece);
+
+        bitboard ^= piece;
+    }
+}
+
+void Board::_apply_function_on_all_pieces(
+    methodAddrWith3Params func, uint64_t bitboard, char param1, uint64_t param2
+)
+{
+    uint64_t piece;
+    while (bitboard)
+    {
+        piece = _get_least_significant_bit(bitboard);
+        (this->*func)(param1, param2, piece);
 
         bitboard ^= piece;
     }
@@ -2751,8 +2779,7 @@ bool Move::operator==(Move *other)
            (this->piece == other->piece || this->piece == EMPTY_CELL || other->piece == EMPTY_CELL
            ) &&
            this->src == other->src && this->dst == other->dst &&
-           tolower(this->promotion) == tolower(other->promotion) &&
-           this->castle_info == other->castle_info;
+           this->promotion == other->promotion && this->castle_info == other->castle_info;
 }
 
 bool Move::compare_move_vector(vector<Move> movelst1, vector<Move> movelst2)

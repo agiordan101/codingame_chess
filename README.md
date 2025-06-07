@@ -364,6 +364,8 @@ Inside the file :
                 * 22% in BbMmabPv-3.1.6
                 * 17% in BbMmabPv-3.1.8
 
+    * Create a bitwise.cpp file
+
     * Improve Heuristic
         * Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic
         Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created

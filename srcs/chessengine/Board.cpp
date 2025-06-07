@@ -1188,7 +1188,19 @@ void Board::_find_white_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
         legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_white_pawn_moves(src, legal_moves);
+    uint64_t legal_advances = legal_moves & ~BITMASK_LINE_8;
+    uint64_t legal_promotions = legal_moves & BITMASK_LINE_8;
+
+    _apply_function_on_all_pieces(
+        legal_advances,
+        [this](char piece, uint64_t src, uint64_t dst) { _create_move(piece, src, dst); }, 'P', src
+    );
+    _apply_function_on_all_pieces(
+        legal_promotions,
+        [this](char piece, uint64_t src, uint64_t dst)
+        { _create_white_pawn_promotions(piece, src, dst); },
+        'P', src
+    );
 }
 
 void Board::_find_white_knights_moves(uint64_t src)
@@ -1305,7 +1317,19 @@ void Board::_find_black_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
         legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_black_pawn_moves(src, legal_moves);
+    uint64_t legal_advances = legal_moves & ~BITMASK_LINE_1;
+    uint64_t legal_promotions = legal_moves & BITMASK_LINE_1;
+
+    _apply_function_on_all_pieces(
+        legal_advances,
+        [this](char piece, uint64_t src, uint64_t dst) { _create_move(piece, src, dst); }, 'p', src
+    );
+    _apply_function_on_all_pieces(
+        legal_promotions,
+        [this](char piece, uint64_t src, uint64_t dst)
+        { _create_black_pawn_promotions(piece, src, dst); },
+        'p', src
+    );
 }
 
 void Board::_find_black_knights_moves(uint64_t src)
@@ -1408,59 +1432,6 @@ void Board::_find_black_castle_moves(uint64_t rook)
     }
 }
 
-// TODO: Replace by _apply_function_on_all_pieces()
-void Board::_create_white_pawn_moves(uint64_t src, uint64_t legal_moves)
-{
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        if (dst & BITMASK_LINE_8)
-        {
-            // Promotions (As UCI representation is always lowercase, finale piece case doesn't
-            // matter) Maybe we don't, because future move application will create a black piece
-            // !!!!!!
-            _create_move('P', src, dst, 'N');
-            _create_move('P', src, dst, 'B');
-            _create_move('P', src, dst, 'R');
-            _create_move('P', src, dst, 'Q');
-        }
-        else
-            _create_move('P', src, dst);
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
-}
-
-// TODO: Replace by _apply_function_on_all_pieces()
-void Board::_create_black_pawn_moves(uint64_t src, uint64_t legal_moves)
-{
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        if (dst & BITMASK_LINE_1)
-        {
-            // Promotions (As UCI representation is always lowercase, finale piece case doesn't
-            // matter) Maybe we don't, because future move application will create a black piece
-            // !!!!!!
-            _create_move('p', src, dst, 'n');
-            _create_move('p', src, dst, 'b');
-            _create_move('p', src, dst, 'r');
-            _create_move('p', src, dst, 'q');
-        }
-        else
-            _create_move('p', src, dst);
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
-}
-
-// TODO: Replace by _apply_function_on_all_pieces()
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
     // Find all individual bits in legal_moves
@@ -1473,6 +1444,22 @@ void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
         // Remove the actual bit from legal_moves, so we can find the next one
         legal_moves ^= dst;
     }
+}
+
+void Board::_create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst)
+{
+    _create_move(piece, src, dst, 'N');
+    _create_move(piece, src, dst, 'B');
+    _create_move(piece, src, dst, 'R');
+    _create_move(piece, src, dst, 'Q');
+}
+
+void Board::_create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst)
+{
+    _create_move(piece, src, dst, 'n');
+    _create_move(piece, src, dst, 'b');
+    _create_move(piece, src, dst, 'r');
+    _create_move(piece, src, dst, 'q');
 }
 
 void Board::_create_move(char piece, uint64_t src, uint64_t dst, char promotion)
@@ -1490,6 +1477,25 @@ void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(
     {
         piece = _get_least_significant_bit(bitboard);
         func(piece);
+
+        // Remove the actual bit from bitboard, so we can find the next one
+        bitboard ^= piece;
+    }
+}
+
+void Board::_apply_function_on_all_pieces(
+    uint64_t                                      bitboard,
+    std::function<void(char, uint64_t, uint64_t)> func,
+    char                                          param1,
+    uint64_t                                      param2
+)
+{
+    // Find all individual bits in bitboard
+    uint64_t piece;
+    while (bitboard)
+    {
+        piece = _get_least_significant_bit(bitboard);
+        func(param1, param2, piece);
 
         // Remove the actual bit from bitboard, so we can find the next one
         bitboard ^= piece;

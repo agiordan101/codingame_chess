@@ -214,14 +214,20 @@ class Board
         void _find_black_king_moves();
         void _find_black_castle_moves(uint64_t dst);
 
-        void _create_white_pawn_moves(uint64_t src, uint64_t legal_moves);
-        void _create_black_pawn_moves(uint64_t src, uint64_t legal_moves);
+        void _create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst);
+        void _create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
         void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
 
         // - Bit operations -
 
         void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
+        void _apply_function_on_all_pieces(
+            uint64_t                                      bitboard,
+            std::function<void(char, uint64_t, uint64_t)> func,
+            char                                          param1,
+            uint64_t                                      param2
+        );
         uint64_t _get_diagonal_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
         uint64_t _get_line_rays(uint64_t src, uint64_t piece_to_ignore = 0UL);
         uint64_t

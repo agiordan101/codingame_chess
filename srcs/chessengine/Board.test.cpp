@@ -466,10 +466,10 @@ int find_pawn_moves_testLauncher()
     requested_moves[7] = new Move('p', 1UL << 22, 1UL << 30); // Advance 1 (By the 1st blocker)
     requested_moves[8] = new Move('p', 1UL << 15, 1UL << 23); // Advance 1 (Against ally)
     requested_moves[9] = new Move('p', 1UL << 31, 1UL << 39); // Advance 1 (By the 2nd blocker)
-    requested_moves[10] = new Move('p', 1UL << 48, 1UL << 56, 'N'); // Promotion
-    requested_moves[11] = new Move('p', 1UL << 48, 1UL << 56, 'B'); // Promotion
-    requested_moves[12] = new Move('p', 1UL << 48, 1UL << 56, 'R'); // Promotion
-    requested_moves[13] = new Move('p', 1UL << 48, 1UL << 56, 'Q'); // Promotion
+    requested_moves[10] = new Move('p', 1UL << 48, 1UL << 56, 'n'); // Promotion
+    requested_moves[11] = new Move('p', 1UL << 48, 1UL << 56, 'b'); // Promotion
+    requested_moves[12] = new Move('p', 1UL << 48, 1UL << 56, 'r'); // Promotion
+    requested_moves[13] = new Move('p', 1UL << 48, 1UL << 56, 'q'); // Promotion
     requested_moves[14] = new Move('p', 1UL << 44, 1UL << 53);      // En passant right
     requested_moves[15] = new Move('p', 1UL << 46, 1UL << 53);      // En passant left
     requested_moves[16] = new Move('p', 1UL << 44, 1UL << 52);      // Advance 1

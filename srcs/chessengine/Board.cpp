@@ -1188,16 +1188,7 @@ void Board::_find_white_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_2 && (src >> 8) & empty_cells_mask)
         legal_moves |= (src >> 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        _add_regular_move_or_promotion('P', src, dst);
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
+    _create_white_pawn_moves(src, legal_moves);
 }
 
 void Board::_find_white_knights_moves(uint64_t src)
@@ -1314,16 +1305,7 @@ void Board::_find_black_pawns_moves(uint64_t src)
     if (src & BITMASK_LINE_7 && (src << 8) & empty_cells_mask)
         legal_moves |= (src << 16) & empty_cells_mask & pawn_uncheck_mask & pin_masks[src_lkt_i];
 
-    // Find all individual bits in legal_moves
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        _add_regular_move_or_promotion('p', src, dst);
-
-        // Remove the actual bit from legal_moves, so we can find the next one
-        legal_moves ^= dst;
-    }
+    _create_black_pawn_moves(src, legal_moves);
 }
 
 void Board::_find_black_knights_moves(uint64_t src)
@@ -1426,20 +1408,59 @@ void Board::_find_black_castle_moves(uint64_t rook)
     }
 }
 
-void Board::_add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst)
+// TODO: Replace by _apply_function_on_all_pieces()
+void Board::_create_white_pawn_moves(uint64_t src, uint64_t legal_moves)
 {
-    if (dst & BITMASK_LINE_81)
+    // Find all individual bits in legal_moves
+    uint64_t dst;
+    while (legal_moves)
     {
-        // Promotions (As UCI representation is always lowercase, finale piece case doesn't matter)
-        _create_move(piece, src, dst, 'n');
-        _create_move(piece, src, dst, 'b');
-        _create_move(piece, src, dst, 'r');
-        _create_move(piece, src, dst, 'q');
+        dst = _get_least_significant_bit(legal_moves);
+        if (dst & BITMASK_LINE_8)
+        {
+            // Promotions (As UCI representation is always lowercase, finale piece case doesn't
+            // matter) Maybe we don't, because future move application will create a black piece
+            // !!!!!!
+            _create_move('P', src, dst, 'N');
+            _create_move('P', src, dst, 'B');
+            _create_move('P', src, dst, 'R');
+            _create_move('P', src, dst, 'Q');
+        }
+        else
+            _create_move('P', src, dst);
+
+        // Remove the actual bit from legal_moves, so we can find the next one
+        legal_moves ^= dst;
     }
-    else
-        _create_move(piece, src, dst);
 }
 
+// TODO: Replace by _apply_function_on_all_pieces()
+void Board::_create_black_pawn_moves(uint64_t src, uint64_t legal_moves)
+{
+    // Find all individual bits in legal_moves
+    uint64_t dst;
+    while (legal_moves)
+    {
+        dst = _get_least_significant_bit(legal_moves);
+        if (dst & BITMASK_LINE_1)
+        {
+            // Promotions (As UCI representation is always lowercase, finale piece case doesn't
+            // matter) Maybe we don't, because future move application will create a black piece
+            // !!!!!!
+            _create_move('p', src, dst, 'n');
+            _create_move('p', src, dst, 'b');
+            _create_move('p', src, dst, 'r');
+            _create_move('p', src, dst, 'q');
+        }
+        else
+            _create_move('p', src, dst);
+
+        // Remove the actual bit from legal_moves, so we can find the next one
+        legal_moves ^= dst;
+    }
+}
+
+// TODO: Replace by _apply_function_on_all_pieces()
 void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
 {
     // Find all individual bits in legal_moves

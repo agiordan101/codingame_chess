@@ -214,7 +214,8 @@ class Board
         void _find_black_king_moves();
         void _find_black_castle_moves(uint64_t dst);
 
-        void _add_regular_move_or_promotion(char piece, uint64_t src, uint64_t dst);
+        void _create_white_pawn_moves(uint64_t src, uint64_t legal_moves);
+        void _create_black_pawn_moves(uint64_t src, uint64_t legal_moves);
         void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
         void _create_move(char piece, uint64_t src, uint64_t dst, char promotion = 0);
 

@@ -335,22 +335,27 @@ Inside the file :
                 *  7% in BbMctsPv-3.7.6
                 * 11% in BbMmabPv-3.1.6
                 *  8% in BbMmabPv-3.1.8
+                *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
             * Board::_compute_game_state() :
                 * 22% in BbMctsPv-3.7.6
                 * 28% in BbMmabPv-3.1.6
                 * 20% in BbMmabPv-3.1.8
+                * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
             * Board::_find_move() :
                 * 12% in BbMctsPv-3.7.6
                 * 19% in BbMmabPv-3.1.6
                 * 14% in BbMmabPv-3.1.8
+                * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
             * Board::_apply_move() :
                 *  8% in BbMctsPv-3.7.6
                 * 13% in BbMmabPv-3.1.6
                 *  9% in BbMmabPv-3.1.8
+                *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
             * Board::_find_white_pawns_moves() :
                 *  5% in BbMctsPv-3.7.6
                 *  8% in BbMmabPv-3.1.6
                 *  6% in BbMmabPv-3.1.8
+                *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
                     * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
                     * Try to get rid of while()
 

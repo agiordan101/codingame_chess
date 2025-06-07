@@ -111,22 +111,21 @@ Each of them have a version number, in respect of the order.
 
 Examples:
 
-    * BMm2Pv / board_minimax[2]_piecevalues (No thinking time yet, just depth level)
     * BbMmPv / bitboard_minimax[50]_piecevalues
-    * BbMmttPv / bitboard_minimaxtranstable[50]_piecevalues
+    * BbMmttPv-2.4.5  / bitboard_minimaxtranstable[50]_piecevalues
 
 Git tag should be created when bot is stable and a next version begin to be developed.
-All bots should be kept locally as executable to benchmarch them. (History files keeping track of all games between versions ? Saved in git)
+All bots should be kept locally as executables and source code, to benchmarch them.
 Bot versions must be created on their tag commit. For example, an older version shouldn't be impacted by an engine fix (so benchmarks can conclude the fix has really improved the new bot version...)
 All versions should have a ELO rating.
 
 Before creating a new version :
 - make format
 - make test
-- Make sure it wins against the previous version (versus.py)
+- Make sure it wins against the previous version
 - Change version number in Agent
 - Change version number in Makefile
-- make buildcg
+- make run
 
 ## Bot versions deployed in CodinGame
 
@@ -282,6 +281,7 @@ Despite the rules, the final position after castling is always the same:
 
 ### Python tools
 
+!!! NOT UP TO DATE !!!
 * What do I want from python :
     - Benchmark heuristic (See next sections)
         * Create a protocol and use stockfish for a MSE for example. (hard to normalize stockfish output ?)
@@ -294,6 +294,7 @@ Info about Stockfish :
 
 #### Heuristics benchmarks
 
+!!! NOT UP TO DATE !!!
 Heuristic values should be between -1 and 1. Will be easier for deep learning, tree searchs and comparaison between heuristics :
     -1 : Black wins
     0 : Balanced game
@@ -307,7 +308,7 @@ Do a MSE between heuristic policies and Stockfish results ?
 
 ### Unit testing
 
-Not up to date !
+!!! NOT UP TO DATE !!!
 All unit tests file must have the class name their are testing, with ".test.cpp" as suffix.
 
 Inside the file :
@@ -359,12 +360,11 @@ Inside the file :
                 * 17% in BbMmabPv-3.1.8
 
     * Improve Heuristic
-
-    * Revert Heuristic version 6 ? Do that when upgrading the heuristic
-       Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
-        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
-        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
-        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
+        * Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic
+        Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
+            ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
+            1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
+            2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
 
     * Re-implemente transposition table ?
         * Board zobrist :
@@ -467,9 +467,6 @@ Inside the file :
 
 
 ## Externals C++ libraries
-
-### Time
-https://stackoverflow.com/questions/21856025/getting-an-accurate-execution-time-in-c-micro-seconds
 
 ## Notes (12.01.23)
 

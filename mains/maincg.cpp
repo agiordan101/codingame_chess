@@ -431,13 +431,13 @@ class Board
 
         void _create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst);
         void _create_black_pawn_promotions(char piece, uint64_t src, uint64_t dst);
-        void _create_piece_moves(char piece, uint64_t src, uint64_t legal_moves);
         void _create_promotion_move(char piece, uint64_t src, uint64_t dst, char promotion);
         void _create_move(char piece, uint64_t src, uint64_t dst);
 
+        using methodAddrWith1Params = void (Board::*)(uint64_t);
         using methodAddrWith3Params = void (Board::*)(char, uint64_t, uint64_t);
 
-        void _apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func);
+        void _apply_function_on_all_pieces(methodAddrWith1Params func, uint64_t bitboard);
         void _apply_function_on_all_pieces(
             methodAddrWith3Params func, uint64_t bitboard, char param1, uint64_t param2
         );
@@ -1774,38 +1774,18 @@ void Board::_update_pawn_check(int king_lkt_i)
 
 void Board::_update_attacked_cells_masks()
 {
-    _apply_function_on_all_pieces(
-        black_pawns, [this](uint64_t param) { _find_black_pawns_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        black_knights, [this](uint64_t param) { _find_black_knights_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        black_bishops, [this](uint64_t param) { _find_black_bishops_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        black_rooks, [this](uint64_t param) { _find_black_rooks_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        black_queens, [this](uint64_t param) { _find_black_queens_attacks(param); }
-    );
+    _apply_function_on_all_pieces(&Board::_find_black_pawns_attacks, black_pawns);
+    _apply_function_on_all_pieces(&Board::_find_black_knights_attacks, black_knights);
+    _apply_function_on_all_pieces(&Board::_find_black_bishops_attacks, black_bishops);
+    _apply_function_on_all_pieces(&Board::_find_black_rooks_attacks, black_rooks);
+    _apply_function_on_all_pieces(&Board::_find_black_queens_attacks, black_queens);
     _find_black_king_attacks();
 
-    _apply_function_on_all_pieces(
-        white_pawns, [this](uint64_t param) { _find_white_pawns_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        white_knights, [this](uint64_t param) { _find_white_knights_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        white_bishops, [this](uint64_t param) { _find_white_bishops_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        white_rooks, [this](uint64_t param) { _find_white_rooks_attacks(param); }
-    );
-    _apply_function_on_all_pieces(
-        white_queens, [this](uint64_t param) { _find_white_queens_attacks(param); }
-    );
+    _apply_function_on_all_pieces(&Board::_find_white_pawns_attacks, white_pawns);
+    _apply_function_on_all_pieces(&Board::_find_white_knights_attacks, white_knights);
+    _apply_function_on_all_pieces(&Board::_find_white_bishops_attacks, white_bishops);
+    _apply_function_on_all_pieces(&Board::_find_white_rooks_attacks, white_rooks);
+    _apply_function_on_all_pieces(&Board::_find_white_queens_attacks, white_queens);
     _find_white_king_attacks();
 }
 
@@ -1926,24 +1906,12 @@ void Board::_find_moves()
     {
         if (!double_check)
         {
-            _apply_function_on_all_pieces(
-                white_pawns, [this](uint64_t param) { _find_white_pawns_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_queens, [this](uint64_t param) { _find_white_queens_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_rooks, [this](uint64_t param) { _find_white_rooks_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_bishops, [this](uint64_t param) { _find_white_bishops_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_knights, [this](uint64_t param) { _find_white_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                white_castles, [this](uint64_t param) { _find_white_castle_moves(param); }
-            );
+            _apply_function_on_all_pieces(&Board::_find_white_pawns_moves, white_pawns);
+            _apply_function_on_all_pieces(&Board::_find_white_queens_moves, white_queens);
+            _apply_function_on_all_pieces(&Board::_find_white_rooks_moves, white_rooks);
+            _apply_function_on_all_pieces(&Board::_find_white_bishops_moves, white_bishops);
+            _apply_function_on_all_pieces(&Board::_find_white_knights_moves, white_knights);
+            _apply_function_on_all_pieces(&Board::_find_white_castle_moves, white_castles);
         }
         _find_white_king_moves();
     }
@@ -1951,24 +1919,12 @@ void Board::_find_moves()
     {
         if (!double_check)
         {
-            _apply_function_on_all_pieces(
-                black_pawns, [this](uint64_t param) { _find_black_pawns_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_queens, [this](uint64_t param) { _find_black_queens_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_rooks, [this](uint64_t param) { _find_black_rooks_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_bishops, [this](uint64_t param) { _find_black_bishops_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_knights, [this](uint64_t param) { _find_black_knights_moves(param); }
-            );
-            _apply_function_on_all_pieces(
-                black_castles, [this](uint64_t param) { _find_black_castle_moves(param); }
-            );
+            _apply_function_on_all_pieces(&Board::_find_black_pawns_moves, black_pawns);
+            _apply_function_on_all_pieces(&Board::_find_black_queens_moves, black_queens);
+            _apply_function_on_all_pieces(&Board::_find_black_rooks_moves, black_rooks);
+            _apply_function_on_all_pieces(&Board::_find_black_bishops_moves, black_bishops);
+            _apply_function_on_all_pieces(&Board::_find_black_knights_moves, black_knights);
+            _apply_function_on_all_pieces(&Board::_find_black_castle_moves, black_castles);
         }
         _find_black_king_moves();
     }
@@ -2003,7 +1959,7 @@ void Board::_find_white_knights_moves(uint64_t src)
     uint64_t legal_moves =
         knight_lookup[src_lkt_i] & not_white_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('N', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'N', src);
 }
 
 void Board::_find_white_bishops_moves(uint64_t src)
@@ -2012,7 +1968,7 @@ void Board::_find_white_bishops_moves(uint64_t src)
     uint64_t legal_moves =
         not_white_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('B', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'B', src);
 }
 
 void Board::_find_white_rooks_moves(uint64_t src)
@@ -2021,7 +1977,7 @@ void Board::_find_white_rooks_moves(uint64_t src)
     uint64_t legal_moves =
         not_white_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('R', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'R', src);
 }
 
 void Board::_find_white_queens_moves(uint64_t src)
@@ -2030,7 +1986,7 @@ void Board::_find_white_queens_moves(uint64_t src)
     uint64_t legal_moves = not_white_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) &
                            uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('Q', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'Q', src);
 }
 
 void Board::_find_white_king_moves()
@@ -2041,7 +1997,7 @@ void Board::_find_white_king_moves()
         uint64_t legal_moves =
             king_lookup[src_lkt_i] & not_white_pieces_mask & ~attacked_by_black_mask;
 
-        _create_piece_moves('K', white_king, legal_moves);
+        _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'K', white_king);
     }
 }
 
@@ -2119,7 +2075,7 @@ void Board::_find_black_knights_moves(uint64_t src)
     uint64_t legal_moves =
         knight_lookup[src_lkt_i] & not_black_pieces_mask & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('n', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'n', src);
 }
 
 void Board::_find_black_bishops_moves(uint64_t src)
@@ -2128,7 +2084,7 @@ void Board::_find_black_bishops_moves(uint64_t src)
     uint64_t legal_moves =
         not_black_pieces_mask & _get_diagonal_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('b', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'b', src);
 }
 
 void Board::_find_black_rooks_moves(uint64_t src)
@@ -2137,7 +2093,7 @@ void Board::_find_black_rooks_moves(uint64_t src)
     uint64_t legal_moves =
         not_black_pieces_mask & _get_line_rays(src) & uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('r', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'r', src);
 }
 
 void Board::_find_black_queens_moves(uint64_t src)
@@ -2146,7 +2102,7 @@ void Board::_find_black_queens_moves(uint64_t src)
     uint64_t legal_moves = not_black_pieces_mask & (_get_diagonal_rays(src) | _get_line_rays(src)) &
                            uncheck_mask & pin_masks[src_lkt_i];
 
-    _create_piece_moves('q', src, legal_moves);
+    _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'q', src);
 }
 
 void Board::_find_black_king_moves()
@@ -2157,7 +2113,7 @@ void Board::_find_black_king_moves()
         uint64_t legal_moves =
             king_lookup[src_lkt_i] & not_black_pieces_mask & ~attacked_by_white_mask;
 
-        _create_piece_moves('k', black_king, legal_moves);
+        _apply_function_on_all_pieces(&Board::_create_move, legal_moves, 'k', black_king);
     }
 }
 
@@ -2208,18 +2164,6 @@ void Board::_find_black_castle_moves(uint64_t rook)
     }
 }
 
-void Board::_create_piece_moves(char piece, uint64_t src, uint64_t legal_moves)
-{
-    uint64_t dst;
-    while (legal_moves)
-    {
-        dst = _get_least_significant_bit(legal_moves);
-        _create_move(piece, src, dst);
-
-        legal_moves ^= dst;
-    }
-}
-
 void Board::_create_white_pawn_promotions(char piece, uint64_t src, uint64_t dst)
 {
     _create_promotion_move(piece, src, dst, 'N');
@@ -2246,13 +2190,13 @@ void Board::_create_move(char piece, uint64_t src, uint64_t dst)
     this->available_moves.push_back(Move(piece, src, dst));
 }
 
-void Board::_apply_function_on_all_pieces(uint64_t bitboard, std::function<void(uint64_t)> func)
+void Board::_apply_function_on_all_pieces(methodAddrWith1Params func, uint64_t bitboard)
 {
     uint64_t piece;
     while (bitboard)
     {
         piece = _get_least_significant_bit(bitboard);
-        func(piece);
+        (this->*func)(piece);
 
         bitboard ^= piece;
     }

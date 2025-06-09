@@ -112,11 +112,9 @@ void MctsAgent::create_root_node(Board *board)
 
 Node *MctsAgent::find_child_node_played(Board *board)
 {
-    string actual_fen = board->get_fen();
-
     for (Node *child : this->_root_node->children_nodes)
     {
-        if (actual_fen == child->resulting_board->get_fen())
+        if (*board == child->resulting_board)
         {
             return child;
         }

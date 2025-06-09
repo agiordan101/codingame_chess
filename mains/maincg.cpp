@@ -243,7 +243,19 @@ class Move
 
 #pragma region Board
 
-#define FEN_HISTORY_SIZE 50
+typedef struct s_serialized_fen
+{
+        __int128 serialized_pawns;
+        __int128 serialized_knights;
+        __int128 serialized_bishops;
+        __int128 serialized_rooks;
+        __int128 serialized_queens;
+        __int128 serialized_kings;
+        uint32_t serialized_last_info;
+} t_serialized_fen;
+
+#define FEN_HISTORY_SIZE        50
+#define SIZEOF_T_SERIALIZED_FEN sizeof(t_serialized_fen)
 
 class Board
 {
@@ -320,7 +332,6 @@ class Board
         uint64_t      get_castling_rights();
         static string get_name();
 
-        string get_fen();
         string create_fen(bool with_turns = true);
         Board *clone();
 
@@ -355,8 +366,9 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
-        string fen_history[FEN_HISTORY_SIZE];
-        int    fen_history_index;
+        int               current_sfen_history_index;
+        t_serialized_fen  serialized_fen_history[FEN_HISTORY_SIZE];
+        t_serialized_fen *current_sfen;
 
         void _main_parsing(
             string _board,
@@ -385,12 +397,15 @@ class Board
         void _capture_white_pieces(uint64_t dst);
         void _capture_black_pieces(uint64_t dst);
 
+        uint8_t _serialized_fen_castles_rights(uint64_t castles);
+        uint8_t _serialize_en_passant();
+
         void _update_engine_at_turn_end();
         void _update_engine_at_turn_start();
         void _update_check_and_pins();
         void _update_pawn_check(int king_lkt_i);
         void _update_attacked_cells_masks();
-        void _update_fen_history();
+        void _update_serialized_fen_history();
 
         void _find_white_pawns_attacks(uint64_t src);
         void _find_white_knights_attacks(uint64_t src);
@@ -1204,11 +1219,6 @@ string Board::create_fen(bool with_turns)
     return fen_string;
 }
 
-string Board::get_fen()
-{
-    return this->fen_history[this->fen_history_index - 1];
-}
-
 Board *Board::clone()
 {
     Board *cloned_board = new Board();
@@ -1253,10 +1263,9 @@ void Board::_main_parsing(
     game_state_computed = false;
     engine_data_updated = false;
 
-    fen_history_index = 0;
-    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-        fen_history[i] = string();
-    _update_fen_history();
+    current_sfen_history_index = 0;
+    current_sfen = NULL;
+    _update_serialized_fen_history();
 }
 
 void Board::_initialize_bitboards()
@@ -1805,17 +1814,68 @@ void Board::_update_engine_at_turn_end()
         game_turn += 1;
     white_turn = !white_turn;
 
-    _update_fen_history();
+    _update_serialized_fen_history();
 }
 
-void Board::_update_fen_history()
+uint8_t Board::_serialized_fen_castles_rights(uint64_t castles)
 {
-    string fen = create_fen(false);
+    uint8_t result = 0;
+    uint8_t availability_shift = 7;
+    uint8_t data_shift = 4;
+    while (castles)
+    {
+        result |= 1 << availability_shift;
 
-    if (fen_history_index == FEN_HISTORY_SIZE)
-        fen_history_index = 0;
+        uint64_t rook = _get_least_significant_bit(castles);
+        uint8_t  column = _count_trailing_zeros(rook) % 8;
 
-    fen_history[fen_history_index++] = fen;
+        result |= column << data_shift;
+
+        availability_shift -= 4;
+        data_shift -= 4;
+
+        castles ^= rook;
+    }
+
+    return result;
+}
+
+uint8_t Board::_serialize_en_passant()
+{
+    if (en_passant == 0)
+        return 0;
+
+    uint64_t bit = _get_least_significant_bit(en_passant);
+    uint8_t  pos = _count_trailing_zeros(bit);
+
+    return (pos % 8) << 3 | (pos / 8);
+}
+
+void Board::_update_serialized_fen_history()
+{
+
+    current_sfen_history_index++;
+
+    if (current_sfen_history_index == FEN_HISTORY_SIZE)
+        current_sfen_history_index = 0;
+
+    current_sfen = &serialized_fen_history[current_sfen_history_index];
+
+    current_sfen->serialized_pawns = white_pawns | ((__int128)black_pawns << 64);
+    current_sfen->serialized_knights = white_knights | ((__int128)black_knights << 64);
+    current_sfen->serialized_bishops = white_bishops | ((__int128)black_bishops << 64);
+    current_sfen->serialized_rooks = white_rooks | ((__int128)black_rooks << 64);
+    current_sfen->serialized_queens = white_queens | ((__int128)black_queens << 64);
+    current_sfen->serialized_kings = white_king | ((__int128)black_king << 64);
+
+    uint8_t turns_bit = (white_turn ? 0b0 : 0b11111111);
+    uint8_t white_castles_bits = _serialized_fen_castles_rights(white_castles);
+    uint8_t black_castles_bits = _serialized_fen_castles_rights(black_castles);
+    uint8_t en_passant_bits = _serialize_en_passant();
+
+    current_sfen->serialized_last_info = turns_bit | ((uint32_t)white_castles_bits << 8) |
+                                         ((uint32_t)black_castles_bits << 16) |
+                                         ((uint32_t)en_passant_bits << 24);
 }
 
 void Board::_find_white_pawns_attacks(uint64_t src)
@@ -2418,18 +2478,21 @@ float Board::_compute_game_state()
 
 bool Board::_threefold_repetition_rule()
 {
-    int    actual_fen_index = fen_history_index - 1;
-    string actual_fen = fen_history[actual_fen_index];
+    int max_history_size = min((game_turn + 1) * 2, FEN_HISTORY_SIZE);
 
     bool fen_found = false;
-    int  history_index = -1;
-    while (++history_index < FEN_HISTORY_SIZE)
-        if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
+    int  i = -1;
+    while (++i < max_history_size)
+    {
+        if (i != current_sfen_history_index &&
+            memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
             if (fen_found)
                 return true;
+
             fen_found = true;
         }
+    }
 
     return false;
 }
@@ -2462,7 +2525,9 @@ bool Board::_insufficient_material_rule()
 
 bool Board::operator==(Board *test_board_abstracted)
 {
-    return this->get_fen() == test_board_abstracted->get_fen();
+    return memcmp(
+               this->current_sfen, test_board_abstracted->current_sfen, SIZEOF_T_SERIALIZED_FEN
+           ) == 0;
 }
 
 void Board::_initialize_lookup_tables()

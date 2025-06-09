@@ -10,9 +10,21 @@
 #include "Move.hpp"
 #include "VisualBoard.hpp"
 
+typedef struct s_serialized_fen
+{
+        __int128 serialized_pawns;
+        __int128 serialized_knights;
+        __int128 serialized_bishops;
+        __int128 serialized_rooks;
+        __int128 serialized_queens;
+        __int128 serialized_kings;
+        uint32_t serialized_last_info;
+} t_serialized_fen;
+
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
-#define FEN_HISTORY_SIZE 50
+#define FEN_HISTORY_SIZE        50
+#define SIZEOF_T_SERIALIZED_FEN sizeof(t_serialized_fen)
 
 class Board
 {
@@ -99,7 +111,6 @@ class Board
         uint64_t      get_castling_rights();
         static string get_name();
 
-        string get_fen();
         string create_fen(bool with_turns = true);
         Board *clone();
 
@@ -137,10 +148,11 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
-        // FEN history is used to check the Threefold Repetition rule
-        // Each FEN is saved in the history after each move
-        string fen_history[FEN_HISTORY_SIZE];
-        int    fen_history_index;
+        // serialized FEN history is used to check the Threefold Repetition rule
+        // Each serialized FEN is saved in the history after each move
+        int               current_sfen_history_index;
+        t_serialized_fen  serialized_fen_history[FEN_HISTORY_SIZE];
+        t_serialized_fen *current_sfen;
 
         // // Function pointer to apply castle depending on the chess960 rule
         // bool    (Board::*_handle_castle)(int, int, int, int);
@@ -176,12 +188,15 @@ class Board
         void _capture_black_pieces(uint64_t dst);
 
         // - Engine updates -
+        uint8_t _serialized_fen_castles_rights(uint64_t castles);
+        uint8_t _serialize_en_passant();
+
         void _update_engine_at_turn_end();
         void _update_engine_at_turn_start();
         void _update_check_and_pins();
         void _update_pawn_check(int king_lkt_i);
         void _update_attacked_cells_masks();
-        void _update_fen_history();
+        void _update_serialized_fen_history();
 
         // - Piece attacks -
         void _find_white_pawns_attacks(uint64_t src);

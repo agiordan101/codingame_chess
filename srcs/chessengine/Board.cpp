@@ -304,29 +304,6 @@ string Board::create_fen(bool with_turns)
     return fen_string;
 }
 
-string Board::get_fen()
-{
-    return this->fen_history[this->fen_history_index - 1];
-}
-
-// Board *Board::clone()
-// {
-//     // TODO: Create a new constructor, taking an instance in param, which then copy all the
-//     needed
-//     // data instead of creating and parsing FEN
-//     Board *cloned_board = new Board(create_fen(), this->chess960_rule, this->codingame_rule);
-
-//     // Copy history
-//     for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-//     {
-//         if (this->fen_history[i].empty())
-//             break;
-//         cloned_board->fen_history[i] = this->fen_history[i];
-//     }
-
-//     return cloned_board;
-// }
-
 Board *Board::clone()
 {
     // Create empty instance
@@ -380,10 +357,9 @@ void Board::_main_parsing(
     game_state_computed = false;
     engine_data_updated = false;
 
-    fen_history_index = 0;
-    for (int i = 0; i < FEN_HISTORY_SIZE; i++)
-        fen_history[i] = string();
-    _update_fen_history();
+    current_sfen_history_index = 0;
+    current_sfen = NULL;
+    _update_serialized_fen_history();
 }
 
 void Board::_initialize_bitboards()
@@ -1001,19 +977,80 @@ void Board::_update_engine_at_turn_end()
         game_turn += 1;
     white_turn = !white_turn;
 
-    _update_fen_history();
+    _update_serialized_fen_history();
 }
 
-void Board::_update_fen_history()
+uint8_t Board::_serialized_fen_castles_rights(uint64_t castles)
 {
-    // Removing half turn rule and game turn (For future Threefold rule comparisons)
-    string fen = create_fen(false);
+    // Function to serialize a player castles rights into 8 bits in a uint8_t
+    uint8_t result = 0;
+    uint8_t availability_shift = 7;
+    uint8_t data_shift = 4; // Start with the higher 3 bits
 
-    // Loop the history
-    if (fen_history_index == FEN_HISTORY_SIZE)
-        fen_history_index = 0;
+    while (castles)
+    {
+        // Set first bit to 1 if there is a castle available
+        result |= 1 << availability_shift;
 
-    fen_history[fen_history_index++] = fen;
+        uint64_t rook = _get_least_significant_bit(castles);
+        uint8_t  column = _count_trailing_zeros(rook) % 8;
+
+        // Pack into result
+        result |= column << data_shift;
+
+        // Move to the next lower 4-bit section
+        availability_shift -= 4;
+        data_shift -= 4;
+
+        // Remove the actual rook from castles, so we can find the next one
+        castles ^= rook;
+    }
+
+    return result;
+}
+
+uint8_t Board::_serialize_en_passant()
+{
+    // Function to serialize en_passant into 6 bits in a uint8_t
+    if (en_passant == 0)
+        return 0;
+
+    uint64_t bit = _get_least_significant_bit(en_passant);
+    uint8_t  pos = _count_trailing_zeros(bit);
+
+    // Pack column and row into a uint8_t
+    return (pos % 8) << 3 | (pos / 8);
+}
+
+void Board::_update_serialized_fen_history()
+{
+    // Don't consider half turn rule and game turn (For future Threefold rule comparisons)
+
+    current_sfen_history_index++;
+
+    // Loop back to 0 if needed
+    if (current_sfen_history_index == FEN_HISTORY_SIZE)
+        current_sfen_history_index = 0;
+
+    current_sfen = &serialized_fen_history[current_sfen_history_index];
+
+    // Pack the pieces data into __int128 variables
+    current_sfen->serialized_pawns = white_pawns | ((__int128)black_pawns << 64);
+    current_sfen->serialized_knights = white_knights | ((__int128)black_knights << 64);
+    current_sfen->serialized_bishops = white_bishops | ((__int128)black_bishops << 64);
+    current_sfen->serialized_rooks = white_rooks | ((__int128)black_rooks << 64);
+    current_sfen->serialized_queens = white_queens | ((__int128)black_queens << 64);
+    current_sfen->serialized_kings = white_king | ((__int128)black_king << 64);
+
+    // Serialize additional data into a 32-bit number
+    uint8_t turns_bit = (white_turn ? 0b0 : 0b11111111);
+    uint8_t white_castles_bits = _serialized_fen_castles_rights(white_castles);
+    uint8_t black_castles_bits = _serialized_fen_castles_rights(black_castles);
+    uint8_t en_passant_bits = _serialize_en_passant();
+
+    current_sfen->serialized_last_info = turns_bit | ((uint32_t)white_castles_bits << 8) |
+                                         ((uint32_t)black_castles_bits << 16) |
+                                         ((uint32_t)en_passant_bits << 24);
 }
 
 // - Piece attacks -
@@ -1679,20 +1716,26 @@ float Board::_compute_game_state()
 
 bool Board::_threefold_repetition_rule()
 {
-    int    actual_fen_index = fen_history_index - 1;
-    string actual_fen = fen_history[actual_fen_index];
+    // Don't check to far in the history buffer
+    int max_history_size = min((game_turn + 1) * 2, FEN_HISTORY_SIZE);
 
     // Check if the actual FEN is already 2 times in the history
     // Loop over all FEN_HISTORY_SIZE last moves, skipping the actual one
     bool fen_found = false;
-    int  history_index = -1;
-    while (++history_index < FEN_HISTORY_SIZE)
-        if (history_index != actual_fen_index && fen_history[history_index] == actual_fen)
+    int  i = -1;
+    while (++i < max_history_size)
+    {
+        if (i != current_sfen_history_index &&
+            memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
+            // If the flag is already ON, it's a threefold repetition
             if (fen_found)
                 return true;
+
+            // Turn ON a flag if the FEN is found once
             fen_found = true;
         }
+    }
 
     return false;
 }
@@ -1730,8 +1773,10 @@ bool Board::_insufficient_material_rule()
 
 bool Board::operator==(Board *test_board_abstracted)
 {
-    // TODO: move this in the Board class, as inlined method
-    return this->get_fen() == test_board_abstracted->get_fen();
+    // Use memcmp to compare the memory blocks of the two structures
+    return memcmp(
+               this->current_sfen, test_board_abstracted->current_sfen, SIZEOF_T_SERIALIZED_FEN
+           ) == 0;
 }
 
 // --- STATIC LOOKUP METHODS ---

@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMmabPv-5.1.8
+BOT_VERSION = BbMmabPv-rc
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -92,5 +92,5 @@ run:
 
 ### Just test some cpp behaviors
 poc:
-	g++ $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/main_poc
+	g++ $(flag) mains/main_poc.cpp -o ./bins/main_poc
 	./bins/main_poc

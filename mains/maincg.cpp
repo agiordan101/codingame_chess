@@ -111,6 +111,33 @@ inline wchar_t convert_piece_to_unicode(char piece)
     }
 }
 
+/* BITWISE OPERATIONS */
+
+inline uint64_t _count_bits(uint64_t bitboard)
+{
+    return __builtin_popcountll(bitboard);
+}
+
+inline uint64_t _count_trailing_zeros(uint64_t bitboard)
+{
+    return __builtin_ctzll(bitboard);
+}
+
+inline uint64_t _count_leading_zeros(uint64_t bitboard)
+{
+    return 63 - __builtin_clzll(bitboard);
+}
+
+inline uint64_t _get_least_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_trailing_zeros(bitboard);
+}
+
+inline uint64_t _get_most_significant_bit(uint64_t bitboard)
+{
+    return 1UL << _count_leading_zeros(bitboard);
+}
+
 /* NOTATION FUNCTIONS */
 
 inline int column_name_to_index(char column_name)
@@ -159,43 +186,8 @@ inline uint64_t algebraic_to_bitboard(string algebraic)
 
 inline string bitboard_to_algebraic(uint64_t bitboard)
 {
-    uint64_t mask = 1UL;
-    for (int i = 0; i < 64; i++)
-    {
-        if (bitboard & mask)
-            return coord_to_algebraic(i % 8, i / 8);
-
-        mask <<= 1;
-    }
-
-    return "N/A";
-}
-
-/* BITWISE OPERATIONS */
-
-inline uint64_t _count_bits(uint64_t bitboard)
-{
-    return __builtin_popcountll(bitboard);
-}
-
-inline uint64_t _count_trailing_zeros(uint64_t bitboard)
-{
-    return __builtin_ctzll(bitboard);
-}
-
-inline uint64_t _count_leading_zeros(uint64_t bitboard)
-{
-    return 63 - __builtin_clzll(bitboard);
-}
-
-inline uint64_t _get_least_significant_bit(uint64_t bitboard)
-{
-    return 1UL << _count_trailing_zeros(bitboard);
-}
-
-inline uint64_t _get_most_significant_bit(uint64_t bitboard)
-{
-    return 1UL << _count_leading_zeros(bitboard);
+    uint64_t pos = _count_trailing_zeros(bitboard);
+    return coord_to_algebraic(pos % 8, pos / 8);
 }
 
 #endif
@@ -2798,10 +2790,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-5.1.8");
+    stats.push_back("version=BbMmabPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-5.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

@@ -322,10 +322,16 @@ Inside the file :
 
 - Next steps :
 
-    * Trying to optimize _find_white_pawn_moves() :
+    * There no reason I absolutely need create_fen()
+       * Find a way to resolve three fold repetition without create_fen()
+       * Find a way to compare boards without create_fen() (operator==)
+       * get_fen() is only used to compare boards
 
-        * Incl.| Self timings
-        * 5.67 | 1.83 for BbMmabPv-3.1.8
+       -> Create a serialization method holding fen information. No need to be able to deserialize it. Used to compare board for MinMax and Three fold repetition.
+
+        2 ideas :
+            * Serialize 64 bits bitboards and other fen information 256 bits numbers
+            * hash those with SHA256
 
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
@@ -336,21 +342,25 @@ Inside the file :
                 * 11% in BbMmabPv-3.1.6
                 *  8% in BbMmabPv-3.1.8
                 *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+                *  7% in BbMmabPv-5.1.8
             * Board::_compute_game_state() :
                 * 22% in BbMctsPv-3.7.6
                 * 28% in BbMmabPv-3.1.6
                 * 20% in BbMmabPv-3.1.8
                 * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+                * 18% in BbMmabPv-5.1.8
             * Board::_find_move() :
                 * 12% in BbMctsPv-3.7.6
                 * 19% in BbMmabPv-3.1.6
                 * 14% in BbMmabPv-3.1.8
                 * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+                * 12% in BbMmabPv-5.1.8
             * Board::_apply_move() :
                 *  8% in BbMctsPv-3.7.6
                 * 13% in BbMmabPv-3.1.6
                 *  9% in BbMmabPv-3.1.8
                 *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+                *  7% in BbMmabPv-5.1.8
             * Board::_find_white_pawns_moves() :
                 *  5% in BbMctsPv-3.7.6
                 *  8% in BbMmabPv-3.1.6
@@ -358,6 +368,7 @@ Inside the file :
                 *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
                     * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
                     * Try to get rid of while()
+                *  5% in BbMmabPv-5.1.8
 
             * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
                 * 14% in BbMctsPv-3.7.6
@@ -365,6 +376,7 @@ Inside the file :
                 * 17% in BbMmabPv-3.1.8
 
     * Create a bitwise.cpp file
+    * Code TODOs
 
     * Improve Heuristic
         * Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic

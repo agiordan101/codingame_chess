@@ -120,7 +120,6 @@ class Board
         void log(bool raw = false);
 
         bool operator==(Board *test_board);
-        bool moves_computed;
 
     private:
         // Getters data
@@ -128,6 +127,7 @@ class Board
         bool         double_check;
         bool         engine_data_updated;
         vector<Move> available_moves;
+        bool         moves_computed;
         float        game_state;
         bool         game_state_computed;
 

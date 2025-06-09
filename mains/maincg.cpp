@@ -341,13 +341,13 @@ class Board
         void log(bool raw = false);
 
         bool operator==(Board *test_board);
-        bool moves_computed;
 
     private:
         bool         check_state;
         bool         double_check;
         bool         engine_data_updated;
         vector<Move> available_moves;
+        bool         moves_computed;
         float        game_state;
         bool         game_state_computed;
 
@@ -1819,23 +1819,19 @@ void Board::_update_engine_at_turn_end()
 
 uint8_t Board::_serialized_fen_castles_rights(uint64_t castles)
 {
-    uint8_t result = 0;
-    uint8_t availability_shift = 7;
-    uint8_t data_shift = 4;
-    while (castles)
-    {
-        result |= 1 << availability_shift;
+    if (castles == 0)
+        return 0;
 
-        uint64_t rook = _get_least_significant_bit(castles);
-        uint8_t  column = _count_trailing_zeros(rook) % 8;
+    uint8_t rook_i = _count_trailing_zeros(castles);
+    uint8_t result = 0b00001000 | (rook_i % 8);
 
-        result |= column << data_shift;
+    castles ^= 1UL << rook_i;
 
-        availability_shift -= 4;
-        data_shift -= 4;
+    if (castles == 0)
+        return 0;
 
-        castles ^= rook;
-    }
+    rook_i = _count_trailing_zeros(castles);
+    result |= 0b10000000 | (rook_i % 8) << 4;
 
     return result;
 }
@@ -1845,8 +1841,7 @@ uint8_t Board::_serialize_en_passant()
     if (en_passant == 0)
         return 0;
 
-    uint64_t bit = _get_least_significant_bit(en_passant);
-    uint8_t  pos = _count_trailing_zeros(bit);
+    uint8_t pos = _count_trailing_zeros(en_passant);
 
     return (pos % 8) << 3 | (pos / 8);
 }
@@ -2855,10 +2850,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-6.1.8");
+    stats.push_back("version=BbMmabPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-6.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

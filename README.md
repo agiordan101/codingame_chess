@@ -322,16 +322,11 @@ Inside the file :
 
 - Next steps :
 
-    * There no reason I absolutely need create_fen()
-       * Find a way to resolve three fold repetition without create_fen()
-       * Find a way to compare boards without create_fen() (operator==)
-       * get_fen() is only used to compare boards
-
-       -> Create a serialization method holding fen information. No need to be able to deserialize it. Used to compare board for MinMax and Three fold repetition.
-
-        2 ideas :
-            * Serialize 64 bits bitboards and other fen information 256 bits numbers
-            * hash those with SHA256
+    * Merge 2 castling rights serialization uint8_t in 1 uint16_t
+    * Split uint32_t serialized_last_info in:
+         uint16_t serialized_castling_rights
+         uint8_t  serialized_remaining_fen_info
+    * Do todos
 
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 

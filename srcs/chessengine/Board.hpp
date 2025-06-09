@@ -46,6 +46,14 @@ class Board
         uint64_t white_castles; // Positions where the castle is available
         uint64_t black_castles;
 
+        // Serialize castling rights in a 8-bits integer for 3-fold repetition rule, and intance
+        // comparaison.
+        // 2 sets of 4 bits for each sides, as follows :
+        //  - 1 first bit whether the right is available
+        //  - 3 last bits for the column index (0 -> 'a', 7 -> 'h')
+        uint8_t serialized_white_castles;
+        uint8_t serialized_black_castles;
+
         // FEN data: en passant and turns
         uint64_t en_passant; // En passant position is created after a pawn move of 2 squares. 0
                              // means no en passant available
@@ -188,7 +196,6 @@ class Board
         void _capture_black_pieces(uint64_t dst);
 
         // - Engine updates -
-        uint8_t _serialized_fen_castles_rights(uint64_t castles);
         uint8_t _serialize_en_passant();
 
         void _update_engine_at_turn_end();

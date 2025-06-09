@@ -122,6 +122,18 @@ void Board::apply_move(Move move)
 
         // Disable castling for this rook
         white_castles &= ~move.src;
+
+        // Detect on which side the rook was (Piece on a8 = 0x1)
+        if (_count_trailing_zeros(move.src) % 8 <= 3)
+        {
+            // Queen side (Left for whites) (a8)
+            serialized_white_castles &= 0b00001111;
+        }
+        else
+        {
+            // King side (Right for whites) (h8)
+            serialized_white_castles &= 0b11110000;
+        }
     }
     else if (piece == 'Q')
         _apply_regular_white_move(move.src, move.dst, &white_queens);
@@ -139,6 +151,18 @@ void Board::apply_move(Move move)
 
         // Disable castling for this rook
         black_castles &= ~move.src;
+
+        // Detect on which side the rook was (Piece on a8 = 0x1)
+        if (_count_trailing_zeros(move.src) % 8 <= 3)
+        {
+            // Queen side (Left for whites) (a8)
+            serialized_black_castles &= 0b00001111;
+        }
+        else
+        {
+            // King side (Right for whites) (h8)
+            serialized_black_castles &= 0b11110000;
+        }
     }
     else if (piece == 'q')
         _apply_regular_black_move(move.src, move.dst, &black_queens);
@@ -440,27 +464,70 @@ void Board::_parse_board(string fen_board)
 
 void Board::_parse_castling(string castling_fen)
 {
+    this->serialized_white_castles = 0;
+    this->serialized_black_castles = 0;
+
     // '-' means that no castling are available
     if (castling_fen == "-")
         return;
 
+    uint8_t rook_index;
     // Parse castling fen 'AHah' into bitboards
     for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
         {
-            if (chess960_rule)
-                white_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '1');
+            if (this->chess960_rule)
+            {
+                this->white_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '1');
+
+                rook_index = column_name_to_index(castling_fen[i]);
+            }
             else
-                white_castles |=
-                    castling_fen[i] == 'K' ? 0x8000000000000000UL : 0x0100000000000000UL; // Rooks
+            {
+                if (castling_fen[i] == 'K')
+                {
+                    // King side (Right for whites) (h8)
+                    this->white_castles |= 0x8000000000000000UL;
+                    rook_index = 7;
+                }
+                else
+                {
+                    // Queen side (Left for whites) (a8)
+                    this->white_castles |= 0x0100000000000000UL; // Rooks
+                    rook_index = 0;
+                }
+            }
+
+            // Serialize castling rights in a 8-bits integer
+            this->serialized_white_castles |= rook_index <= 3 ? rook_index << 4 : rook_index;
         }
         else
         {
-            if (chess960_rule)
-                black_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '8');
+            if (this->chess960_rule)
+            {
+                this->black_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '8');
+
+                rook_index = column_name_to_index(castling_fen[i]);
+            }
             else
-                black_castles |= castling_fen[i] == 'k' ? 0b10000000UL : 0b00000001UL; // Rooks
+            {
+                if (castling_fen[i] == 'k')
+                {
+                    // King side (Right for whites) (h8)
+                    this->black_castles |= 0b10000000UL;
+                    rook_index = 7;
+                }
+                else
+                {
+                    // Queen side (Left for whites) (a8)
+                    this->black_castles |= 0b00000001UL;
+                    rook_index = 0;
+                }
+            }
+
+            // Serialize castling rights in a 8-bits integer
+            this->serialized_black_castles |= rook_index <= 3 ? rook_index << 4 : rook_index;
         }
     }
 }
@@ -670,6 +737,7 @@ void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     }
 
     white_castles = 0UL;
+    serialized_white_castles = 0;
 }
 
 void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
@@ -706,6 +774,7 @@ void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     }
 
     black_castles = 0UL;
+    serialized_black_castles = 0;
 }
 
 void Board::_capture_white_pieces(uint64_t dst)
@@ -980,28 +1049,6 @@ void Board::_update_engine_at_turn_end()
     _update_serialized_fen_history();
 }
 
-uint8_t Board::_serialized_fen_castles_rights(uint64_t castles)
-{
-    // Handle the first castle
-    if (castles == 0)
-        return 0;
-
-    uint8_t rook_i = _count_trailing_zeros(castles);
-    uint8_t result = 0b00001000 | (rook_i % 8);
-
-    // Remove the first rook from castles
-    castles ^= 1UL << rook_i;
-
-    if (castles == 0)
-        return 0;
-
-    // Handle the second castle
-    rook_i = _count_trailing_zeros(castles);
-    result |= 0b10000000 | (rook_i % 8) << 4;
-
-    return result;
-}
-
 uint8_t Board::_serialize_en_passant()
 {
     // Function to serialize en_passant into 6 bits in a uint8_t
@@ -1010,7 +1057,8 @@ uint8_t Board::_serialize_en_passant()
 
     uint8_t pos = _count_trailing_zeros(en_passant);
 
-    // Pack column and row into a uint8_t
+    // TODO: Remove pos / 8
+    //  Pack column and row into a uint8_t
     return (pos % 8) << 3 | (pos / 8);
 }
 
@@ -1036,13 +1084,14 @@ void Board::_update_serialized_fen_history()
 
     // Serialize additional data into a 32-bit number
     uint8_t turns_bit = (white_turn ? 0b0 : 0b11111111);
-    uint8_t white_castles_bits = _serialized_fen_castles_rights(white_castles);
-    uint8_t black_castles_bits = _serialized_fen_castles_rights(black_castles);
     uint8_t en_passant_bits = _serialize_en_passant();
 
-    current_sfen->serialized_last_info = turns_bit | ((uint32_t)white_castles_bits << 8) |
-                                         ((uint32_t)black_castles_bits << 16) |
+    current_sfen->serialized_last_info = turns_bit | ((uint32_t)serialized_white_castles << 8) |
+                                         ((uint32_t)serialized_black_castles << 16) |
                                          ((uint32_t)en_passant_bits << 24);
+
+    // TODO: uint8_t current_sfen->serialized_remaining_fen_info = (white_turn ? 0b00000000 :
+    // 0b11110000) | en_passant_bits;
 }
 
 // - Piece attacks -

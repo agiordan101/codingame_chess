@@ -22,11 +22,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-7.1.8");
+    stats.push_back("version=BbMmabPv-8.1.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-7.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
-         << endl;
+    cerr << "BbMmabPv-8.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

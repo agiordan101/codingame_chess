@@ -251,7 +251,8 @@ typedef struct s_serialized_fen
         __int128 serialized_rooks;
         __int128 serialized_queens;
         __int128 serialized_kings;
-        uint32_t serialized_last_info;
+        uint16_t serialized_castling_rights;
+        uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
 #define FEN_HISTORY_SIZE        50
@@ -275,8 +276,7 @@ class Board
         uint64_t white_castles;
         uint64_t black_castles;
 
-        uint8_t serialized_white_castles;
-        uint8_t serialized_black_castles;
+        uint16_t serialized_castling_rights;
 
         uint64_t en_passant;
         uint64_t next_turn_en_passant;
@@ -399,8 +399,6 @@ class Board
         void _move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info);
         void _capture_white_pieces(uint64_t dst);
         void _capture_black_pieces(uint64_t dst);
-
-        uint8_t _serialize_en_passant();
 
         void _update_engine_at_turn_end();
         void _update_engine_at_turn_start();
@@ -1048,13 +1046,9 @@ void Board::apply_move(Move move)
         white_castles &= ~move.src;
 
         if (_count_trailing_zeros(move.src) % 8 <= 3)
-        {
-            serialized_white_castles &= 0b00001111;
-        }
+            serialized_castling_rights &= 0xFF0F;
         else
-        {
-            serialized_white_castles &= 0b11110000;
-        }
+            serialized_castling_rights &= 0xFFF0;
     }
     else if (piece == 'Q')
         _apply_regular_white_move(move.src, move.dst, &white_queens);
@@ -1073,13 +1067,9 @@ void Board::apply_move(Move move)
         black_castles &= ~move.src;
 
         if (_count_trailing_zeros(move.src) % 8 <= 3)
-        {
-            serialized_black_castles &= 0b00001111;
-        }
+            serialized_castling_rights &= 0x0FFF;
         else
-        {
-            serialized_black_castles &= 0b11110000;
-        }
+            serialized_castling_rights &= 0xF0FF;
     }
     else if (piece == 'q')
         _apply_regular_black_move(move.src, move.dst, &black_queens);
@@ -1365,63 +1355,51 @@ void Board::_parse_board(string fen_board)
 
 void Board::_parse_castling(string castling_fen)
 {
-    this->serialized_white_castles = 0;
-    this->serialized_black_castles = 0;
+    this->serialized_castling_rights = 0;
 
     if (castling_fen == "-")
         return;
 
-    uint8_t rook_index;
+    uint16_t rook_column;
+    uint16_t castling_player_shift;
     for (size_t i = 0; i < castling_fen.length(); i++)
     {
         if (isupper(castling_fen[i]))
         {
+            castling_player_shift = 0;
+
             if (this->chess960_rule)
-            {
                 this->white_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '1');
-
-                rook_index = column_name_to_index(castling_fen[i]);
-            }
+            else if (castling_fen[i] == 'K')
+                this->white_castles |= 0x8000000000000000UL;
             else
-            {
-                if (castling_fen[i] == 'K')
-                {
-                    this->white_castles |= 0x8000000000000000UL;
-                    rook_index = 7;
-                }
-                else
-                {
-                    this->white_castles |= 0x0100000000000000UL;
-                    rook_index = 0;
-                }
-            }
-
-            this->serialized_white_castles |= rook_index <= 3 ? rook_index << 4 : rook_index;
+                this->white_castles |= 0x0100000000000000UL;
         }
         else
         {
+            castling_player_shift = 8;
+
             if (this->chess960_rule)
-            {
                 this->black_castles |= algebraic_to_bitboard(string(1, castling_fen[i]) + '8');
-
-                rook_index = column_name_to_index(castling_fen[i]);
-            }
+            else if (castling_fen[i] == 'k')
+                this->black_castles |= 0b10000000UL;
             else
-            {
-                if (castling_fen[i] == 'k')
-                {
-                    this->black_castles |= 0b10000000UL;
-                    rook_index = 7;
-                }
-                else
-                {
-                    this->black_castles |= 0b00000001UL;
-                    rook_index = 0;
-                }
-            }
-
-            this->serialized_black_castles |= rook_index <= 3 ? rook_index << 4 : rook_index;
+                this->black_castles |= 0b00000001UL;
         }
+
+        if (this->chess960_rule)
+        {
+            rook_column = column_name_to_index(castling_fen[i]) + 1;
+
+            if (rook_column <= 4)
+                this->serialized_castling_rights |= rook_column << (4 + castling_player_shift);
+            else
+                this->serialized_castling_rights |= rook_column << castling_player_shift;
+        }
+        else if (toupper(castling_fen[i]) == 'K')
+            this->serialized_castling_rights |= 0x000F << castling_player_shift;
+        else
+            this->serialized_castling_rights |= 0x00F0 << castling_player_shift;
     }
 }
 
@@ -1607,7 +1585,7 @@ void Board::_move_white_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     }
 
     white_castles = 0UL;
-    serialized_white_castles = 0;
+    serialized_castling_rights &= 0xFF00;
 }
 
 void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_info)
@@ -1642,7 +1620,7 @@ void Board::_move_black_king(uint64_t src, uint64_t dst, castle_info_e castle_in
     }
 
     black_castles = 0UL;
-    serialized_black_castles = 0;
+    serialized_castling_rights &= 0x00FF;
 }
 
 void Board::_capture_white_pieces(uint64_t dst)
@@ -1876,16 +1854,6 @@ void Board::_update_engine_at_turn_end()
     _update_serialized_fen_history();
 }
 
-uint8_t Board::_serialize_en_passant()
-{
-    if (en_passant == 0)
-        return 0;
-
-    uint8_t pos = _count_trailing_zeros(en_passant);
-
-    return (pos % 8) << 3 | (pos / 8);
-}
-
 void Board::_update_serialized_fen_history()
 {
 
@@ -1902,13 +1870,11 @@ void Board::_update_serialized_fen_history()
     current_sfen->serialized_rooks = white_rooks | ((__int128)black_rooks << 64);
     current_sfen->serialized_queens = white_queens | ((__int128)black_queens << 64);
     current_sfen->serialized_kings = white_king | ((__int128)black_king << 64);
+    current_sfen->serialized_castling_rights = this->serialized_castling_rights;
 
-    uint8_t turns_bit = (white_turn ? 0b0 : 0b11111111);
-    uint8_t en_passant_bits = _serialize_en_passant();
-
-    current_sfen->serialized_last_info = turns_bit | ((uint32_t)serialized_white_castles << 8) |
-                                         ((uint32_t)serialized_black_castles << 16) |
-                                         ((uint32_t)en_passant_bits << 24);
+    uint8_t turns_bit = (white_turn ? 0b00000000 : 0b11110000);
+    uint8_t en_passant_bits = en_passant ? _count_trailing_zeros(en_passant) % 8 : 0;
+    current_sfen->serialized_remaining_fen_info = turns_bit | en_passant_bits;
 }
 
 void Board::_find_white_pawns_attacks(uint64_t src)
@@ -2888,11 +2854,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-7.1.8");
+    stats.push_back("version=BbMmabPv-8.1.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-7.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
-         << endl;
+    cerr << "BbMmabPv-8.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

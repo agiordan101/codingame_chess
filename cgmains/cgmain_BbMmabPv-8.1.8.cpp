@@ -1869,6 +1869,7 @@ void Board::_update_serialized_fen_history()
     current_sfen->serialized_bishops = white_bishops | ((__int128)black_bishops << 64);
     current_sfen->serialized_rooks = white_rooks | ((__int128)black_rooks << 64);
     current_sfen->serialized_queens = white_queens | ((__int128)black_queens << 64);
+    current_sfen->serialized_kings = white_king | ((__int128)black_king << 64);
     current_sfen->serialized_castling_rights = this->serialized_castling_rights;
 
     uint8_t turns_bit = (white_turn ? 0b00000000 : 0b11110000);
@@ -2853,10 +2854,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-rc");
+    stats.push_back("version=BbMmabPv-8.1.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
+    cerr << "BbMmabPv-8.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 

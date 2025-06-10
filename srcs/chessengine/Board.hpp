@@ -18,7 +18,8 @@ typedef struct s_serialized_fen
         __int128 serialized_rooks;
         __int128 serialized_queens;
         __int128 serialized_kings;
-        uint32_t serialized_last_info;
+        uint16_t serialized_castling_rights;
+        uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
@@ -46,13 +47,15 @@ class Board
         uint64_t white_castles; // Positions where the castle is available
         uint64_t black_castles;
 
-        // Serialize castling rights in a 8-bits integer for 3-fold repetition rule, and intance
-        // comparaison.
-        // 2 sets of 4 bits for each sides, as follows :
-        //  - 1 first bit whether the right is available
-        //  - 3 last bits for the column index (0 -> 'a', 7 -> 'h')
-        uint8_t serialized_white_castles;
-        uint8_t serialized_black_castles;
+        // Serialize all castling rights in a 16-bits integer, for 3-fold repetition rule, and
+        // intance comparaison, as follows :
+        //  - Black queen side -> 0xF000
+        //  - Black king  side -> 0x0F00
+        //  - White queen side -> 0x00F0
+        //  - White king  side -> 0x000F
+        // For Chess960, data is column number: 1 for the white left most column and 8 for white
+        // right most.
+        uint16_t serialized_castling_rights;
 
         // FEN data: en passant and turns
         uint64_t en_passant; // En passant position is created after a pawn move of 2 squares. 0
@@ -196,8 +199,6 @@ class Board
         void _capture_black_pieces(uint64_t dst);
 
         // - Engine updates -
-        uint8_t _serialize_en_passant();
-
         void _update_engine_at_turn_end();
         void _update_engine_at_turn_start();
         void _update_check_and_pins();

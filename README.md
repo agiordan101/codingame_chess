@@ -68,7 +68,7 @@ Start psyleague server :
 Add bots with :
 
 `psyleague bot add {BOT_NAME} -s {MAIN_SRC_PATH}`
-`psyleague bot add BbMmabPv-3.1.6 -s ../codingame_chess/mains/maincg`
+`psyleague bot add BbMmabPv-8.1.8 -s ../codingame_chess/mains/maincg`
 
 See current results with :
 
@@ -87,7 +87,7 @@ https://valgrind.org/docs/manual/cl-manual.html
 
 Here is how we can use callgrind to profile our bot, at cg-brutaltester repository root:
 
-`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-3.1.6" -p2 "../codingame_chess/bins/BbMmabPv-3.1.6" -t 1 -n 1`
+`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-8.1.8" -p2 "../codingame_chess/bins/BbMmabPv-8.1.8" -t 1 -n 1`
 
 Then, we can visualize the generated callgrind.out file with KCachegrind:
 
@@ -151,7 +151,7 @@ Before creating a new version :
 * Overall ranking : 32/384
 * Ligue: Wood 1 (Best ligue)
     * Rank: 32/66
-    * CG elo: 20,55
+    * CG elo: ? -> 20,55
     * Top 1 elo: 44,90
 
 ### BbMmabPv-3.1.3
@@ -287,13 +287,6 @@ Despite the rules, the final position after castling is always the same:
     * Huge Branching Factor
     * Draw Bias: Most random playouts between good engines or even random ones lead to draws, not wins/losses
     * Noisy Evaluation in a complex game
-
-
-* Node / ms :
-    * BbMctsPv-3.3.6 = 120
-    * BbMctsPv-3.4.6 = 160 -> 210
-    * BbMctsPv-3.5.6 = 190 -> 220
-
 
 ### Python tools
 

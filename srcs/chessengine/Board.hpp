@@ -24,8 +24,8 @@ typedef struct s_serialized_fen
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
-#define FEN_HISTORY_SIZE        50
-#define SIZEOF_T_SERIALIZED_FEN sizeof(t_serialized_fen)
+constexpr int    FEN_HISTORY_SIZE = 50;
+constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
 class Board
 {
@@ -117,11 +117,11 @@ class Board
         {
             return white_turn;
         }
-        char          get_cell(int x, int y);
-        float         get_game_state();
-        bool          get_check_state();
-        uint64_t      get_castling_rights();
-        static string get_name();
+        char               get_cell(int x, int y);
+        board_game_state_e get_game_state();
+        bool               get_check_state();
+        uint64_t           get_castling_rights();
+        static string      get_name();
 
         string create_fen(bool with_turns = true);
         Board *clone();
@@ -135,13 +135,13 @@ class Board
 
     private:
         // Getters data
-        bool         check_state;
-        bool         double_check;
-        bool         engine_data_updated;
-        vector<Move> available_moves;
-        bool         moves_computed;
-        float        game_state;
-        bool         game_state_computed;
+        bool               check_state;
+        bool               double_check;
+        bool               engine_data_updated;
+        vector<Move>       available_moves;
+        bool               moves_computed;
+        board_game_state_e game_state;
+        bool               game_state_computed;
 
         // Engine variables
         uint64_t ally_king;
@@ -269,9 +269,9 @@ class Board
         uint64_t _compute_castling_negative_path(uint64_t src, uint64_t dst);
 
         // - End game -
-        float _compute_game_state();
-        bool  _threefold_repetition_rule();
-        bool  _insufficient_material_rule();
+        board_game_state_e _compute_game_state();
+        bool               _threefold_repetition_rule();
+        bool               _insufficient_material_rule();
 
         // STATIC LOOKUP TABLES
 

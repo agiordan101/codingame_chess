@@ -3,11 +3,11 @@
 class Position
 {
     public:
-        string         fen;
-        int            move_count;
-        vector<string> moves;
-        bool           ischeck;
-        int            outcome;
+        string             fen;
+        int                move_count;
+        vector<string>     moves;
+        bool               ischeck;
+        board_game_state_e outcome;
 
         Position(stringstream &ss);
         void print();
@@ -33,7 +33,7 @@ Position::Position(stringstream &ss)
     ischeck = buff[0] == '1';
 
     getline(ss, buff);
-    outcome = stoi(buff);
+    outcome = (board_game_state_e)stoi(buff);
 }
 
 void Position::print()
@@ -68,9 +68,9 @@ int test_position(Position *position)
     Board board(position->fen, true, false);
     int   success = 1;
 
-    vector<Move> board_moves = board.get_available_moves();
-    bool         check_state = board.get_check_state();
-    int          game_state = board.get_game_state();
+    vector<Move>       board_moves = board.get_available_moves();
+    bool               check_state = board.get_check_state();
+    board_game_state_e game_state = board.get_game_state();
 
     // Compare moves
     vector<string> board_moves_uci;

@@ -181,7 +181,7 @@ void Board::apply_move(Move move)
     _update_engine_at_turn_end();
 }
 
-float Board::get_game_state()
+board_game_state_e Board::get_game_state()
 {
     if (!this->game_state_computed)
     {
@@ -1695,7 +1695,7 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 
 // - End game -
 
-float Board::_compute_game_state()
+board_game_state_e Board::_compute_game_state()
 {
     // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
     if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())

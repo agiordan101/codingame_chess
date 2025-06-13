@@ -68,7 +68,7 @@ Start psyleague server :
 Add bots with :
 
 `psyleague bot add {BOT_NAME} -s {MAIN_SRC_PATH}`
-`psyleague bot add BbMmabPv-3.1.6 -s ../codingame_chess/mains/maincg`
+`psyleague bot add BbMmabPv-8.1.8 -s ../codingame_chess/mains/maincg`
 
 See current results with :
 
@@ -87,7 +87,7 @@ https://valgrind.org/docs/manual/cl-manual.html
 
 Here is how we can use callgrind to profile our bot, at cg-brutaltester repository root:
 
-`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-3.1.6" -p2 "../codingame_chess/bins/BbMmabPv-3.1.6" -t 1 -n 1`
+`java -jar target/cg-brutaltester.jar -r "java -jar ../codingame-chess/target/chess-1.0-SNAPSHOT.jar" -p1 "valgrind --tool=callgrind ../codingame_chess/bins/BbMmabPv-8.1.8" -p2 "../codingame_chess/bins/BbMmabPv-8.1.8" -t 1 -n 1`
 
 Then, we can visualize the generated callgrind.out file with KCachegrind:
 
@@ -129,13 +129,21 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-### BbMmabPv-3.1.6 (Best version)
+### BbMmabPv-8.1.8 (Best version)
+
+* Submit date: 10.06.2025 19H05
+* Ligue           : Wood 1 (Best ligue)
+* Overall ranking : 35 -> 29 (/395)
+* Rank            : 35 -> 29 (/69)
+* CG score        : 18.13 -> 20,09
+
+### BbMmabPv-3.1.6
 
 * Submit date: 29.04.2025 21H32
 * Overall ranking : 32/384
 * Ligue: Wood 1 (Best ligue)
     * Rank: 32/66
-    * CG elo: 20,55
+    * CG elo: ? -> 20,55
     * Top 1 elo: 44,90
 
 ### BbMmabPv-3.1.3
@@ -272,13 +280,6 @@ Despite the rules, the final position after castling is always the same:
     * Draw Bias: Most random playouts between good engines or even random ones lead to draws, not wins/losses
     * Noisy Evaluation in a complex game
 
-
-* Node / ms :
-    * BbMctsPv-3.3.6 = 120
-    * BbMctsPv-3.4.6 = 160 -> 210
-    * BbMctsPv-3.5.6 = 190 -> 220
-
-
 ### Python tools
 
 !!! NOT UP TO DATE !!!
@@ -322,55 +323,57 @@ Inside the file :
 
 - Next steps :
 
-    * Merge 2 castling rights serialization uint8_t in 1 uint16_t
-    * Split uint32_t serialized_last_info in:
-         uint16_t serialized_castling_rights
-         uint8_t  serialized_remaining_fen_info
     * Do todos
 
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
-    * Improve Board performances
-        * Main bottlenecks from BOARD class (callgrind statistics) :
-            * Board::create_fen() :
-                *  7% in BbMctsPv-3.7.6
-                * 11% in BbMmabPv-3.1.6
-                *  8% in BbMmabPv-3.1.8
-                *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                *  7% in BbMmabPv-5.1.8
-            * Board::_compute_game_state() :
-                * 22% in BbMctsPv-3.7.6
-                * 28% in BbMmabPv-3.1.6
-                * 20% in BbMmabPv-3.1.8
-                * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                * 18% in BbMmabPv-5.1.8
-            * Board::_find_move() :
-                * 12% in BbMctsPv-3.7.6
-                * 19% in BbMmabPv-3.1.6
-                * 14% in BbMmabPv-3.1.8
-                * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                * 12% in BbMmabPv-5.1.8
-            * Board::_apply_move() :
-                *  8% in BbMctsPv-3.7.6
-                * 13% in BbMmabPv-3.1.6
-                *  9% in BbMmabPv-3.1.8
-                *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                *  7% in BbMmabPv-5.1.8
-            * Board::_find_white_pawns_moves() :
-                *  5% in BbMctsPv-3.7.6
-                *  8% in BbMmabPv-3.1.6
-                *  6% in BbMmabPv-3.1.8
-                *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                    * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
-                    * Try to get rid of while()
-                *  5% in BbMmabPv-5.1.8
+    * Optimize BitBoard :
+        * Switch some function pointer at engine start depending on the rule ?
+            - It will speed up the engine
+            - We won't use boards with different rules in the same executable
 
-            * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
-                * 14% in BbMctsPv-3.7.6
-                * 22% in BbMmabPv-3.1.6
-                * 17% in BbMmabPv-3.1.8
+    * Board performances of BOARD class (callgrind statistics) :
+        * Board::create_fen() :
+            *  7% in BbMctsPv-3.7.6
+            * 11% in BbMmabPv-3.1.6
+            *  8% in BbMmabPv-3.1.8
+            *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+            *  7% in BbMmabPv-5.1.8
+        * Board::_compute_game_state() :
+            * 22% in BbMctsPv-3.7.6
+            * 28% in BbMmabPv-3.1.6
+            * 20% in BbMmabPv-3.1.8
+            * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+            * 18% in BbMmabPv-5.1.8
+        * Board::_find_move() :
+            * 12% in BbMctsPv-3.7.6
+            * 19% in BbMmabPv-3.1.6
+            * 14% in BbMmabPv-3.1.8
+            * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+            * 12% in BbMmabPv-5.1.8
+        * Board::_apply_move() :
+            *  8% in BbMctsPv-3.7.6
+            * 13% in BbMmabPv-3.1.6
+            *  9% in BbMmabPv-3.1.8
+            *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+            *  7% in BbMmabPv-5.1.8
+        * Board::_find_white_pawns_moves() :
+            *  5% in BbMctsPv-3.7.6
+            *  8% in BbMmabPv-3.1.6
+            *  6% in BbMmabPv-3.1.8
+            *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+                * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
+                * Try to get rid of while()
+            *  5% in BbMmabPv-5.1.8
+
+        * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
+            * 14% in BbMctsPv-3.7.6
+            * 22% in BbMmabPv-3.1.6
+            * 17% in BbMmabPv-3.1.8
+
 
     * Create a bitwise.cpp file
+    * Convert game state constexpr to enum
     * Code TODOs
 
     * Improve Heuristic
@@ -418,14 +421,7 @@ Inside the file :
         * Use Node as MCTS to store game state and not recompute them (apply_move, get_game_state)
         * Only expand the last depth
 
-    * Create 2 heuristics: Why ?
-        * MaterialHeuristic: Just material
-        * PiecePositionHeuristic : Material + position + control
-        * KEEP HEURISTIC IDEAS FOR LATER FOR GOD SAKE !
-
     * Try moves caching with zobrist hash as key. Save fen inside so we can detect collisions (fen is obligatory calculated for Five move repetition rule)
-
-    * In python script versus, write game results in a history file reserved for these opponents
 
     * DRAW offers (Need a winrate estimation first) :
         * You can offer a draw to your opponent by adding = right after the move, without a space:
@@ -433,21 +429,8 @@ Inside the file :
         * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
             * If estimated winrate > 0.6, accept a draw (as white)
 
-    * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
-
-    * Optimize BitBoard :
-        * Re-implement Five repetition rule: Don't create FEN, save bitboard numbers instead
-        * Switch some function pointer at engine start depending on the rule ?
-            - It will speed up the engine
-            - We won't use boards with different rules in the same executable
-        * Time optimization :
-            - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
-            - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
-                - Simulate N games and create an average time for all methods ?
-            - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
-
     * Find a way to print chess board in python.
-        Create with Mistral a game UI with button :
+        Create a game UI with buttons throught vibe coding :
            - Bot name selectors (With a human option)
            - New game
            - Previous move

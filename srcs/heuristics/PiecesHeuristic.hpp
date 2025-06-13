@@ -3,7 +3,7 @@
 
 #include "AbstractHeuristic.hpp"
 
-#define EVALUATION_WINRATE_MAP_SIZE 40000
+constexpr int EVALUATION_WINRATE_MAP_SIZE = 40000;
 
 class PiecesHeuristic : public AbstractHeuristic
 {

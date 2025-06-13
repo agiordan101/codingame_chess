@@ -24,8 +24,8 @@ typedef struct s_serialized_fen
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
-#define FEN_HISTORY_SIZE        50
-#define SIZEOF_T_SERIALIZED_FEN sizeof(t_serialized_fen)
+constexpr int    FEN_HISTORY_SIZE = 50;
+constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
 class Board
 {

@@ -19,40 +19,40 @@ using namespace std;
 #include <string.h>
 #include <vector>
 
-#define CHESS960_RULES 1
+constexpr bool CHESS960_RULES = 1;
 
-#define USE_VISUAL_BOARD 0
-#define PRINT_DEBUG_DATA 1 & USE_VISUAL_BOARD
-#define PRINT_TURNS      0 & USE_VISUAL_BOARD
+constexpr bool USE_VISUAL_BOARD = 0;
+constexpr bool PRINT_DEBUG_DATA = 1 & USE_VISUAL_BOARD;
+constexpr bool PRINT_TURNS = 0 & USE_VISUAL_BOARD;
 
-#define EMPTY_CELL '-'
+constexpr char EMPTY_CELL = '-';
 
-#define BITMASK_ALL_CELLS   0xFFFFFFFFFFFFFFFFUL
-#define BITMASK_WHITE_CELLS 0xAA55AA55AA55AA55UL
-#define BITMASK_BLACK_CELLS 0x55AA55AA55AA55AAUL
+constexpr uint64_t BITMASK_ALL_CELLS = 0xFFFFFFFFFFFFFFFFUL;
+constexpr uint64_t BITMASK_WHITE_CELLS = 0xAA55AA55AA55AA55UL;
+constexpr uint64_t BITMASK_BLACK_CELLS = 0x55AA55AA55AA55AAUL;
 
-#define BITMASK_LINE_8  0x00000000000000FFUL
-#define BITMASK_LINE_7  0x000000000000FF00UL
-#define BITMASK_LINE_65 0x00000000FFFF0000UL
-#define BITMASK_LINE_43 0x0000FFFF00000000UL
-#define BITMASK_LINE_2  0x00FF000000000000UL
-#define BITMASK_LINE_1  0xFF00000000000000UL
+constexpr uint64_t BITMASK_LINE_8 = 0x00000000000000FFUL;
+constexpr uint64_t BITMASK_LINE_7 = 0x000000000000FF00UL;
+constexpr uint64_t BITMASK_LINE_65 = 0x00000000FFFF0000UL;
+constexpr uint64_t BITMASK_LINE_43 = 0x0000FFFF00000000UL;
+constexpr uint64_t BITMASK_LINE_2 = 0x00FF000000000000UL;
+constexpr uint64_t BITMASK_LINE_1 = 0xFF00000000000000UL;
 
-#define BITMASK_CASTLE_BLACK_LEFT_KING  0x0000000000000004UL
-#define BITMASK_CASTLE_BLACK_LEFT_ROOK  0x0000000000000008UL
-#define BITMASK_CASTLE_BLACK_RIGHT_KING 0x0000000000000040UL
-#define BITMASK_CASTLE_BLACK_RIGHT_ROOK 0x0000000000000020UL
-#define BITMASK_CASTLE_WHITE_LEFT_KING  0x0400000000000000UL
-#define BITMASK_CASTLE_WHITE_LEFT_ROOK  0x0800000000000000UL
-#define BITMASK_CASTLE_WHITE_RIGHT_KING 0x4000000000000000UL
-#define BITMASK_CASTLE_WHITE_RIGHT_ROOK 0x2000000000000000UL
+constexpr uint64_t BITMASK_CASTLE_BLACK_LEFT_KING = 0x0000000000000004UL;
+constexpr uint64_t BITMASK_CASTLE_BLACK_LEFT_ROOK = 0x0000000000000008UL;
+constexpr uint64_t BITMASK_CASTLE_BLACK_RIGHT_KING = 0x0000000000000040UL;
+constexpr uint64_t BITMASK_CASTLE_BLACK_RIGHT_ROOK = 0x0000000000000020UL;
+constexpr uint64_t BITMASK_CASTLE_WHITE_LEFT_KING = 0x0400000000000000UL;
+constexpr uint64_t BITMASK_CASTLE_WHITE_LEFT_ROOK = 0x0800000000000000UL;
+constexpr uint64_t BITMASK_CASTLE_WHITE_RIGHT_KING = 0x4000000000000000UL;
+constexpr uint64_t BITMASK_CASTLE_WHITE_RIGHT_ROOK = 0x2000000000000000UL;
 
 /* ENUMS */
 
-#define GAME_CONTINUE -2
-#define BLACK_WIN     -1
-#define DRAW          0
-#define WHITE_WIN     1
+constexpr int GAME_CONTINUE = -2;
+constexpr int BLACK_WIN = -1;
+constexpr int DRAW = 0;
+constexpr int WHITE_WIN = 1;
 
 enum castle_info_e
 {
@@ -255,8 +255,8 @@ typedef struct s_serialized_fen
         uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
-#define FEN_HISTORY_SIZE        50
-#define SIZEOF_T_SERIALIZED_FEN sizeof(t_serialized_fen)
+constexpr int    FEN_HISTORY_SIZE = 50;
+constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
 class Board
 {
@@ -508,7 +508,7 @@ class AbstractHeuristic
 #ifndef PIECESHEURISTIC_HPP
 #define PIECESHEURISTIC_HPP
 
-#define EVALUATION_WINRATE_MAP_SIZE 40000
+constexpr int EVALUATION_WINRATE_MAP_SIZE = 40000;
 
 class PiecesHeuristic : public AbstractHeuristic
 {
@@ -1869,6 +1869,7 @@ void Board::_update_serialized_fen_history()
     current_sfen->serialized_bishops = white_bishops | ((__int128)black_bishops << 64);
     current_sfen->serialized_rooks = white_rooks | ((__int128)black_rooks << 64);
     current_sfen->serialized_queens = white_queens | ((__int128)black_queens << 64);
+    current_sfen->serialized_kings = white_king | ((__int128)black_king << 64);
     current_sfen->serialized_castling_rights = this->serialized_castling_rights;
 
     uint8_t turns_bit = (white_turn ? 0b00000000 : 0b11110000);

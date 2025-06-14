@@ -8,7 +8,7 @@ DEBUG_EXEC = debug
 CG_EXEC = mychessbot
 BOT_VERSION = BbMmabPv-rc
 
-flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
+flag = -Wall -Wextra -Werror -Wno-unknown-pragmas
 
 SRCS_PATH = srcs
 ALL_FILES = $(wildcard $(SRCS_PATH)/*/*.cpp)

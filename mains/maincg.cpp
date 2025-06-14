@@ -49,10 +49,13 @@ constexpr uint64_t BITMASK_CASTLE_WHITE_RIGHT_ROOK = 0x2000000000000000UL;
 
 /* ENUMS */
 
-constexpr int GAME_CONTINUE = -2;
-constexpr int BLACK_WIN = -1;
-constexpr int DRAW = 0;
-constexpr int WHITE_WIN = 1;
+enum board_game_state_e
+{
+    GAME_CONTINUE,
+    BLACK_WIN,
+    DRAW,
+    WHITE_WIN,
+};
 
 enum castle_info_e
 {
@@ -329,11 +332,11 @@ class Board
         {
             return white_turn;
         }
-        char          get_cell(int x, int y);
-        float         get_game_state();
-        bool          get_check_state();
-        uint64_t      get_castling_rights();
-        static string get_name();
+        char               get_cell(int x, int y);
+        board_game_state_e get_game_state();
+        bool               get_check_state();
+        uint64_t           get_castling_rights();
+        static string      get_name();
 
         string create_fen(bool with_turns = true);
         Board *clone();
@@ -346,13 +349,13 @@ class Board
         bool operator==(Board *test_board);
 
     private:
-        bool         check_state;
-        bool         double_check;
-        bool         engine_data_updated;
-        vector<Move> available_moves;
-        bool         moves_computed;
-        float        game_state;
-        bool         game_state_computed;
+        bool               check_state;
+        bool               double_check;
+        bool               engine_data_updated;
+        vector<Move>       available_moves;
+        bool               moves_computed;
+        board_game_state_e game_state;
+        bool               game_state_computed;
 
         uint64_t ally_king;
         uint64_t ally_pieces;
@@ -465,9 +468,9 @@ class Board
         uint64_t _compute_castling_positive_path(uint64_t src, uint64_t dst);
         uint64_t _compute_castling_negative_path(uint64_t src, uint64_t dst);
 
-        float _compute_game_state();
-        bool  _threefold_repetition_rule();
-        bool  _insufficient_material_rule();
+        board_game_state_e _compute_game_state();
+        bool               _threefold_repetition_rule();
+        bool               _insufficient_material_rule();
 
         static bool     lookup_tables_initialized;
         static uint64_t pawn_captures_lookup[64][2];
@@ -1098,7 +1101,7 @@ void Board::apply_move(Move move)
     _update_engine_at_turn_end();
 }
 
-float Board::get_game_state()
+board_game_state_e Board::get_game_state()
 {
     if (!this->game_state_computed)
     {
@@ -2452,7 +2455,7 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
     return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
 }
 
-float Board::_compute_game_state()
+board_game_state_e Board::_compute_game_state()
 {
     if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
         return DRAW;

@@ -42,10 +42,14 @@ constexpr uint64_t BITMASK_CASTLE_WHITE_RIGHT_ROOK = 0x2000000000000000UL;
 
 /* ENUMS */
 
-constexpr int GAME_CONTINUE = -2;
-constexpr int BLACK_WIN = -1;
-constexpr int DRAW = 0;
-constexpr int WHITE_WIN = 1;
+// enum for board.get_game_state()
+enum board_game_state_e
+{
+    GAME_CONTINUE,
+    BLACK_WIN,
+    DRAW,
+    WHITE_WIN,
+};
 
 // enum for Move type
 enum castle_info_e

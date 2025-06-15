@@ -332,14 +332,9 @@ Inside the file :
 
 ### Next steps
 
-* Create a 9.1.8 with last commits. Consider :
-    * Select between real_threefold_repetition_rule and fast_threefold_repetition_rule at engine start
-        * 2 methods
-        * One is respecting the rule, the other is faster but can be false.
-        * Switch at starup or depending on the depth ?!
-
-* Do board todos
-
+* Undertsand what are (from kcachegrind) :
+    * std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)
+    * std::vector<Move, std::allocator<Move> >::vector(std::vector<Move, std::allocator<Move> > const&)
 * Create a bitwise.cpp file
 * Code TODOs
 
@@ -361,6 +356,8 @@ Inside the file :
         - Show move scores
         - Show last move
 
+* Do board todos
+
 * Project architecture :
     * Regroup all .test. files into a tests folder
     * Remove AbstractPLayer
@@ -381,6 +378,8 @@ Inside the file :
 
 ### Ideas to improve Board
 
+* Insufisant material can only happen after a capture !
+* benchmar ktime between lazy tfr and not lazy
 * Understand what is really needed in _update_engine_at_turn_start(), and for what
 
 * Switch some function pointer at engine start depending on the rule ?

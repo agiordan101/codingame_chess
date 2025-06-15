@@ -333,7 +333,7 @@ class Board
             return white_turn;
         }
         char               get_cell(int x, int y);
-        board_game_state_e get_game_state(bool lazy_threefold = false);
+        board_game_state_e get_game_state();
         bool               get_check_state();
         uint64_t           get_castling_rights();
         static string      get_name();
@@ -468,9 +468,8 @@ class Board
         uint64_t _compute_castling_positive_path(uint64_t src, uint64_t dst);
         uint64_t _compute_castling_negative_path(uint64_t src, uint64_t dst);
 
-        board_game_state_e _compute_game_state(bool lazy_threefold);
+        board_game_state_e _compute_game_state();
         bool               _threefold_repetition_rule();
-        bool               _threefold_repetition_rule_lazy();
         bool               _insufficient_material_rule();
 
         static bool     lookup_tables_initialized;
@@ -1102,14 +1101,14 @@ void Board::apply_move(Move move)
     _update_engine_at_turn_end();
 }
 
-board_game_state_e Board::get_game_state(bool lazy_threefold)
+board_game_state_e Board::get_game_state()
 {
     if (!this->game_state_computed)
     {
         if (!this->engine_data_updated)
             _update_engine_at_turn_start();
 
-        this->game_state = _compute_game_state(lazy_threefold);
+        this->game_state = _compute_game_state();
     }
 
     return this->game_state;
@@ -2456,12 +2455,9 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
     return sliding_lookup[src_lkt_i][WEST] ^ sliding_lookup[dst_lkt_i][WEST];
 }
 
-board_game_state_e Board::_compute_game_state(bool lazy_threefold)
+board_game_state_e Board::_compute_game_state()
 {
-    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
-        return DRAW;
-
-    if (half_turn_rule >= 99 || _insufficient_material_rule())
+    if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
         return DRAW;
 
     if (codingame_rule)
@@ -2484,67 +2480,30 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 
 bool Board::_threefold_repetition_rule()
 {
-    if (this->half_turn_rule < 8)
+    if (game_turn < 4)
         return false;
 
     bool sfen_found = false;
 
-    int sfen_index = this->current_sfen_history_index - 4;
+    int sfen_history_index = current_sfen_history_index - 2;
 
-    int last_capture_or_pawn_move_index =
-        this->current_sfen_history_index -
-        (this->half_turn_rule % 2 ? this->half_turn_rule - 1 : this->half_turn_rule);
-    if (last_capture_or_pawn_move_index < 0)
-        last_capture_or_pawn_move_index += FEN_HISTORY_SIZE;
-
-    while (sfen_index != last_capture_or_pawn_move_index)
+    for (int i = 0; i < this->half_turn_rule; i++)
     {
-        if (sfen_index < 0)
-            sfen_index += FEN_HISTORY_SIZE;
+        if (sfen_history_index < 0)
+            sfen_history_index += FEN_HISTORY_SIZE;
 
-        if (memcmp(
-                this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN
-            ) == 0)
+        if (memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
             if (sfen_found)
                 return true;
 
             sfen_found = true;
-
-            sfen_index -= 2;
         }
 
-        sfen_index -= 2;
+        sfen_history_index -= 2;
     }
 
     return false;
-}
-
-bool Board::_threefold_repetition_rule_lazy()
-{
-
-    if (this->half_turn_rule < 8)
-        return false;
-
-    int sfen_history_index = current_sfen_history_index - 4;
-    if (sfen_history_index < 0)
-        sfen_history_index += FEN_HISTORY_SIZE;
-
-    if (memcmp(
-            this->current_sfen, &serialized_fen_history[sfen_history_index], SIZEOF_T_SERIALIZED_FEN
-        ) != 0)
-        return false;
-
-    sfen_history_index -= 4;
-    if (sfen_history_index < 0)
-        sfen_history_index += FEN_HISTORY_SIZE;
-
-    if (memcmp(
-            this->current_sfen, &serialized_fen_history[sfen_history_index], SIZEOF_T_SERIALIZED_FEN
-        ) != 0)
-        return false;
-
-    return true;
 }
 
 bool Board::_insufficient_material_rule()
@@ -2905,11 +2864,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-9.1.8");
+    stats.push_back("version=BbMmabPv-rc");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-9.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
-         << endl;
+    cerr << "BbMmabPv-rc\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2] << endl;
     return stats;
 }
 
@@ -2967,8 +2925,7 @@ float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float
 {
     this->_nodes_explored++;
 
-    if (depth == max_depth || this->is_time_up() ||
-        board->get_game_state(depth > 2) != GAME_CONTINUE)
+    if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);
 
     vector<Move> moves = board->get_available_moves();
@@ -3225,6 +3182,6 @@ using namespace std;
 
 int main()
 {
-    GameEngine *game_engine = new GameEngine(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 25));
+    GameEngine *game_engine = new GameEngine(new MinMaxAlphaBetaAgent(new PiecesHeuristic(), 50));
     game_engine->infinite_game_loop();
 }

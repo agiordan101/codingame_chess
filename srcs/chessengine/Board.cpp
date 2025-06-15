@@ -181,14 +181,14 @@ void Board::apply_move(Move move)
     _update_engine_at_turn_end();
 }
 
-board_game_state_e Board::get_game_state()
+board_game_state_e Board::get_game_state(bool lazy_threefold)
 {
     if (!this->game_state_computed)
     {
         if (!this->engine_data_updated)
             _update_engine_at_turn_start();
 
-        this->game_state = _compute_game_state();
+        this->game_state = _compute_game_state(lazy_threefold);
     }
 
     return this->game_state;
@@ -371,7 +371,7 @@ void Board::_main_parsing(
     game_state_computed = false;
     engine_data_updated = false;
 
-    current_sfen_history_index = 0;
+    current_sfen_history_index = -1;
     current_sfen = NULL;
     _update_serialized_fen_history();
 }
@@ -1695,15 +1695,20 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 
 // - End game -
 
-board_game_state_e Board::_compute_game_state()
+board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 {
-    // Fifty-Move rule + Game turn limit + 2 other rules to detect a draw
-    if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
+    // Resolve wheter the lazy threefold repetition rule should be applied or not
+    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
+        return DRAW;
+
+    // Fifty-Move rule + Insufficient material rule
+    if (half_turn_rule >= 99 || _insufficient_material_rule())
         return DRAW;
 
     // TODO: Convert this to PRE PROCESSING if ?
     if (codingame_rule)
     {
+        // Game turn limit for CodinGame
         if (game_turn > 125)
             return DRAW;
     }
@@ -1723,28 +1728,83 @@ board_game_state_e Board::_compute_game_state()
 
 bool Board::_threefold_repetition_rule()
 {
-    // Don't check to far in the history buffer
-    int max_history_size = min((game_turn + 1) * 2, FEN_HISTORY_SIZE);
+    // A position can be repeated in 4 half turns
+    if (this->half_turn_rule < 8)
+        return false;
 
-    // Check if the actual FEN is already 2 times in the history
-    // Loop over all FEN_HISTORY_SIZE last moves, skipping the actual one
-    bool fen_found = false;
-    int  i = -1;
-    while (++i < max_history_size)
+    // Check if the actual sFEN is already 2 times in the history (3 times total with the current
+    // one)
+    bool sfen_found = false;
+
+    // Two states are equal only if the same player is playing & Skip last player position because
+    // it cannot be the same
+    int sfen_index = this->current_sfen_history_index - 4;
+
+    // Because a capture or pawn move is irreversible, we can loop only over <half_turn_rule> last
+    // moves. (%2 check to make sure we end on one of current player position)
+    int last_capture_or_pawn_move_index =
+        this->current_sfen_history_index -
+        (this->half_turn_rule % 2 ? this->half_turn_rule - 1 : this->half_turn_rule);
+    if (last_capture_or_pawn_move_index < 0)
+        last_capture_or_pawn_move_index += FEN_HISTORY_SIZE;
+
+    while (sfen_index != last_capture_or_pawn_move_index)
     {
-        if (i != current_sfen_history_index &&
-            memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
+        if (sfen_index < 0)
+            sfen_index += FEN_HISTORY_SIZE;
+
+        if (memcmp(this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
             // If the flag is already ON, it's a threefold repetition
-            if (fen_found)
+            if (sfen_found)
                 return true;
 
             // Turn ON a flag if the FEN is found once
-            fen_found = true;
+            sfen_found = true;
+
+            // Skip last player position because it cannot be the same
+            sfen_index -= 2;
         }
+
+        // Because two states are equal only if the same player is playing
+        // No need to check opponnents states
+        sfen_index -= 2;
     }
 
     return false;
+}
+
+bool Board::_threefold_repetition_rule_lazy()
+{
+    // Compare only with 2 last positions of current player, because it's the huge majorite of cases
+    // Should be used only for anticipating further than 2 moves away
+
+    // A same position cannot be repeated 3 times in less than 6 turns
+    if (this->half_turn_rule < 8)
+        return false;
+
+    // Compare with last player's position
+    int sfen_history_index = current_sfen_history_index - 4;
+    if (sfen_history_index < 0)
+        sfen_history_index += FEN_HISTORY_SIZE;
+
+    if (memcmp(
+            this->current_sfen, &serialized_fen_history[sfen_history_index], SIZEOF_T_SERIALIZED_FEN
+        ) != 0)
+        return false;
+
+    // Compare with last last player's position
+    sfen_history_index -= 4;
+    if (sfen_history_index < 0)
+        sfen_history_index += FEN_HISTORY_SIZE;
+
+    if (memcmp(
+            this->current_sfen, &serialized_fen_history[sfen_history_index], SIZEOF_T_SERIALIZED_FEN
+        ) != 0)
+        return false;
+
+    // If no difference is found between 3 consecutive positions of the same player, it's a draw
+    return true;
 }
 
 bool Board::_insufficient_material_rule()

@@ -1276,7 +1276,7 @@ void Board::_main_parsing(
     game_state_computed = false;
     engine_data_updated = false;
 
-    current_sfen_history_index = 0;
+    current_sfen_history_index = -1;
     current_sfen = NULL;
     _update_serialized_fen_history();
 }
@@ -2480,11 +2480,15 @@ board_game_state_e Board::_compute_game_state()
 
 bool Board::_threefold_repetition_rule()
 {
+    if (game_turn < 4)
+        return false;
+
     int max_history_size = min((game_turn + 1) * 2, FEN_HISTORY_SIZE);
 
+    int i = white_turn ? 0 : 1;
+
     bool fen_found = false;
-    int  i = -1;
-    while (++i < max_history_size)
+    while (i < max_history_size)
     {
         if (i != current_sfen_history_index &&
             memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
@@ -2494,6 +2498,8 @@ bool Board::_threefold_repetition_rule()
 
             fen_found = true;
         }
+
+        i += 2;
     }
 
     return false;

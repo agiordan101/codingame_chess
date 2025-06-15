@@ -328,6 +328,9 @@ Inside the file :
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
     * Optimize BitBoard :
+        * Threefold repetition rules ?
+            * Reset history when a piece is taken
+            * Split history in two set of 25 state, for white and blacks 
         * Switch some function pointer at engine start depending on the rule ?
             - It will speed up the engine
             - We won't use boards with different rules in the same executable
@@ -346,7 +349,7 @@ Inside the file :
             * 20% in BbMmabPv-3.1.8
             * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
             * 18% in BbMmabPv-5.1.8
-            * 25% in BbMmabPv-8.1.8
+            * 25-28% in BbMmabPv-8.1.8
         * Board::_find_move() :
             * 12% in BbMctsPv-3.7.6
             * 19% in BbMmabPv-3.1.6

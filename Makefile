@@ -6,9 +6,9 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMmabPv-rc
+BOT_VERSION = BbMmabPv-rc1
 
-flag = -Wall -Wextra -Werror -Wno-unknown-pragmas
+flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
 SRCS_PATH = srcs
 ALL_FILES = $(wildcard $(SRCS_PATH)/*/*.cpp)

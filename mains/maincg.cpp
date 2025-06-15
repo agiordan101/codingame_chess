@@ -258,7 +258,7 @@ typedef struct s_serialized_fen
         uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
-constexpr int    FEN_HISTORY_SIZE = 50;
+constexpr int    FEN_HISTORY_SIZE = 100;
 constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
 class Board
@@ -2483,23 +2483,24 @@ bool Board::_threefold_repetition_rule()
     if (game_turn < 4)
         return false;
 
-    int max_history_size = min((game_turn + 1) * 2, FEN_HISTORY_SIZE);
+    bool sfen_found = false;
 
-    int i = white_turn ? 0 : 1;
+    int sfen_history_index = current_sfen_history_index - 2;
 
-    bool fen_found = false;
-    while (i < max_history_size)
+    for (int i = 0; i < this->half_turn_rule; i++)
     {
-        if (i != current_sfen_history_index &&
-            memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
+        if (sfen_history_index < 0)
+            sfen_history_index += FEN_HISTORY_SIZE;
+
+        if (memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
-            if (fen_found)
+            if (sfen_found)
                 return true;
 
-            fen_found = true;
+            sfen_found = true;
         }
 
-        i += 2;
+        sfen_history_index -= 2;
     }
 
     return false;

@@ -328,9 +328,6 @@ Inside the file :
     * Is there a way to continue MCTS iterations while opponent is thinking ?
 
     * Optimize BitBoard :
-        * Threefold repetition rules ?
-            * Reset history when a piece is taken
-            * Split history in two set of 25 state, for white and blacks 
         * Switch some function pointer at engine start depending on the rule ?
             - It will speed up the engine
             - We won't use boards with different rules in the same executable

@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMmabPv-25ms-11.1.8
+BOT_VERSION = BbMmabPv-25ms-9.1.8
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -24,21 +24,10 @@ TEST_SRCS = $(CHESS_ENGINE_SRCS)\
 
 BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
-	$(SRCS_PATH)/players/BotPlayer.cpp\
-	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
+	$(SRCS_PATH)/agents/AbstractAgent.hpp\
 	$(SRCS_PATH)/agents/MctsAgent.cpp\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp\
-	$(SRCS_PATH)/heuristics/RolloutHeuristic.cpp
-
-BOTTEST_SRCS = $(CHESS_ENGINE_SRCS)\
-	$(SRCS_PATH)/gameengine/GameEngineIntTests.cpp\
-	$(SRCS_PATH)/players/BotPlayer.cpp\
-	$(SRCS_PATH)/agents/MinMaxAgent.cpp\
-	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
-	$(SRCS_PATH)/agents/MctsAgent.cpp\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp\
-	$(SRCS_PATH)/heuristics/RolloutHeuristic.cpp
+	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
 
 ### Compile project main
 all: setup test run
@@ -92,5 +81,5 @@ run:
 
 ### Just test some cpp behaviors
 poc:
-	g++ $(flag) mains/main_poc.cpp -o ./bins/main_poc
+	g++ $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/main_poc
 	./bins/main_poc

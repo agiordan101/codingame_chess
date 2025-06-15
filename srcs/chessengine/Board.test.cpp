@@ -1305,9 +1305,11 @@ int create_fen_testLauncher()
 
 #pragma region get_game_state
 
-int get_game_state_unittest(int testIndex, Board *board, float requested_game_state)
+int get_game_state_unittest(
+    int testIndex, Board *board, float requested_game_state, bool lazy_threefold = false
+)
 {
-    float game_state = board->get_game_state();
+    float game_state = board->get_game_state(lazy_threefold);
 
     if (game_state != requested_game_state)
     {
@@ -1414,6 +1416,9 @@ int get_game_state_testLauncher()
     board->apply_move(Move("e6d6")); // White move left
     board->apply_move(Move("e3d3")); // Black move left
     success_count += get_game_state_unittest(19, board, DRAW);
+
+    // Make sure the lazy evaluation is working too
+    success_count += get_game_state_unittest(200, board, DRAW, true);
 
     // CG int test
     success_count += get_game_state_unittest(

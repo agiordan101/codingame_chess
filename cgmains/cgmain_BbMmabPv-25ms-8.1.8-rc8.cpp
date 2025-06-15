@@ -2484,37 +2484,29 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 
 bool Board::_threefold_repetition_rule()
 {
-    if (this->half_turn_rule < 8)
+    if (this->half_turn_rule < 7)
         return false;
 
     bool sfen_found = false;
 
-    int sfen_index = this->current_sfen_history_index - 4;
+    int sfen_history_index = current_sfen_history_index - 4;
 
-    int last_capture_or_pawn_move_index =
-        this->current_sfen_history_index -
-        (this->half_turn_rule % 2 ? this->half_turn_rule - 1 : this->half_turn_rule);
-    if (last_capture_or_pawn_move_index < 0)
-        last_capture_or_pawn_move_index += FEN_HISTORY_SIZE;
-
-    while (sfen_index != last_capture_or_pawn_move_index)
+    for (int i = 0; i < min(this->half_turn_rule, 50); i++)
     {
-        if (sfen_index < 0)
-            sfen_index += FEN_HISTORY_SIZE;
+        if (sfen_history_index < 0)
+            sfen_history_index += FEN_HISTORY_SIZE;
 
-        if (memcmp(
-                this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN
-            ) == 0)
+        if (memcmp(this->current_sfen, &serialized_fen_history[i], SIZEOF_T_SERIALIZED_FEN) == 0)
         {
             if (sfen_found)
                 return true;
 
             sfen_found = true;
 
-            sfen_index -= 2;
+            sfen_history_index -= 2;
         }
 
-        sfen_index -= 2;
+        sfen_history_index -= 2;
     }
 
     return false;
@@ -2523,7 +2515,7 @@ bool Board::_threefold_repetition_rule()
 bool Board::_threefold_repetition_rule_lazy()
 {
 
-    if (this->half_turn_rule < 8)
+    if (this->half_turn_rule < 7)
         return false;
 
     int sfen_history_index = current_sfen_history_index - 4;
@@ -2905,10 +2897,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-9.1.8");
+    stats.push_back("version=BbMmabPv-25ms-8.1.8-rc8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-9.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
+    cerr << "BbMmabPv-25ms-8.1.8-rc8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
          << endl;
     return stats;
 }
@@ -2968,7 +2960,7 @@ float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float
     this->_nodes_explored++;
 
     if (depth == max_depth || this->is_time_up() ||
-        board->get_game_state(depth > 2) != GAME_CONTINUE)
+        board->get_game_state(depth > 1) != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);
 
     vector<Move> moves = board->get_available_moves();

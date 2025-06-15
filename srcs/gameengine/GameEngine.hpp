@@ -2,7 +2,7 @@
 #define GAMEENGINE_HPP
 
 #include "../chessengine/Board.hpp"
-#include "../srcs/agents/AbstractAgent.hpp"
+#include "../agents/AbstractAgent.hpp"
 
 class GameEngine
 {

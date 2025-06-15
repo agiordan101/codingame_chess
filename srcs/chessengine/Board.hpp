@@ -24,7 +24,7 @@ typedef struct s_serialized_fen
 
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
-constexpr int    FEN_HISTORY_SIZE = 50;
+constexpr int    FEN_HISTORY_SIZE = 100;
 constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
 class Board
@@ -118,7 +118,7 @@ class Board
             return white_turn;
         }
         char               get_cell(int x, int y);
-        board_game_state_e get_game_state();
+        board_game_state_e get_game_state(bool lazy_threefold = false);
         bool               get_check_state();
         uint64_t           get_castling_rights();
         static string      get_name();
@@ -269,8 +269,9 @@ class Board
         uint64_t _compute_castling_negative_path(uint64_t src, uint64_t dst);
 
         // - End game -
-        board_game_state_e _compute_game_state();
+        board_game_state_e _compute_game_state(bool lazy_threefold);
         bool               _threefold_repetition_rule();
+        bool               _threefold_repetition_rule_lazy();
         bool               _insufficient_material_rule();
 
         // STATIC LOOKUP TABLES

@@ -22,10 +22,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-11.1.8");
+    stats.push_back("version=BbMmabPv-25ms-9.1.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-11.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
+    cerr << "BbMmabPv-25ms-9.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
          << endl;
     return stats;
 }
@@ -93,7 +93,8 @@ float MinMaxAlphaBetaAgent::minmax(Board *board, int max_depth, int depth, float
     this->_nodes_explored++;
 
     // If we reach the max depth or the game is over, we evaluate the board
-    if (depth == max_depth || this->is_time_up() || board->get_game_state() != GAME_CONTINUE)
+    if (depth == max_depth || this->is_time_up() ||
+        board->get_game_state(depth > 2) != GAME_CONTINUE)
         return this->_heuristic->evaluate(board);
 
     vector<Move> moves = board->get_available_moves();

@@ -1701,7 +1701,7 @@ float Board::_compute_game_state()
     if (half_turn_rule >= 99 || _threefold_repetition_rule() || _insufficient_material_rule())
         return DRAW;
 
-    // Convert this to PRE PROCESSING if ?
+    // TODO: Convert this to PRE PROCESSING if ?
     if (codingame_rule)
     {
         if (game_turn > 125)

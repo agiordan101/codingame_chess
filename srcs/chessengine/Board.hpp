@@ -93,7 +93,8 @@ class Board
         uint64_t not_white_pieces_mask; // All cells that are not a white piece
         uint64_t not_black_pieces_mask; // All cells that are not a black piece
 
-        uint64_t uncheck_mask;      // Full set of bits to 1 means there is no check
+        uint64_t uncheck_mask; // All cells where an ally piece can move to uncheck the king (Full
+                               // set of bits to 1 means there is no check)
         uint64_t pawn_uncheck_mask; // Uncheck mask only available for pawns
         uint64_t attacked_by_white_mask;
         uint64_t attacked_by_black_mask;

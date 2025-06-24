@@ -129,7 +129,23 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-### BbMmabPv-3.1.6 (Best version)
+### BbMmabPv-8.1.8-rc
+
+* Submit date: 15.06.2025 18H10
+* Ligue           : Wood 1 (Best ligue)
+* Overall ranking : 30 -> 31 (/395)
+* Rank            : 30 -> 31 (/69)
+* CG score        : 19.70 -> 19.11
+
+### BbMmabPv-8.1.8 (Best version)
+
+* Submit date: 10.06.2025 19H05
+* Ligue           : Wood 1 (Best ligue)
+* Overall ranking : 35 -> 29 (/395)
+* Rank            : 35 -> 29 (/69)
+* CG score        : 18.13 -> 20,09
+
+### BbMmabPv-3.1.6
 
 * Submit date: 29.04.2025 21H32
 * Overall ranking : 32/384
@@ -318,167 +334,169 @@ Inside the file :
 - Unit test functions (Named as "{methodName}_{InputExplanations}_{ExpectedBehavior}"): Take testing data and expected results in parameter. Each function should test a specific behavior of the class method, compare the result and display explanations if a difference is found.
 - Unit test launchers (Named as "{methodName}_testLauncher"): Call their corresponding unit test method, at least one time, with data directly in parameter.
 
+
 ## Roadmap
 
-- Next steps :
+### Next steps
 
-    * Merge 2 castling rights serialization uint8_t in 1 uint16_t
-    * Split uint32_t serialized_last_info in:
-         uint16_t serialized_castling_rights
-         uint8_t  serialized_remaining_fen_info
-    * Do todos
+* Create a 9.1.8 with last commits. Consider :
+    * Select between real_threefold_repetition_rule and fast_threefold_repetition_rule at engine start
+        * 2 methods
+        * One is respecting the rule, the other is faster but can be false.
+        * Switch at starup or depending on the depth ?!
 
-    * Is there a way to continue MCTS iterations while opponent is thinking ?
+* Do board todos
 
-    * Improve Board performances
-        * Main bottlenecks from BOARD class (callgrind statistics) :
-            * Board::create_fen() :
-                *  7% in BbMctsPv-3.7.6
-                * 11% in BbMmabPv-3.1.6
-                *  8% in BbMmabPv-3.1.8
-                *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                *  7% in BbMmabPv-5.1.8
-            * Board::_compute_game_state() :
-                * 22% in BbMctsPv-3.7.6
-                * 28% in BbMmabPv-3.1.6
-                * 20% in BbMmabPv-3.1.8
-                * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                * 18% in BbMmabPv-5.1.8
-            * Board::_find_move() :
-                * 12% in BbMctsPv-3.7.6
-                * 19% in BbMmabPv-3.1.6
-                * 14% in BbMmabPv-3.1.8
-                * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                * 12% in BbMmabPv-5.1.8
-            * Board::_apply_move() :
-                *  8% in BbMctsPv-3.7.6
-                * 13% in BbMmabPv-3.1.6
-                *  9% in BbMmabPv-3.1.8
-                *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                *  7% in BbMmabPv-5.1.8
-            * Board::_find_white_pawns_moves() :
-                *  5% in BbMctsPv-3.7.6
-                *  8% in BbMmabPv-3.1.6
-                *  6% in BbMmabPv-3.1.8
-                *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
-                    * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
-                    * Try to get rid of while()
-                *  5% in BbMmabPv-5.1.8
+* Create a bitwise.cpp file
+* Code TODOs
 
-            * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
-                * 14% in BbMctsPv-3.7.6
-                * 22% in BbMmabPv-3.1.6
-                * 17% in BbMmabPv-3.1.8
+* DRAW offers (Need a winrate estimation first) :
+    * You can offer a draw to your opponent by adding = right after the move, without a space:
+        * If estimated winrate < 0.4, offer a draw (as white)
+    * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
+        * If estimated winrate > 0.6, accept a draw (as white)
 
-    * Create a bitwise.cpp file
-    * Code TODOs
+* Find a way to print chess board in python.
+    Create a game UI with buttons throught vibe coding :
+        - Bot name selectors (With a human option)
+        - New game
+        - Previous move
+        - Next move
+        - Add in CG protocol:
+            Available UCI move with its score
+        - Show available moves
+        - Show move scores
+        - Show last move
 
-    * Improve Heuristic
-        * Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic
-        Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
-            ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
-            1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
-            2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
+* Project architecture :
+    * Regroup all .test. files into a tests folder
+    * Remove AbstractPLayer
+    * Move ChessEngine.hpp in ./srcs
 
-    * Re-implemente transposition table ?
-        * Board zobrist :
-            * Rebase zobrist board on main
-            * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
+* Add png in README.md
+* Setup git hooks:
+    On commit:
+        make test
+    On push:
+        make format
+* Use valgrind to remove invalid reads
 
-    * Understand why brutaltester and psyleague don't reutrn the same results depending on thread numbers :
-        * Seems like having multipe threads at the same time make bot crash randomly (probably by timeout ?)
+* Modify Board::Board(): Randomize the board generation
 
-        * Psyleague threads test :
-            * 1 threads (102 games) :
-                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-                1  BbMmabPv-3.1.5  23.62    102  20%  25.703  0.695       0  2025/05/28 15:06:04
-                2  BbMmabPv-3.1.6  22.21    102  20%  24.297  0.695       8  2025/05/28 15:06:06
-            * 7 threads (408 games) :
-                Pos  Name            Score  Games    %      Mu  Sigma  Errors              Created
-                ---  --------------  -----  -----  ---  ------  -----  ------  -------------------
-                1  BbMmabPv-3.1.6  23.97    408  81%  25.039  0.356     117  2025/05/28 14:56:35
-                2  BbMmabPv-3.1.5  23.89    408  81%  24.961  0.356     122  2025/05/28 14:56:35
+* Try using smart pointers
+* CG game engine returns illegal castling move ? Report the bug ?
 
-    * Why all promotions are knight ???
-    
+### Ideas to improve Board
+
+* Understand what is really needed in _update_engine_at_turn_start(), and for what
+
+* Switch some function pointer at engine start depending on the rule ?
+    - It will speed up the engine
+    - We won't use boards with different rules in the same executable
+
+* Board performances of BOARD class (callgrind statistics) :
+    * Board::create_fen() :
+        *  7% in BbMctsPv-3.7.6
+        * 11% in BbMmabPv-3.1.6
+        *  8% in BbMmabPv-3.1.8
+        *  6% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+        *  7% in BbMmabPv-5.1.8
+        *  0% in BbMmabPv-8.1.8
+    * Board::_compute_game_state() :
+        * 22% in BbMctsPv-3.7.6
+        * 28% in BbMmabPv-3.1.6
+        * 20% in BbMmabPv-3.1.8
+        * 18% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+        * 18% in BbMmabPv-5.1.8
+        * 25-28% in BbMmabPv-8.1.8
+    * Board::_find_move() :
+        * 12% in BbMctsPv-3.7.6
+        * 19% in BbMmabPv-3.1.6
+        * 14% in BbMmabPv-3.1.8
+        * 12% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+        * 12% in BbMmabPv-5.1.8
+        * 20% in BbMmabPv-8.1.8
+    * Board::_apply_move() :
+        *  8% in BbMctsPv-3.7.6
+        * 13% in BbMmabPv-3.1.6
+        *  9% in BbMmabPv-3.1.8
+        *  7% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+        *  7% in BbMmabPv-5.1.8
+        *  ?? in BbMmabPv-8.1.8
+    * Board::_find_white_pawns_moves() :
+        *  5% in BbMctsPv-3.7.6
+        *  8% in BbMmabPv-3.1.6
+        *  6% in BbMmabPv-3.1.8
+        *  5% in BbMmabPv-3.2.8 (= BbMmabPv-4.1.8)
+            * Can directly check if pawn is BITMASK_LINE_2 or BITMASK_LINE_8/1
+            * Try to get rid of while()
+        *  5% in BbMmabPv-5.1.8
+        *  8% in BbMmabPv-8.1.8
+
+    * Board::_apply_function_on_all_pieces() (Seems coherent as many logic is below):
+        * 14% in BbMctsPv-3.7.6
+        * 22% in BbMmabPv-3.1.6
+        * 17% in BbMmabPv-3.1.8
+        * 19% in BbMmabPv-8.1.8
+
+### Ideas to improve Heuristics
+
+* Separete function to analyze time consumption
+
+* Investigate trade-off between heuristic time consumption and quality.
+    * Quicker heuristic results in more agent iterations
+    * Quicker heuristic would be better for MCTS
+
+* Add rewards for checks and pins
+
+* Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic.
+    Try with last board an agent
+    Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
+        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
+        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
+        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
+
+* Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
+* Try to sum material attacking/defending a piece, and consider this piece as lost or defended (0.1 or 1.1) (0 for piece with no control)
+
+### Ideas to improve agents
+
+* Decrease heuristic over depth
+
+* MinMax and MCTS shouldn't have the same heuristics !
+    * AlphaBeta strongly relies on heuristic evaluation, an advanced heuristics is needed to avoid cutoffing good branches.
+    * Mcts main strenght is a smart exploration due to the randomness of playouts and a lot of iterations. A simple and fast heuristic will guide the exploration with enough randomness and iterations, and probably have better result than a strong and slow one.
+
+* Re-implemente transposition table ?
+    * Board zobrist :
+        * Rebase zobrist board on main
+        * Create 2 Boards : Board (Bb) and ZobristBoard (Bbz)
+
     * Just save all FEN encounter in one turn, to anticipate how much transposition table will be helpful
-    
-    * MCMS: Monte Carlo Minimax Search
-        🔍 Core Idea:
-        MCMS combines minimax search with Monte Carlo sampling. Instead of evaluating every child node exhaustively (as in standard minimax), MCMS uses random sampling to reduce the branching factor.
 
-        📦 How It Works:
-        At each node, instead of exploring all child moves:
-            * Sample a subset of actions randomly (Monte Carlo).
-            * Use minimax backup rules (max at your turn, min at opponent’s).
-            Optionally, simulate multiple playouts per node to stabilize the value.
+* MCMS: Monte Carlo Minimax Search
+    🔍 Core Idea:
+    MCMS combines minimax search with Monte Carlo sampling. Instead of evaluating every child node exhaustively (as in standard minimax), MCMS uses random sampling to reduce the branching factor.
 
-    * A way to improve BbMmabPv-3.1.6 to BbMmabPv-3.2.6 :
-        * Use Node as MCTS to store game state and not recompute them (apply_move, get_game_state)
-        * Only expand the last depth
+    📦 How It Works:
+    At each node, instead of exploring all child moves:
+        * Sample a subset of actions randomly (Monte Carlo).
+        * Use minimax backup rules (max at your turn, min at opponent’s).
+        Optionally, simulate multiple playouts per node to stabilize the value.
 
-    * Create 2 heuristics: Why ?
-        * MaterialHeuristic: Just material
-        * PiecePositionHeuristic : Material + position + control
-        * KEEP HEURISTIC IDEAS FOR LATER FOR GOD SAKE !
+### Ideas to improve MinMaxAlphaBetaAgent
 
-    * Try moves caching with zobrist hash as key. Save fen inside so we can detect collisions (fen is obligatory calculated for Five move repetition rule)
+* Try to suppress alphabeta for depth = 2
 
-    * In python script versus, write game results in a history file reserved for these opponents
+* A way to improve BbMmabPv-3.1.6 to BbMmabPv-3.2.6 :
+    * Use Node as MCTS to store game state and not recompute them (apply_move, get_game_state)
+    * Only expand the last depth
 
-    * DRAW offers (Need a winrate estimation first) :
-        * You can offer a draw to your opponent by adding = right after the move, without a space:
-            * If estimated winrate < 0.4, offer a draw (as white)
-        * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
-            * If estimated winrate > 0.6, accept a draw (as white)
+* Try moves caching with zobrist hash as key. Save fen inside so we can detect collisions (fen is obligatory calculated for Five move repetition rule)
 
-    * Pour quoi BbMmPv-rc a un nombre de nodes calculé qui décroit à chaque tour ? BbMmPv était vraiment constant !
+### Ideas to improve MctsAgent
 
-    * Optimize BitBoard :
-        * Re-implement Five repetition rule: Don't create FEN, save bitboard numbers instead
-        * Switch some function pointer at engine start depending on the rule ?
-            - It will speed up the engine
-            - We won't use boards with different rules in the same executable
-        * Time optimization :
-            - Create TimedBoard, which inrehit from AbstractBoard, wrapping an AbstractBoard received in constructor parameters.
-            - Create a function/main to evaliuate board performances (Will mainly be usefull to optimize BitBoard performances)
-                - Simulate N games and create an average time for all methods ?
-            - Create BitBoardMotherFucker, inherit from AbtractBoard. Optimizing BitBoard with new dark technics
-
-    * Find a way to print chess board in python.
-        Create with Mistral a game UI with button :
-           - Bot name selectors (With a human option)
-           - New game
-           - Previous move
-           - Next move
-           - Add in CG protocol:
-                Available UCI move with its score
-           - Show available moves
-           - Show move scores
-           - Show last move
-
-    * Transform game state from static define to enum
-    * BotPlayer : from vector to *vector
-
-    * Project architecture :
-        * Regroup all .test. files into a tests folder
-        * Remove AbstractPLayer
-        * Move ChessEngine.hpp in ./srcs
-
-    * Add png in README.md
-    * Setup git hooks:
-        On commit:
-            make test
-        On push:
-            make format
-    * Use valgrind to remove invalid reads
-
-    * Modify Board::Board(): Randomize the board generation
-
-    * Try using smart pointers
-    * CG game engine returns illegal castling move ? Report the bug ?
-
+* Verify we don't select all children right after expanding a node
 
 ## Externals C++ libraries
 

@@ -129,15 +129,15 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-### BbMmabPv-9.1.8
+### BbMmabPv-9.1.8 (Best version)
 
 * Submit date: 27.06.2025 12H50
 * Ligue           : Wood 1 (Best ligue)
-* Overall ranking : 33 (/395)
-* Rank            : 33 (/69)
-* CG score        : 18.96
+* Overall ranking : 32 (/395)
+* Rank            : 32 (/69)
+* CG score        : 19,64
 
-### BbMmabPv-8.1.8 (Best version)
+### BbMmabPv-8.1.8
 
 * Submit date: 27.06.2025 12H50
 * Ligue           : Wood 1 (Best ligue)
@@ -332,6 +332,9 @@ Inside the file :
 
 ### Next steps
 
+* New versions for agent
+* New versions for mmab heuristic
+
 * Undertsand what are (from kcachegrind) :
     * std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)
     * std::vector<Move, std::allocator<Move> >::vector(std::vector<Move, std::allocator<Move> > const&)
@@ -356,8 +359,6 @@ Inside the file :
         - Show move scores
         - Show last move
 
-* Do board todos
-
 * Project architecture :
     * Regroup all .test. files into a tests folder
     * Remove AbstractPLayer
@@ -377,8 +378,6 @@ Inside the file :
 * CG game engine returns illegal castling move ? Report the bug ?
 
 ### Ideas to improve Board
-
-* Insufisant material can only happen after a capture !
 
 * Switch some function pointer at engine start depending on the rule ?
     - It will speed up the engine
@@ -452,6 +451,7 @@ Inside the file :
 ### Ideas to improve agents
 
 * Decrease heuristic over depth
+* Don't cut branches at depth 2
 
 * MinMax and MCTS shouldn't have the same heuristics !
     * AlphaBeta strongly relies on heuristic evaluation, an advanced heuristics is needed to avoid cutoffing good branches.

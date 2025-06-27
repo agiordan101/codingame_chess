@@ -14,7 +14,7 @@ class MinMaxAlphaBetaAgent : public AbstractAgent
 
     private:
         AbstractHeuristic *_heuristic;
-        float ab_epsilon_window = PAWN_VALUE * 0.95;
+        float ab_epsilon_window = PAWN_VALUE * 1.05;
 
         int     _ms_constraint;
         float   _ms_turn_stop;

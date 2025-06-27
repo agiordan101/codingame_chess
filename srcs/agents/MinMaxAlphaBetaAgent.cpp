@@ -22,10 +22,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-10.1.8-rc1");
+    stats.push_back("version=BbMmabPv-25ms-10.1.8-rc2");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-10.1.8-rc1\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
+    cerr << "BbMmabPv-25ms-10.1.8-rc2\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
          << endl;
     return stats;
 }
@@ -131,7 +131,7 @@ float MinMaxAlphaBetaAgent::max_node(
             break;
 
         // Don't cut branches too early. We need to anticipate at least all opponent responses
-        if (depth < 2)
+        if (depth < 3)
             continue;
 
         best_quality = max(best_quality, child_quality);
@@ -167,7 +167,7 @@ float MinMaxAlphaBetaAgent::min_node(
             break;
 
         // Don't cut branches too early. We need to anticipate at least all opponent responses
-        if (depth < 2)
+        if (depth < 3)
             continue;
 
         best_quality = min(best_quality, child_quality);

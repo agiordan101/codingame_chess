@@ -129,21 +129,21 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
-### BbMmabPv-8.1.8-rc
+### BbMmabPv-9.1.8
 
-* Submit date: 15.06.2025 18H10
+* Submit date: 27.06.2025 12H50
 * Ligue           : Wood 1 (Best ligue)
-* Overall ranking : 30 -> 31 (/395)
-* Rank            : 30 -> 31 (/69)
-* CG score        : 19.70 -> 19.11
+* Overall ranking : 33 (/395)
+* Rank            : 33 (/69)
+* CG score        : 18.96
 
 ### BbMmabPv-8.1.8 (Best version)
 
-* Submit date: 10.06.2025 19H05
+* Submit date: 27.06.2025 12H50
 * Ligue           : Wood 1 (Best ligue)
-* Overall ranking : 35 -> 29 (/395)
-* Rank            : 35 -> 29 (/69)
-* CG score        : 18.13 -> 20,09
+* Overall ranking : 32 (/395)
+* Rank            : 32 (/69)
+* CG score        : 19.24
 
 ### BbMmabPv-3.1.6
 
@@ -379,8 +379,6 @@ Inside the file :
 ### Ideas to improve Board
 
 * Insufisant material can only happen after a capture !
-* benchmar ktime between lazy tfr and not lazy
-* Understand what is really needed in _update_engine_at_turn_start(), and for what
 
 * Switch some function pointer at engine start depending on the rule ?
     - It will speed up the engine

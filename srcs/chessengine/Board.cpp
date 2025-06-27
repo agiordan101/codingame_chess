@@ -108,6 +108,8 @@ void Board::apply_move(Move move)
     if (!this->engine_data_updated)
         _update_engine_at_turn_start();
 
+    piece_just_captured = false;
+
     // TODO: Sort them by probability to optimize the if-else chain
     char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
     if (piece == 'P')
@@ -370,6 +372,7 @@ void Board::_main_parsing(
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
+    piece_just_captured = false;
 
     current_sfen_history_index = -1;
     current_sfen = NULL;
@@ -769,6 +772,7 @@ void Board::_capture_white_pieces(uint64_t dst)
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
         // incremented at the end of the turn)
         half_turn_rule = -1;
+        this->piece_just_captured = true;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -798,6 +802,7 @@ void Board::_capture_black_pieces(uint64_t dst)
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
         // incremented at the end of the turn)
         half_turn_rule = -1;
+        this->piece_just_captured = true;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -1701,8 +1706,14 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
     if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
         return DRAW;
 
-    // Fifty-Move rule + Insufficient material rule
-    if (half_turn_rule >= 99 || _insufficient_material_rule())
+    if (this->piece_just_captured)
+    {
+        // Insufisant material can only happen after a capture
+        if (_insufficient_material_rule())
+            return DRAW;
+    }
+    // Fifty-Move rule
+    else if (half_turn_rule >= 99)
         return DRAW;
 
     // TODO: Convert this to PRE PROCESSING if ?
@@ -1753,7 +1764,9 @@ bool Board::_threefold_repetition_rule()
         if (sfen_index < 0)
             sfen_index += FEN_HISTORY_SIZE;
 
-        if (memcmp(this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN) == 0)
+        if (memcmp(
+                this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN
+            ) == 0)
         {
             // If the flag is already ON, it's a threefold repetition
             if (sfen_found)

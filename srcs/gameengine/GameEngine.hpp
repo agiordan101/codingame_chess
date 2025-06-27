@@ -1,8 +1,8 @@
 #ifndef GAMEENGINE_HPP
 #define GAMEENGINE_HPP
 
-#include "../chessengine/Board.hpp"
 #include "../agents/AbstractAgent.hpp"
+#include "../chessengine/Board.hpp"
 
 class GameEngine
 {

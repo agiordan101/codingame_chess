@@ -160,6 +160,9 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
+        // Insufisant material can only happen after a capture
+        bool piece_just_captured;
+
         // serialized FEN history is used to check the Threefold Repetition rule
         // Each serialized FEN is saved in the history after each move
         int               current_sfen_history_index;

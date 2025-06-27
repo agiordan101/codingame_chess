@@ -27,17 +27,6 @@ class PiecesHeuristic : public AbstractHeuristic
             int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
         );
 
-        // From AlphaZero paper
-        // https://en.wikipedia.org/wiki/Chess_piece_relative_value
-        typedef enum t_piece_values
-        {
-            PAWN_VALUE = 100,
-            KNIGHT_VALUE = 305,
-            BISHOP_VALUE = 333,
-            ROOK_VALUE = 563,
-            QUEEN_VALUE = 950
-        } e_piece_values;
-
         // Cells control
         const int control_value_for_empty_cell = 5;
         const int control_value_for_enemy_cell = 10;

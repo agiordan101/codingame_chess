@@ -22,10 +22,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-10.1.8-rc2");
+    stats.push_back("version=BbMmabPv-25ms-10.1.8-rc3");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-10.1.8-rc2\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
+    cerr << "BbMmabPv-25ms-10.1.8-rc3\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
          << endl;
     return stats;
 }
@@ -130,16 +130,12 @@ float MinMaxAlphaBetaAgent::max_node(
         if (this->is_time_up())
             break;
 
-        // Don't cut branches too early. We need to anticipate at least all opponent responses
-        if (depth < 3)
-            continue;
-
         best_quality = max(best_quality, child_quality);
 
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Beta cut : If we're in a max node and the current child max quality is higher than a
         // brother node
-        if (beta <= best_quality)
+        if (beta <= best_quality - this->ab_epsilon_window)
             return best_quality;
 
         // Update alpha for the next brother nodes
@@ -166,16 +162,12 @@ float MinMaxAlphaBetaAgent::min_node(
         if (this->is_time_up())
             break;
 
-        // Don't cut branches too early. We need to anticipate at least all opponent responses
-        if (depth < 3)
-            continue;
-
         best_quality = min(best_quality, child_quality);
 
         // Alpha-beta pruning - Stop the search when we know the current node won't be chosen
         // - Alpha cut : If we're in a min node and the current child min quality is lower than a
         // brother node
-        if (alpha >= best_quality)
+        if (alpha >= best_quality + this->ab_epsilon_window)
             return best_quality;
 
         // Update beta for the next brother nodes

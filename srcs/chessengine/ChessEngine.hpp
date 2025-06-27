@@ -75,6 +75,17 @@ enum ray_dir_e
     NORTHWEST
 };
 
+// From AlphaZero paper
+// https://en.wikipedia.org/wiki/Chess_piece_relative_value
+typedef enum t_piece_values
+{
+    PAWN_VALUE = 100,
+    KNIGHT_VALUE = 305,
+    BISHOP_VALUE = 333,
+    ROOK_VALUE = 563,
+    QUEEN_VALUE = 950
+} e_piece_values;
+
 /* PIECES FUNCTIONS */
 
 inline wchar_t convert_piece_to_unicode(char piece)

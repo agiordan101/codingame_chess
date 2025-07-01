@@ -1706,14 +1706,8 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
     if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
         return DRAW;
 
-    if (this->piece_just_captured)
-    {
-        // Insufisant material can only happen after a capture
-        if (_insufficient_material_rule())
-            return DRAW;
-    }
-    // Fifty-Move rule
-    else if (half_turn_rule >= 99)
+    // Fifty-Move rule + Insufisant material
+    if (half_turn_rule >= 99 || _insufficient_material_rule())
         return DRAW;
 
     // TODO: Convert this to PRE PROCESSING if ?
@@ -1822,7 +1816,9 @@ bool Board::_threefold_repetition_rule_lazy()
 
 bool Board::_insufficient_material_rule()
 {
-    if (white_pawns | black_pawns | white_rooks | black_rooks | white_queens | black_queens)
+    // Insufisant material can only happen after a capture
+    if (!this->piece_just_captured || white_pawns || black_pawns || white_rooks || black_rooks ||
+        white_queens || black_queens)
         return false;
 
     int white_knights_count = _count_bits(white_knights);

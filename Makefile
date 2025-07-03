@@ -6,7 +6,7 @@ TIMETEST_EXEC = timetest
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMmabPv-25ms-12.1.8
+BOT_VERSION = BbMmabBh-25ms-12.1.1
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -20,14 +20,14 @@ CHESS_ENGINE_TESTCPP = $(wildcard $(SRCS_PATH)/chessengine/*.test.cpp)
 CHESS_ENGINE_SRCS = $(filter-out $(CHESS_ENGINE_TESTCPP), $(CHESS_ENGINE_CPP))
 
 TEST_SRCS = $(CHESS_ENGINE_SRCS)\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
+	$(SRCS_PATH)/heuristics/BestHeuristic.cpp
 
 BOT_SRCS = $(CHESS_ENGINE_SRCS)\
 	$(SRCS_PATH)/gameengine/GameEngine.cpp\
 	$(SRCS_PATH)/agents/MinMaxAlphaBetaAgent.cpp\
 	$(SRCS_PATH)/agents/AbstractAgent.hpp\
 	$(SRCS_PATH)/agents/MctsAgent.cpp\
-	$(SRCS_PATH)/heuristics/PiecesHeuristic.cpp
+	$(SRCS_PATH)/heuristics/BestHeuristic.cpp
 
 ### Compile project main
 all: setup test run

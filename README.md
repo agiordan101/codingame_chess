@@ -129,13 +129,21 @@ Before creating a new version :
 
 ## Bot versions deployed in CodinGame
 
+### BbMmabPv-12.1.8
+
+* Submit date: 03.07.2025 13H46
+* Ligue           : Wood 1 (Best ligue)
+* Overall ranking : 32 -> 33 (/395)
+* Rank            : 32 -> 33 (/69)
+* CG score        : 19.45 -> 18.48
+
 ### BbMmabPv-9.1.8
 
 * Submit date: 27.06.2025 12H50
 * Ligue           : Wood 1 (Best ligue)
-* Overall ranking : 33 (/395)
-* Rank            : 33 (/69)
-* CG score        : 18.96
+* Overall ranking : 32 (/395)
+* Rank            : 32 (/69)
+* CG score        : 19.45
 
 ### BbMmabPv-8.1.8 (Best version)
 
@@ -332,6 +340,8 @@ Inside the file :
 
 ### Next steps
 
+* Begin 03/07/2025 : Improve heuristics, boards versions are fine
+
 * Undertsand what are (from kcachegrind) :
     * std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)
     * std::vector<Move, std::allocator<Move> >::vector(std::vector<Move, std::allocator<Move> > const&)
@@ -378,7 +388,12 @@ Inside the file :
 
 ### Ideas to improve Board
 
-* Insufisant material can only happen after a capture !
+* 7 vs 8 ?      -> 7 = 8        Keep 8
+* 8 vs 11 ?     -> 8 > 11       Revert 11 ?
+* 11 vs 9 ?     -> 11 > 9       Revert 9 ?.. We can't really revert it because it solves 3fr rule
+* 9 vs 10 ?     -> 9 < 10       Keep 10
+* 10 vs 12 ?    -> 10 = 12      Keep 12
+* 7 vs 12 ?     -> 7 = 12       Keep 12
 
 * Switch some function pointer at engine start depending on the rule ?
     - It will speed up the engine
@@ -431,20 +446,17 @@ Inside the file :
 
 ### Ideas to improve Heuristics
 
-* Separete function to analyze time consumption
+* Pv heuristic should be transformed in :
+    * Bh : best heuristic for MinMaxAlphaBeta
+    * Fh : fast heuristic for MCTS
+
+* Separate heuristic computation in functions to analyze time consumption in a test cpp file
+
+* Add rewards for checks and pins
 
 * Investigate trade-off between heuristic time consumption and quality.
     * Quicker heuristic results in more agent iterations
     * Quicker heuristic would be better for MCTS
-
-* Add rewards for checks and pins
-
-* Revert code that made Heuristic version 6 ? Do that when upgrading the heuristic.
-    Try with last board an agent
-    Pos  Name            Score  Games     %      Mu  Sigma  Errors              Created
-        ---  --------------  -----  -----  ----  ------  -----  ------  -------------------
-        1  BbMmabPv-3.1.5  28.19    826  100%  29.055  0.288      10  2025/05/24 17:18:04
-        2  BbMmabPv-3.1.6  28.05    842  100%  28.897  0.283      18  2025/05/24 17:18:04
 
 * Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
 * Try to sum material attacking/defending a piece, and consider this piece as lost or defended (0.1 or 1.1) (0 for piece with no control)

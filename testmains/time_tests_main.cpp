@@ -1,6 +1,6 @@
 
 #include "../srcs/gameengine/GameEngineIntTests.hpp"
-#include "../srcs/heuristics/PiecesHeuristic.hpp"
+#include "../srcs/heuristics/BestHeuristic.hpp"
 
 using namespace std;
 
@@ -60,7 +60,7 @@ void test_dataset(string file_name)
         return;
     }
 
-    // PiecesHeuristic *heuristic = new PiecesHeuristic();
+    // BestHeuristic *heuristic = new BestHeuristic();
     Board board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1");
 
     string lines;

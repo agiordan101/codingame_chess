@@ -13,7 +13,7 @@
                 "$(workspaceFolder)/srcs/agents/MinMaxAgent.cpp",
                 "$(workspaceFolder)/srcs/agents/MinMaxAlphaBetaAgent.cpp",
                 "$(workspaceFolder)/srcs/agents/MctsAgent.cpp",
-                "$(workspaceFolder)/srcs/heuristics/PiecesHeuristic.cpp",
+                "$(workspaceFolder)/srcs/heuristics/BestHeuristic.cpp",
                 "$(workspaceFolder)/srcs/heuristics/RolloutHeuristic.cpp",
                 "-o",
                 "${workspaceFolder}/bins/main"

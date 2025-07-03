@@ -1,15 +1,15 @@
-#ifndef PIECESHEURISTIC_HPP
-#define PIECESHEURISTIC_HPP
+#ifndef BestHeuristic_HPP
+#define BestHeuristic_HPP
 
 #include "AbstractHeuristic.hpp"
 
 constexpr int EVALUATION_WINRATE_MAP_SIZE = 40000;
 
-class PiecesHeuristic : public AbstractHeuristic
+class BestHeuristic : public AbstractHeuristic
 {
 
     public:
-        PiecesHeuristic();
+        BestHeuristic();
 
         float  evaluate(Board *board) override;
         string get_name() override;

@@ -7,7 +7,7 @@ input_filenames = [
     "srcs/chessengine/Move.hpp",
     "srcs/chessengine/Board.hpp",
     "srcs/heuristics/AbstractHeuristic.hpp",
-    "srcs/heuristics/PiecesHeuristic.hpp",
+    "srcs/heuristics/BestHeuristic.hpp",
     "srcs/agents/AbstractAgent.hpp",
     "srcs/agents/MinMaxAlphaBetaAgent.hpp",
     "srcs/gameengine/GameEngine.hpp",
@@ -15,7 +15,7 @@ input_filenames = [
     "srcs/chessengine/Board.cpp",
     "srcs/chessengine/Move.cpp",
     "srcs/agents/MinMaxAlphaBetaAgent.cpp",
-    "srcs/heuristics/PiecesHeuristic.cpp",
+    "srcs/heuristics/BestHeuristic.cpp",
     "mains/main.cpp",
 ]
 

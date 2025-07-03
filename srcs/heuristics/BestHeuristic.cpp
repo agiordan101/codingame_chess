@@ -1,7 +1,7 @@
-#include "PiecesHeuristic.hpp"
+#include "BestHeuristic.hpp"
 #include <algorithm>
 
-PiecesHeuristic::PiecesHeuristic()
+BestHeuristic::BestHeuristic()
 {
     for (int i = 0, eval = -EVALUATION_WINRATE_MAP_SIZE / 2; i < EVALUATION_WINRATE_MAP_SIZE;
          i++, eval++)
@@ -16,7 +16,7 @@ PiecesHeuristic::PiecesHeuristic()
     }
 }
 
-float PiecesHeuristic::evaluate(Board *board)
+float BestHeuristic::evaluate(Board *board)
 {
     float state = board->get_game_state();
     if (state != GAME_CONTINUE)
@@ -64,12 +64,13 @@ float PiecesHeuristic::evaluate(Board *board)
     int black_control_on_ally_cell_count =
         _count_bits(board->attacked_by_black_mask & board->black_pieces_mask);
 
-    int control_evaluation = (white_control_on_empty_cell_count - black_control_on_empty_cell_count
-                             ) * control_value_for_empty_cell +
-                             (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count
-                             ) * control_value_for_enemy_cell +
-                             (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
-                                 control_value_for_ally_cell;
+    int control_evaluation =
+        (white_control_on_empty_cell_count - black_control_on_empty_cell_count) *
+            control_value_for_empty_cell +
+        (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count) *
+            control_value_for_enemy_cell +
+        (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
+            control_value_for_ally_cell;
 
     int evaluation = material_evaluation + pp_evaluation + control_evaluation;
 
@@ -78,12 +79,12 @@ float PiecesHeuristic::evaluate(Board *board)
     return _evaluation_winrate_map[evaluation + EVALUATION_WINRATE_MAP_SIZE / 2];
 }
 
-string PiecesHeuristic::get_name()
+string BestHeuristic::get_name()
 {
-    return "PiecesHeuristic";
+    return "BestHeuristic";
 }
 
-int PiecesHeuristic::_material_evaluation(Board *board, int *white_material, int *black_material)
+int BestHeuristic::_material_evaluation(Board *board, int *white_material, int *black_material)
 {
     int white_pawn_count = _count_bits(board->white_pawns);
     int white_knight_count = _count_bits(board->white_knights);
@@ -107,7 +108,7 @@ int PiecesHeuristic::_material_evaluation(Board *board, int *white_material, int
     return *white_material - *black_material;
 }
 
-int PiecesHeuristic::_piece_positions_evaluation(
+int BestHeuristic::_piece_positions_evaluation(
     Board *board, float white_eg_coefficient, float black_eg_coefficient
 )
 {
@@ -142,7 +143,7 @@ int PiecesHeuristic::_piece_positions_evaluation(
     return pp_eval;
 }
 
-int PiecesHeuristic::_lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard)
+int BestHeuristic::_lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard)
 {
     int bonuses = 0;
 
@@ -161,7 +162,7 @@ int PiecesHeuristic::_lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t b
     return bonuses;
 }
 
-int PiecesHeuristic::_lookup_bonuses_for_all_pieces(
+int BestHeuristic::_lookup_bonuses_for_all_pieces(
     int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
 )
 {

@@ -450,7 +450,6 @@ Inside the file :
     * Bh : best heuristic for MinMaxAlphaBeta
     * Fh : fast heuristic for MCTS
 
-* Add rewards for checks
 * Start middle game when a regular piece (knight, bishop, rook) and a pawn are lost
 * Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
 

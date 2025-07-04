@@ -75,7 +75,14 @@ float BestHeuristic::evaluate(Board *board)
                              (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
                                  control_value_for_ally_cell;
 
-    int evaluation = material_evaluation + pp_evaluation + control_evaluation;
+    // --- Check bonus ---
+    int check_evaluation = 0;
+    if (board->uncheck_mask != BITMASK_ALL_CELLS)
+    {
+        check_evaluation = board->is_white_turn() ? -this->check_bonus : this->check_bonus;
+    }
+
+    int evaluation = material_evaluation + pp_evaluation + control_evaluation + check_evaluation;
 
     // Return an evaluation between 0 and 1, where 0 is a win for black, 0.5 is a draw and 1 is a
     // win for white

@@ -3185,7 +3185,7 @@ void BestHeuristic::_find_unpinned_pieces(Board *board, t_unpinned_pieces *_unpi
 
 uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboard)
 {
-    uint64_t unpinned_bitboard = bitboard;
+    uint64_t unpinned_bitboard = 0;
 
     while (bitboard)
     {
@@ -3193,7 +3193,7 @@ uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboar
         uint64_t lsb = 1UL << first_piece_i;
 
         if (board->pin_masks[first_piece_i] != BITMASK_ALL_CELLS)
-            unpinned_bitboard ^= lsb;
+            unpinned_bitboard |= lsb;
 
         bitboard ^= lsb;
     }

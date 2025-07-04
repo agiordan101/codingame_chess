@@ -54,7 +54,7 @@ class BestHeuristic : public AbstractHeuristic
         const int material_start_end_game_diff = material_start_game - material_end_game;
 
         // Bonus added when player does a check
-        const int check_bonus = 9 * (float)PAWN_VALUE / 10;
+        const int check_bonus = 2 * (float)PAWN_VALUE / 10;
 
         float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
 

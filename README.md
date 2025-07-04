@@ -135,7 +135,7 @@ Before creating a new version :
 * Ligue           : Wood 1 (Best ligue)
 * Overall ranking : 32 -> 33 (/395)
 * Rank            : 32 -> 33 (/69)
-* CG score        : 19.45 -> 18.48
+* CG score        : 19.45 -> 18.63
 
 ### BbMmabPv-9.1.8
 
@@ -341,6 +341,7 @@ Inside the file :
 ### Next steps
 
 * Begin 03/07/2025 : Improve heuristics, boards versions are fine
+* Still promoting to knights ???
 
 * Undertsand what are (from kcachegrind) :
     * std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)
@@ -452,6 +453,8 @@ Inside the file :
 
 * Start middle game when a regular piece (knight, bishop, rook) and a pawn are lost
 * Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
+* Add bonuses for half passed pawn
+* Add bonus for bishop pair
 
 * Separate heuristic computation in functions to analyze time consumption in a test cpp file
 

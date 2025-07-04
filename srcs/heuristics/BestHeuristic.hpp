@@ -5,6 +5,22 @@
 
 constexpr int EVALUATION_WINRATE_MAP_SIZE = 40000;
 
+typedef struct s_unpinned_pieces
+{
+        uint64_t white_pawns;
+        uint64_t white_knights;
+        uint64_t white_bishops;
+        uint64_t white_rooks;
+        uint64_t white_queens;
+        uint64_t white_king;
+        uint64_t black_pawns;
+        uint64_t black_knights;
+        uint64_t black_bishops;
+        uint64_t black_rooks;
+        uint64_t black_queens;
+        uint64_t black_king;
+} t_unpinned_pieces;
+
 class BestHeuristic : public AbstractHeuristic
 {
 
@@ -15,18 +31,6 @@ class BestHeuristic : public AbstractHeuristic
         string get_name() override;
 
     private:
-        float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
-
-        int _material_evaluation(Board *board, int *white_material, int *black_material);
-        int _piece_positions_evaluation(
-            Board *board, float white_eg_coefficient, float black_eg_coefficient
-        );
-
-        int _lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard);
-        int _lookup_bonuses_for_all_pieces(
-            int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
-        );
-
         // From AlphaZero paper
         // https://en.wikipedia.org/wiki/Chess_piece_relative_value
         typedef enum t_piece_values
@@ -48,6 +52,25 @@ class BestHeuristic : public AbstractHeuristic
             10 * PAWN_VALUE + 2 * KNIGHT_VALUE + 2 * BISHOP_VALUE + 2 * ROOK_VALUE + QUEEN_VALUE;
         const int material_end_game = QUEEN_VALUE + ROOK_VALUE + 3 * PAWN_VALUE;
         const int material_start_end_game_diff = material_start_game - material_end_game;
+
+        float _evaluation_winrate_map[EVALUATION_WINRATE_MAP_SIZE];
+
+        void     _find_unpinned_pieces(Board *board, t_unpinned_pieces *_unpinned_bitboards);
+        uint64_t _create_unpinned_bitboard(Board *board, uint64_t bitboard);
+
+        int _material_evaluation(
+            t_unpinned_pieces *_unpinned_bitboards, int *white_material, int *black_material
+        );
+        int _piece_positions_evaluation(
+            t_unpinned_pieces *_unpinned_bitboards,
+            float              white_eg_coefficient,
+            float              black_eg_coefficient
+        );
+
+        int _lookup_bonuses_for_all_pieces(int *bonus_table, uint64_t bitboard);
+        int _lookup_bonuses_for_all_pieces(
+            int *sg_bonus_table, int *eg_bonus_table, float eg_coef, uint64_t bitboard
+        );
 
         // clang-format off
         // Pieces bonuses depending on their position

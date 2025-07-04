@@ -29,11 +29,14 @@ float BestHeuristic::evaluate(Board *board)
             return 1;
     }
 
-    // --- Material evaluation ---
+    t_unpinned_pieces _unpinned_bitboards;
+    _find_unpinned_pieces(board, &_unpinned_bitboards);
 
+    // --- Material evaluation ---
     int white_material;
     int black_material;
-    int material_evaluation = _material_evaluation(board, &white_material, &black_material);
+    int material_evaluation =
+        _material_evaluation(&_unpinned_bitboards, &white_material, &black_material);
 
     // --- Piece position evaluation ---
     int white_material_in_bound = min(max(white_material, material_end_game), material_start_game);
@@ -46,8 +49,9 @@ float BestHeuristic::evaluate(Board *board)
     float black_eg_coefficient =
         (float)(material_start_game - black_material_in_bound) / material_start_end_game_diff;
 
-    int pp_evaluation =
-        _piece_positions_evaluation(board, white_eg_coefficient, black_eg_coefficient);
+    int pp_evaluation = _piece_positions_evaluation(
+        &_unpinned_bitboards, white_eg_coefficient, black_eg_coefficient
+    );
 
     // --- Cells control evaluation ---
     int white_control_on_empty_cell_count =
@@ -64,13 +68,12 @@ float BestHeuristic::evaluate(Board *board)
     int black_control_on_ally_cell_count =
         _count_bits(board->attacked_by_black_mask & board->black_pieces_mask);
 
-    int control_evaluation =
-        (white_control_on_empty_cell_count - black_control_on_empty_cell_count) *
-            control_value_for_empty_cell +
-        (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count) *
-            control_value_for_enemy_cell +
-        (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
-            control_value_for_ally_cell;
+    int control_evaluation = (white_control_on_empty_cell_count - black_control_on_empty_cell_count
+                             ) * control_value_for_empty_cell +
+                             (white_control_on_enemy_cell_count - black_control_on_enemy_cell_count
+                             ) * control_value_for_enemy_cell +
+                             (white_control_on_ally_cell_count - black_control_on_ally_cell_count) *
+                                 control_value_for_ally_cell;
 
     int evaluation = material_evaluation + pp_evaluation + control_evaluation;
 
@@ -84,18 +87,57 @@ string BestHeuristic::get_name()
     return "BestHeuristic";
 }
 
-int BestHeuristic::_material_evaluation(Board *board, int *white_material, int *black_material)
+void BestHeuristic::_find_unpinned_pieces(Board *board, t_unpinned_pieces *_unpinned_bitboards)
 {
-    int white_pawn_count = _count_bits(board->white_pawns);
-    int white_knight_count = _count_bits(board->white_knights);
-    int white_bishop_count = _count_bits(board->white_bishops);
-    int white_rook_count = _count_bits(board->white_rooks);
-    int white_queen_count = _count_bits(board->white_queens);
-    int black_pawn_count = _count_bits(board->black_pawns);
-    int black_knight_count = _count_bits(board->black_knights);
-    int black_bishop_count = _count_bits(board->black_bishops);
-    int black_rook_count = _count_bits(board->black_rooks);
-    int black_queen_count = _count_bits(board->black_queens);
+    _unpinned_bitboards->white_pawns = _create_unpinned_bitboard(board, board->white_pawns);
+    _unpinned_bitboards->white_knights = _create_unpinned_bitboard(board, board->white_knights);
+    _unpinned_bitboards->white_bishops = _create_unpinned_bitboard(board, board->white_bishops);
+    _unpinned_bitboards->white_rooks = _create_unpinned_bitboard(board, board->white_rooks);
+    _unpinned_bitboards->white_queens = _create_unpinned_bitboard(board, board->white_queens);
+    _unpinned_bitboards->white_king = board->white_king;
+    _unpinned_bitboards->black_pawns = _create_unpinned_bitboard(board, board->black_pawns);
+    _unpinned_bitboards->black_knights = _create_unpinned_bitboard(board, board->black_knights);
+    _unpinned_bitboards->black_bishops = _create_unpinned_bitboard(board, board->black_bishops);
+    _unpinned_bitboards->black_rooks = _create_unpinned_bitboard(board, board->black_rooks);
+    _unpinned_bitboards->black_queens = _create_unpinned_bitboard(board, board->black_queens);
+    _unpinned_bitboards->black_king = board->black_king;
+}
+
+uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboard)
+{
+    uint64_t unpinned_bitboard = 0;
+
+    // Find all individual bits in bitboard
+    while (bitboard)
+    {
+        int      first_piece_i = _count_trailing_zeros(bitboard);
+        uint64_t lsb = 1UL << first_piece_i;
+
+        // If the piece is pinned, don't add it to the unpinned bitboard
+        if (board->pin_masks[first_piece_i] != BITMASK_ALL_CELLS)
+            unpinned_bitboard |= lsb;
+
+        // Remove the actual bit from bitboard, so we can find the next one
+        bitboard ^= lsb;
+    }
+
+    return unpinned_bitboard;
+}
+
+int BestHeuristic::_material_evaluation(
+    t_unpinned_pieces *_unpinned_bitboards, int *white_material, int *black_material
+)
+{
+    int white_pawn_count = _count_bits(_unpinned_bitboards->white_pawns);
+    int white_knight_count = _count_bits(_unpinned_bitboards->white_knights);
+    int white_bishop_count = _count_bits(_unpinned_bitboards->white_bishops);
+    int white_rook_count = _count_bits(_unpinned_bitboards->white_rooks);
+    int white_queen_count = _count_bits(_unpinned_bitboards->white_queens);
+    int black_pawn_count = _count_bits(_unpinned_bitboards->black_pawns);
+    int black_knight_count = _count_bits(_unpinned_bitboards->black_knights);
+    int black_bishop_count = _count_bits(_unpinned_bitboards->black_bishops);
+    int black_rook_count = _count_bits(_unpinned_bitboards->black_rooks);
+    int black_queen_count = _count_bits(_unpinned_bitboards->black_queens);
 
     // Material evaluation
     *white_material = white_pawn_count * PAWN_VALUE + white_knight_count * KNIGHT_VALUE +
@@ -109,35 +151,47 @@ int BestHeuristic::_material_evaluation(Board *board, int *white_material, int *
 }
 
 int BestHeuristic::_piece_positions_evaluation(
-    Board *board, float white_eg_coefficient, float black_eg_coefficient
+    t_unpinned_pieces *_unpinned_bitboards, float white_eg_coefficient, float black_eg_coefficient
 )
 {
     int pp_eval = 0;
 
     pp_eval += _lookup_bonuses_for_all_pieces(
         white_pawn_sg_bonus_table, white_pawn_eg_bonus_table, white_eg_coefficient,
-        board->white_pawns
+        _unpinned_bitboards->white_pawns
     );
-    pp_eval += _lookup_bonuses_for_all_pieces(white_knight_bonus_table, board->white_knights);
-    pp_eval += _lookup_bonuses_for_all_pieces(white_bishop_bonus_table, board->white_bishops);
-    pp_eval += _lookup_bonuses_for_all_pieces(white_rook_bonus_table, board->white_rooks);
-    pp_eval += _lookup_bonuses_for_all_pieces(white_queen_bonus_table, board->white_queens);
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_knight_bonus_table, _unpinned_bitboards->white_knights
+    );
+    pp_eval += _lookup_bonuses_for_all_pieces(
+        white_bishop_bonus_table, _unpinned_bitboards->white_bishops
+    );
+    pp_eval +=
+        _lookup_bonuses_for_all_pieces(white_rook_bonus_table, _unpinned_bitboards->white_rooks);
+    pp_eval +=
+        _lookup_bonuses_for_all_pieces(white_queen_bonus_table, _unpinned_bitboards->white_queens);
     pp_eval += _lookup_bonuses_for_all_pieces(
         white_king_sg_bonus_table, white_king_eg_bonus_table, white_eg_coefficient,
-        board->white_king
+        _unpinned_bitboards->white_king
     );
 
     pp_eval -= _lookup_bonuses_for_all_pieces(
         black_pawn_sg_bonus_table, black_pawn_eg_bonus_table, black_eg_coefficient,
-        board->black_pawns
+        _unpinned_bitboards->black_pawns
     );
-    pp_eval -= _lookup_bonuses_for_all_pieces(black_knight_bonus_table, board->black_knights);
-    pp_eval -= _lookup_bonuses_for_all_pieces(black_bishop_bonus_table, board->black_bishops);
-    pp_eval -= _lookup_bonuses_for_all_pieces(black_rook_bonus_table, board->black_rooks);
-    pp_eval -= _lookup_bonuses_for_all_pieces(black_queen_bonus_table, board->black_queens);
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_knight_bonus_table, _unpinned_bitboards->black_knights
+    );
+    pp_eval -= _lookup_bonuses_for_all_pieces(
+        black_bishop_bonus_table, _unpinned_bitboards->black_bishops
+    );
+    pp_eval -=
+        _lookup_bonuses_for_all_pieces(black_rook_bonus_table, _unpinned_bitboards->black_rooks);
+    pp_eval -=
+        _lookup_bonuses_for_all_pieces(black_queen_bonus_table, _unpinned_bitboards->black_queens);
     pp_eval -= _lookup_bonuses_for_all_pieces(
         black_king_sg_bonus_table, black_king_eg_bonus_table, black_eg_coefficient,
-        board->black_king
+        _unpinned_bitboards->black_king
     );
 
     return pp_eval;

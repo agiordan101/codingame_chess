@@ -450,15 +450,16 @@ Inside the file :
     * Bh : best heuristic for MinMaxAlphaBeta
     * Fh : fast heuristic for MCTS
 
-* Separate heuristic computation in functions to analyze time consumption in a test cpp file
+* Add rewards for checks
+* Start middle game when a regular piece (knight, bishop, rook) and a pawn are lost
+* Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
 
-* Add rewards for checks and pins
+* Separate heuristic computation in functions to analyze time consumption in a test cpp file
 
 * Investigate trade-off between heuristic time consumption and quality.
     * Quicker heuristic results in more agent iterations
     * Quicker heuristic would be better for MCTS
 
-* Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
 * Try to sum material attacking/defending a piece, and consider this piece as lost or defended (0.1 or 1.1) (0 for piece with no control)
 
 ### Ideas to improve agents

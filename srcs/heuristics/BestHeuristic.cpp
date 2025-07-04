@@ -105,7 +105,7 @@ void BestHeuristic::_find_unpinned_pieces(Board *board, t_unpinned_pieces *_unpi
 
 uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboard)
 {
-    uint64_t unpinned_bitboard = 0;
+    uint64_t unpinned_bitboard = bitboard;
 
     // Find all individual bits in bitboard
     while (bitboard)
@@ -113,9 +113,9 @@ uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboar
         int      first_piece_i = _count_trailing_zeros(bitboard);
         uint64_t lsb = 1UL << first_piece_i;
 
-        // If a piece is pinned, don't add it to the unpinned bitboard
-        if (board->pin_masks[first_piece_i] == BITMASK_ALL_CELLS)
-            unpinned_bitboard |= lsb;
+        // If a piece is pinned, remove it from the unpinned bitboard
+        if (board->pin_masks[first_piece_i] != BITMASK_ALL_CELLS)
+            unpinned_bitboard ^= lsb;
 
         // Remove the actual bit from bitboard, so we can find the next one
         bitboard ^= lsb;

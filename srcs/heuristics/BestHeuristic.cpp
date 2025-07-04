@@ -113,8 +113,8 @@ uint64_t BestHeuristic::_create_unpinned_bitboard(Board *board, uint64_t bitboar
         int      first_piece_i = _count_trailing_zeros(bitboard);
         uint64_t lsb = 1UL << first_piece_i;
 
-        // If the piece is pinned, don't add it to the unpinned bitboard
-        if (board->pin_masks[first_piece_i] != BITMASK_ALL_CELLS)
+        // If a piece is pinned, don't add it to the unpinned bitboard
+        if (board->pin_masks[first_piece_i] == BITMASK_ALL_CELLS)
             unpinned_bitboard |= lsb;
 
         // Remove the actual bit from bitboard, so we can find the next one

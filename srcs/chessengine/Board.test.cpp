@@ -6,11 +6,11 @@ int apply_move_validMove_ApplyIt(
     int testIndex, Board *initial_board, Board *requested_board, Move *move
 )
 {
-    Board *test_board = initial_board->clone();
+    Board test_board = initial_board->clone();
 
-    test_board->apply_move(*move);
+    test_board.apply_move(*move);
 
-    if (!(*test_board == requested_board))
+    if (!(test_board == requested_board))
     {
         cerr << "\n---------- Board - apply_move_validMove_ApplyIt() - Test " << testIndex
              << " - !!! FAILURE !!! ----------" << endl;
@@ -21,7 +21,7 @@ int apply_move_validMove_ApplyIt(
         move->log();
 
         cerr << "\n- Final board : " << endl;
-        test_board->log();
+        test_board.log();
         cerr << "\n- Requested board : " << endl;
         requested_board->log();
 
@@ -1357,51 +1357,68 @@ int get_game_state_testLauncher()
     // 44 - Stalemate - Black turn
     success_count += get_game_state_unittest(6, new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 0"), DRAW);
 
+    // Insufficient material: Must do a move because the implementation only verify the rule if a
+    // capture was made before
+
     // Insufficient material: King vs king
-    success_count += get_game_state_unittest(7, new Board("8/8/3K4/8/8/3k4/8/8 w - - 0 0"), DRAW);
+    Board *board = new Board("8/3K4/3q4/8/8/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d6"));
+    success_count += get_game_state_unittest(7, board, DRAW);
+
     // Same, but with an extra piece on the board (Game continue)
-    success_count +=
-        get_game_state_unittest(8, new Board("8/8/3K4/8/8/3k4/8/2p5 w - - 0 0"), GAME_CONTINUE);
+    board = new Board("8/3K4/3q4/8/8/3k4/8/2p5 w - - 0 0");
+    board->apply_move(Move("d7d6"));
+    success_count += get_game_state_unittest(8, board, GAME_CONTINUE);
 
     // Insufficient material: King+knight vs king
-    success_count += get_game_state_unittest(9, new Board("8/8/3K4/8/3n4/3k4/8/8 w - - 0 0"), DRAW);
+    board = new Board("8/3K4/3q4/8/3n4/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d6"));
+    success_count += get_game_state_unittest(9, board, DRAW);
 
     // Insufficient material: King+bishop vs king
-    success_count +=
-        get_game_state_unittest(10, new Board("8/8/3K4/3B4/8/3k4/8/8 w - - 0 0"), DRAW);
+    board = new Board("3q4/3K4/8/3B4/8/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d8"));
+    success_count += get_game_state_unittest(10, board, DRAW);
 
     // Insufficient material: King+bishop vs king+bishop if both bishops are on the same square
     // color.
+    board = new Board("3q4/3K4/8/3B4/4b3/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d8"));
+    success_count += get_game_state_unittest(11, board, DRAW);
+
+    // Insufficient material: Game continue (Bishop vs Knight)
+    board = new Board("3Q4/3k4/8/6K1/3B4/8/8/5n2 b - - 0 115");
+    board->apply_move(Move("d7d8"));
+    success_count += get_game_state_unittest(12, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (Knight vs Bishop)
+    board = new Board("3Q4/3k4/8/6K1/3N4/8/8/5b2 b - - 0 115");
+    board->apply_move(Move("d7d8"));
+    success_count += get_game_state_unittest(13, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (2 bishops on different square color)
+    board = new Board("8/8/3K4/3B4/3b4/3Q4/3k4/8 b - - 0 0");
+    board->apply_move(Move("d2d3"));
+    success_count += get_game_state_unittest(14, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (2 knights)
+    board = new Board("8/8/3K4/3N4/3n4/3Q4/3k4/8 b - - 0 0");
+    board->apply_move(Move("d2d3"));
+    success_count += get_game_state_unittest(15, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (Queen)
+    board = new Board("8/3K4/3q4/3Q4/8/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d6"));
     success_count +=
-        get_game_state_unittest(11, new Board("8/8/3K4/3B4/4b3/3k4/8/8 w - - 0 0"), DRAW);
-
-    // Game continue (Bishop vs Knight)
-    success_count += get_game_state_unittest(
-        12, new Board("3k4/8/8/6K1/3B4/8/8/5n2 b - - 0 115"), GAME_CONTINUE
-    );
-
-    // Game continue (Knight vs Bishop)
-    success_count += get_game_state_unittest(
-        13, new Board("3k4/8/8/6K1/3N4/8/8/5b2 b - - 0 115"), GAME_CONTINUE
-    );
-
-    // Game continue (2 bishops on different square color)
+    get_game_state_unittest(16, board, GAME_CONTINUE);
+    
+    // Insufficient material: Game continue (Rook)
+    board = new Board("8/3K4/3q4/8/3r4/3k4/8/8 w - - 0 0");
+    board->apply_move(Move("d7d6"));
     success_count +=
-        get_game_state_unittest(14, new Board("8/8/3K4/3B4/3b4/3k4/8/8 w - - 0 0"), GAME_CONTINUE);
+        get_game_state_unittest(17, board, GAME_CONTINUE);
 
-    // Game continue (2 knights)
-    success_count +=
-        get_game_state_unittest(15, new Board("8/8/3K4/3N4/3n4/3k4/8/8 w - - 0 0"), GAME_CONTINUE);
-
-    // Game continue (Queen)
-    success_count +=
-        get_game_state_unittest(16, new Board("8/8/3K4/3Q4/8/3k4/8/8 w - - 0 0"), GAME_CONTINUE);
-
-    // Game continue (Rook)
-    success_count +=
-        get_game_state_unittest(17, new Board("8/8/3K4/8/3r4/3k4/8/8 w - - 0 0"), GAME_CONTINUE);
-
-    Board *board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
+    board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
 
     // Threefold Repetition rule fails (Only 1 repetition)
     board->apply_move(Move("d6e6")); // White move right
@@ -1507,9 +1524,9 @@ int is_check_testLauncher()
 
 int clone_unittest(int testIndex, Board *board)
 {
-    Board *clone = board->clone();
+    Board clone = board->clone();
 
-    if (!(*board == clone))
+    if (!(*board == &clone))
     {
         cerr << "\n---------- Board - clone_unittest() - Test " << testIndex
              << " - !!! FAILURE !!! ----------" << endl;
@@ -1517,7 +1534,7 @@ int clone_unittest(int testIndex, Board *board)
         board->log();
 
         cerr << "\n- Actual clone : " << endl;
-        clone->log();
+        clone.log();
 
         return 0;
     }

@@ -332,13 +332,21 @@ Inside the file :
 
 ### Next steps
 
+* Probablement un probleme de copy dhistorique des draw !
+    En game normal il capte pas les draws, alors que quand je apply_move manuellement ca marche.
+    
+* Begin 03/07/2025 : Improve heuristics, boards versions are fine
+
 * Undertsand what are (from kcachegrind) :
     * std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)
     * std::vector<Move, std::allocator<Move> >::vector(std::vector<Move, std::allocator<Move> > const&)
 * Create a bitwise.cpp file
 * Code TODOs
 
-* DRAW offers (Need a winrate estimation first) :
+* DRAW offers :
+    * Need a winrate estimation first :
+        * MCTS : Root quality
+        * Mmab : Heuristic
     * You can offer a draw to your opponent by adding = right after the move, without a space:
         * If estimated winrate < 0.4, offer a draw (as white)
     * You can accept a draw offer by outputting draw instead of a move. Note that this is only legal if a draw offer was made the previous turn! Make sure to check the input first.
@@ -431,7 +439,16 @@ Inside the file :
 
 ### Ideas to improve Heuristics
 
-* Separete function to analyze time consumption
+* Pv heuristic should be transformed in :
+    * Bh : best heuristic for MinMaxAlphaBeta
+    * Fh : fast heuristic for MCTS
+
+* Add rewards for checks
+* Add rewards when castle is done
+* Start middle game when a regular piece (knight, bishop, rook) and a pawn are lost
+* Add rewards for defended pieces and penalties for undefended pieces ? (1.1 and 0.9)
+
+* Separate heuristic computation in functions to analyze time consumption in a test cpp file
 
 * Investigate trade-off between heuristic time consumption and quality.
     * Quicker heuristic results in more agent iterations

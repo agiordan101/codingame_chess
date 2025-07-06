@@ -124,7 +124,8 @@ class Board
         static string      get_name();
 
         string create_fen(bool with_turns = true);
-        Board *clone();
+        Board  clone();
+        void   update_current_sfen();
 
         vector<Move> get_available_moves();
         void         apply_move(Move move);

@@ -15,7 +15,7 @@ struct Node
         float utc_parent_exploration;
         float uct_value;
 
-        Board *resulting_board;
+        Board resulting_board;
         bool   is_over;
         float  end_game_evaluation;
 
@@ -25,12 +25,12 @@ struct Node
         Node()
             : move(Move("a1b1")), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
-              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+              is_over(false), end_game_evaluation(0.5){};
 
         Node(Move m)
             : move(m), visits(0), value(0), utc_exploitation(0), utc_exploration(0),
               utc_parent_exploration(0), uct_value(std::numeric_limits<float>::infinity()),
-              resulting_board(nullptr), is_over(false), end_game_evaluation(0.5){};
+              is_over(false), end_game_evaluation(0.5){};
 
         ~Node(){
             // if (resulting_board != nullptr)

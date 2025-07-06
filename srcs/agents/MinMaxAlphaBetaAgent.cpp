@@ -22,10 +22,10 @@ vector<string> MinMaxAlphaBetaAgent::get_stats()
 {
     vector<string> stats;
 
-    stats.push_back("version=BbMmabPv-25ms-12.1.8");
+    stats.push_back("version=BbMmabPv-25ms-13.1.8");
     stats.push_back("depth=" + to_string(this->_depth_reached));
     stats.push_back("states=" + to_string(this->_nodes_explored));
-    cerr << "BbMmabPv-25ms-12.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
+    cerr << "BbMmabPv-25ms-13.1.8\t: stats=" << stats[0] << " " << stats[1] << " " << stats[2]
          << endl;
     return stats;
 }
@@ -69,7 +69,7 @@ void MinMaxAlphaBetaAgent::get_qualities(Board *board, vector<Move> moves, vecto
     {
         for (size_t i = 0; i < moves.size(); i++)
         {
-            Board new_board = *board;
+            Board new_board = board->clone();
             new_board.apply_move(moves[i]);
 
             float move_quality = this->minmax(&new_board, max_depth, 1, -1, 1);

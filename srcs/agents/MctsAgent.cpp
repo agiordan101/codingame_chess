@@ -114,7 +114,7 @@ Node *MctsAgent::find_child_node_played(Board *board)
 {
     for (Node *child : this->_root_node->children_nodes)
     {
-        if (*board == child->resulting_board)
+        if (*board == &child->resulting_board)
         {
             return child;
         }
@@ -136,10 +136,10 @@ float MctsAgent::mcts(Node *parent_node, int depth)
     if (node->visits == 0)
     {
         // Tree leaf reached
-        node->resulting_board = parent_node->resulting_board->clone();
-        node->resulting_board->apply_move(node->move);
+        node->resulting_board = parent_node->resulting_board.clone();
+        node->resulting_board.apply_move(node->move);
 
-        float game_state = node->resulting_board->get_game_state();
+        float game_state = node->resulting_board.get_game_state();
         if (game_state == GAME_CONTINUE)
         {
             // Expansion
@@ -196,7 +196,7 @@ Node *MctsAgent::select_child(Node *parent)
 void MctsAgent::expand_node(Node *node)
 {
     // Create children_nodes nodes for each available move
-    for (const Move &move : node->resulting_board->get_available_moves())
+    for (const Move &move : node->resulting_board.get_available_moves())
         node->children_nodes.push_back(new Node(move));
 }
 
@@ -205,13 +205,13 @@ float MctsAgent::simulation(Node *node)
     float evaluation;
 
     // Sigmoid version (Between 0 and 1)
-    if (node->resulting_board->is_white_turn())
-        evaluation = 1 - this->_heuristic->evaluate(node->resulting_board);
+    if (node->resulting_board.is_white_turn())
+        evaluation = 1 - this->_heuristic->evaluate(&node->resulting_board);
     else
-        evaluation = this->_heuristic->evaluate(node->resulting_board);
+        evaluation = this->_heuristic->evaluate(&node->resulting_board);
 
     // First Linear version (Between -1 and 1)
-    // int player = node->resulting_board->is_white_turn() ? -1 : 1;
+    // int player = node->resulting_board.is_white_turn() ? -1 : 1;
     // evaluation = (1 + player * this->_heuristic->evaluate(node->resulting_board)) / 2;
 
     return evaluation;

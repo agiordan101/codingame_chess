@@ -11,6 +11,7 @@ class MinMaxAlphaBetaAgent : public AbstractAgent
         virtual string get_name() override;
         vector<string> get_stats() override;
         virtual Move   choose_from(Board *board, clock_t turn_start_clock) override;
+        void  get_qualities(Board *board, vector<Move> moves, vector<float> *qualities);
 
     private:
         AbstractHeuristic *_heuristic;
@@ -22,7 +23,6 @@ class MinMaxAlphaBetaAgent : public AbstractAgent
         int _depth_reached;
         int _nodes_explored;
 
-        void  get_qualities(Board *board, vector<Move> moves, vector<float> *qualities);
         float minmax(Board *board, int max_depth, int depth, float alpha, float beta);
         float max_node(
             Board *board, vector<Move> *moves, int max_depth, int depth, float alpha, float beta

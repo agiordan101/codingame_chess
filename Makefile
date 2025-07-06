@@ -2,11 +2,12 @@ TEST_EXEC = unittests
 PERFT_EXEC = perft
 DATASETTEST_EXEC = datasettest
 TIMETEST_EXEC = timetest
+RANDOMTEST_EXEC = randomtest
 
 DEBUG_EXEC = debug
 
 CG_EXEC = mychessbot
-BOT_VERSION = BbMmabPv-25ms-12.1.8
+BOT_VERSION = BbMmabPv-25ms-13.1.8
 
 flag = -O3 -Wall -Wextra -Werror -Wno-unknown-pragmas
 
@@ -60,6 +61,10 @@ datasettest:
 timetest:
 	@g++ testmains/time_tests_main.cpp $(BOT_SRCS) -o ./bins/$(TIMETEST_EXEC)
 	@./bins/$(TIMETEST_EXEC)
+
+randomtest:
+	g++ -g3 $(flag) testmains/random_tests_main.cpp $(BOT_SRCS) -o ./bins/$(RANDOMTEST_EXEC)
+	./bins/$(RANDOMTEST_EXEC)
 
 ### Compile perft test main
 perft:

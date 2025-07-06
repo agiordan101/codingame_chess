@@ -191,6 +191,7 @@ board_game_state_e Board::get_game_state(bool lazy_threefold)
             _update_engine_at_turn_start();
 
         this->game_state = _compute_game_state(lazy_threefold);
+        this->game_state_computed = true;
     }
 
     return this->game_state;
@@ -224,6 +225,7 @@ vector<Move> Board::get_available_moves()
             _update_engine_at_turn_start();
 
         _find_moves();
+        this->moves_computed = true;
     }
 
     return this->available_moves;
@@ -320,13 +322,13 @@ string Board::create_fen(bool with_turns)
     return fen_string;
 }
 
-Board *Board::clone()
+Board Board::clone()
 {
-    // Create empty instance
-    Board *cloned_board = new Board();
+    // Shallow copy
+    Board cloned_board = *this;
 
-    // Raw copy
-    *cloned_board = *this;
+    // Reassign pointers
+    cloned_board.update_current_sfen();
 
     return cloned_board;
 }
@@ -1048,7 +1050,7 @@ void Board::_update_serialized_fen_history()
     if (current_sfen_history_index == FEN_HISTORY_SIZE)
         current_sfen_history_index = 0;
 
-    current_sfen = &serialized_fen_history[current_sfen_history_index];
+    this->update_current_sfen();
 
     // Pack the pieces data into __int128 variables
     current_sfen->serialized_pawns = white_pawns | ((__int128)black_pawns << 64);
@@ -1063,6 +1065,11 @@ void Board::_update_serialized_fen_history()
     uint8_t turns_bit = (white_turn ? 0b00000000 : 0b11110000);
     uint8_t en_passant_bits = en_passant ? _count_trailing_zeros(en_passant) % 8 : 0;
     current_sfen->serialized_remaining_fen_info = turns_bit | en_passant_bits;
+}
+
+void Board::update_current_sfen()
+{
+    this->current_sfen = &this->serialized_fen_history[this->current_sfen_history_index];
 }
 
 // - Piece attacks -
@@ -1174,8 +1181,6 @@ void Board::_find_moves()
         }
         _find_black_king_moves();
     }
-
-    this->moves_computed = true;
 }
 
 void Board::_find_white_pawns_moves(uint64_t src)

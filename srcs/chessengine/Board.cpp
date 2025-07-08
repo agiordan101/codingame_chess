@@ -108,7 +108,7 @@ void Board::apply_move(Move move)
     if (!this->engine_data_updated)
         _update_engine_at_turn_start();
 
-    piece_just_captured = false;
+    piece_just_captured = capture_occured_e::NO_CAPTURE;
 
     // TODO: Sort them by probability to optimize the if-else chain
     char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
@@ -374,7 +374,7 @@ void Board::_main_parsing(
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
-    piece_just_captured = false;
+    piece_just_captured = capture_occured_e::NO_INFORMATION;
 
     current_sfen_history_index =
         _half_turn_rule - 1; // Will be incremented in _update_serialized_fen_history()
@@ -775,7 +775,7 @@ void Board::_capture_white_pieces(uint64_t dst)
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
         // incremented at the end of the turn)
         half_turn_rule = -1;
-        this->piece_just_captured = true;
+        this->piece_just_captured = capture_occured_e::CAPTURE;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -805,7 +805,7 @@ void Board::_capture_black_pieces(uint64_t dst)
         // Fifty-Move rule: Reset half turn counter if a piece is captured (-1 because it will be
         // incremented at the end of the turn)
         half_turn_rule = -1;
-        this->piece_just_captured = true;
+        this->piece_just_captured = capture_occured_e::CAPTURE;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -1832,8 +1832,8 @@ bool Board::_threefold_repetition_rule_lazy()
 bool Board::_insufficient_material_rule()
 {
     // Insufisant material can only happen after a capture
-    if (!this->piece_just_captured || white_pawns || black_pawns || white_rooks || black_rooks ||
-        white_queens || black_queens)
+    if (this->piece_just_captured == capture_occured_e::NO_CAPTURE || white_pawns || black_pawns ||
+        white_rooks || black_rooks || white_queens || black_queens)
         return false;
 
     int white_knights_count = _count_bits(white_knights);

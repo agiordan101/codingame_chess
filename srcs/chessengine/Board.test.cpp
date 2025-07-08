@@ -1358,7 +1358,7 @@ int get_game_state_testLauncher()
     // 44 - Stalemate - Black turn
     success_count += get_game_state_unittest(6, new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 1"), DRAW);
 
-    // Insufficient material: Must do a move because the implementation only verify the rule if a
+    // Insufficient material part: Do some move before so the implementation verify if a
     // capture was made before
 
     // Insufficient material: King vs king
@@ -1416,6 +1416,16 @@ int get_game_state_testLauncher()
     board = new Board("8/3K4/3q4/8/3r4/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d6"));
     success_count += get_game_state_unittest(17, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (Rook) (No move before)
+    board = new Board("8/8/3K4/8/3r4/3k4/8/8 b - - 0 1");
+    success_count += get_game_state_unittest(170, board, GAME_CONTINUE);
+
+    // Insufficient material: Game continue (Rook)
+    board = new Board("3K4/8/8/3B4/4b3/3k4/8/8 b - - 0 1");
+    success_count += get_game_state_unittest(171, board, DRAW);
+
+    // --- Threefold Repetition part ---
 
     board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 1");
 

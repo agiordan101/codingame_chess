@@ -22,6 +22,14 @@ typedef struct s_serialized_fen
         uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
+// enum for Move type
+enum capture_occured_e
+{
+    NO_CAPTURE,
+    CAPTURE,
+    NO_INFORMATION
+};
+
 // Because of the Fifty-Move rule, a game cannot exceed 50 moves without a capture
 // So we can assume that a position cannot be repeated at more than 50 moves away
 constexpr int    FEN_HISTORY_SIZE = 100;
@@ -162,7 +170,7 @@ class Board
         uint64_t capturable_by_black_pawns_mask;
 
         // Insufisant material can only happen after a capture
-        bool piece_just_captured;
+        capture_occured_e piece_just_captured;
 
         // serialized FEN history is used to check the Threefold Repetition rule
         // Each serialized FEN is saved in the history after each move

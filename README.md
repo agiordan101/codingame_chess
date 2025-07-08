@@ -332,6 +332,7 @@ Inside the file :
 
 ### Next steps
 
+* Fifty-Move rule create a DRAW at 99 or 100 ????????????????
 * Probablement un probleme de copy dhistorique des draw !
     En game normal il capte pas les draws, alors que quand je apply_move manuellement ca marche.
     

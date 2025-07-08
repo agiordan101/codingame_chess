@@ -1,6 +1,6 @@
+#include "../srcs/agents/MinMaxAlphaBetaAgent.hpp"
 #include "../srcs/chessengine/Board.hpp"
 #include "../srcs/heuristics/PiecesHeuristic.hpp"
-#include "../srcs/agents/MinMaxAlphaBetaAgent.hpp"
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
     // Board                *board = new Board("4q3/8/6r1/3k3K/8/8/8/2n5 w - - 60 2");
 
     // Why promote in knight ?
-    Board                *board = new Board("8/5q2/6r1/3k3K/8/8/2p5/8 w - - 60 0");
+    Board *board = new Board("8/5q2/6r1/3k3K/8/8/2p5/8 w - - 60 0");
 
     // Why does it not understand draw tfr ?
     // Board                *board = new Board("1q6/5K2/8/3k4/8/8/8/2n5 w - - 3 6");
@@ -27,7 +27,7 @@ int main()
 
     board->log(false);
 
-    int turn_played = 0;
+    int   turn_played = 0;
     float game_state = GAME_CONTINUE;
     while (game_state == GAME_CONTINUE)
     {

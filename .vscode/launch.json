@@ -8,7 +8,7 @@
             "name": "Debug C++",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bins/randomtest",
+            "program": "${workspaceFolder}/bins/debug",
             "args": ["<", "${workspaceFolder}/debug_inputs/debug_inputs.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

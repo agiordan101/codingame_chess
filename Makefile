@@ -73,7 +73,7 @@ perft:
 
 ### Compile the actual bot for debugging
 debug:
-	g++ -g3 $(flag) mains/main_poc.cpp $(BOT_SRCS) -o ./bins/$(DEBUG_EXEC)
+	g++ -g3 $(flag) testmains/unit_tests_main.cpp $(CHESS_ENGINE_CPP) -o ./bins/$(DEBUG_EXEC)
 
 ### Group source code in one file mains/maincg.cpp, save it in local, and compile the bot
 run:

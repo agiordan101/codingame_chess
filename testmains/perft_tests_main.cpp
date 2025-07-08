@@ -6,20 +6,14 @@ int find_board_possibilities(Board *board, int depth, int max_depth)
         return 1;
 
     vector<Move> moves = board->get_available_moves();
-    // cerr << "Depth: " << depth << " Move count: " << moves.size() << endl;
 
     int possibilities = 0;
     for (Move move : moves)
     {
-        // cerr << "Depth: " << depth << " Move: " << move.to_uci() << endl;
-
-        Board *new_board = board->clone();
-        new_board->apply_move(move);
-        possibilities += find_board_possibilities(new_board, depth + 1, max_depth);
-        delete new_board;
+        Board new_board = board->clone();
+        new_board.apply_move(move);
+        possibilities += find_board_possibilities(&new_board, depth + 1, max_depth);
     }
-
-    // board->log();
 
     return possibilities;
 }
@@ -41,8 +35,6 @@ int test_perft_board(string fen, int *expected_moves, int expected_moves_count)
             cerr << "-------------------" << endl << endl;
             return 0;
         }
-
-        // cerr << "Depth " << i << " SUCCEED - FEN: " << fen << endl;
     }
 
     return 1;

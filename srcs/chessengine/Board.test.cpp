@@ -360,7 +360,7 @@ bool is_move_in_movelst(Move move, Move *movelst[10], int move_count)
 }
 
 int find_moves_RegularCases_FindAllMoves(
-    int testIndex, Board *board, Move *requested_moves[10], int requested_moves_count
+    int testIndex, Board *board, Move *requested_moves[10], size_t requested_moves_count
 )
 {
     // Act
@@ -368,7 +368,7 @@ int find_moves_RegularCases_FindAllMoves(
 
     // Assert all requested moves were found by the engine
     bool success = true;
-    for (int i = 0; i < requested_moves_count; i++)
+    for (size_t i = 0; i < requested_moves_count; i++)
     {
         if (!is_move_in_movelst(requested_moves[i], moves_found))
         {
@@ -386,7 +386,7 @@ int find_moves_RegularCases_FindAllMoves(
     }
 
     // Assert all moves found by the engine are requested
-    for (int i = 0; i < moves_found.size(); i++)
+    for (size_t i = 0; i < moves_found.size(); i++)
     {
         if (!is_move_in_movelst(moves_found[i], requested_moves, requested_moves_count))
         {
@@ -414,11 +414,11 @@ int find_moves_RegularCases_FindAllMoves(
         }
 
         cerr << "- Moves found by the engine : " << endl;
-        for (int i = 0; i < moves_found.size(); i++)
+        for (size_t i = 0; i < moves_found.size(); i++)
             moves_found[i].log();
 
         cerr << "- Requested moves : " << endl;
-        for (int i = 0; i < requested_moves_count; i++)
+        for (size_t i = 0; i < requested_moves_count; i++)
             requested_moves[i]->log();
 
         success = false;
@@ -1332,12 +1332,13 @@ int get_game_state_testLauncher()
     int success_count = 0;
 
     // 0 - Fifty-Move rule
-    success_count +=
-        get_game_state_unittest(0, new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 98 1"), GAME_CONTINUE);
+    success_count += get_game_state_unittest(
+        0, new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 98 110"), GAME_CONTINUE
+    );
 
-    // 1 - Fifty-Move rule (49.5)
+    // 1 - Fifty-Move rule
     success_count +=
-        get_game_state_unittest(1, new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 99 1"), DRAW);
+        get_game_state_unittest(1, new Board("8/3k4/3p4/8/3P4/3K4/8/8 w - - 99 110"), DRAW);
 
     // 2 - Game turn max reached - 126 move proc the end game
     success_count +=
@@ -1345,44 +1346,44 @@ int get_game_state_testLauncher()
 
     // 3 - White wins
     success_count +=
-        get_game_state_unittest(3, new Board("k6R/7R/8/8/8/8/8/8 b - - 0 0"), WHITE_WIN);
+        get_game_state_unittest(3, new Board("k6R/7R/8/8/8/8/8/8 b - - 0 1"), WHITE_WIN);
 
     // 33 - Black wins
     success_count +=
-        get_game_state_unittest(4, new Board("8/8/8/8/8/8/7r/K6r w - - 0 0"), BLACK_WIN);
+        get_game_state_unittest(4, new Board("8/8/8/8/8/8/7r/K6r w - - 0 1"), BLACK_WIN);
 
     // 4 - Stalemate - White turn
-    success_count += get_game_state_unittest(5, new Board("6r1/8/8/8/8/8/r7/7K w - - 0 0"), DRAW);
+    success_count += get_game_state_unittest(5, new Board("6r1/8/8/8/8/8/r7/7K w - - 0 1"), DRAW);
 
     // 44 - Stalemate - Black turn
-    success_count += get_game_state_unittest(6, new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 0"), DRAW);
+    success_count += get_game_state_unittest(6, new Board("k7/7R/8/8/8/8/8/1R6 b - - 0 1"), DRAW);
 
     // Insufficient material: Must do a move because the implementation only verify the rule if a
     // capture was made before
 
     // Insufficient material: King vs king
-    Board *board = new Board("8/3K4/3q4/8/8/3k4/8/8 w - - 0 0");
+    Board *board = new Board("8/3K4/3q4/8/8/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d6"));
     success_count += get_game_state_unittest(7, board, DRAW);
 
     // Same, but with an extra piece on the board (Game continue)
-    board = new Board("8/3K4/3q4/8/8/3k4/8/2p5 w - - 0 0");
+    board = new Board("8/3K4/3q4/8/8/3k4/8/2p5 w - - 0 1");
     board->apply_move(Move("d7d6"));
     success_count += get_game_state_unittest(8, board, GAME_CONTINUE);
 
     // Insufficient material: King+knight vs king
-    board = new Board("8/3K4/3q4/8/3n4/3k4/8/8 w - - 0 0");
+    board = new Board("8/3K4/3q4/8/3n4/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d6"));
     success_count += get_game_state_unittest(9, board, DRAW);
 
     // Insufficient material: King+bishop vs king
-    board = new Board("3q4/3K4/8/3B4/8/3k4/8/8 w - - 0 0");
+    board = new Board("3q4/3K4/8/3B4/8/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d8"));
     success_count += get_game_state_unittest(10, board, DRAW);
 
     // Insufficient material: King+bishop vs king+bishop if both bishops are on the same square
     // color.
-    board = new Board("3q4/3K4/8/3B4/4b3/3k4/8/8 w - - 0 0");
+    board = new Board("3q4/3K4/8/3B4/4b3/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d8"));
     success_count += get_game_state_unittest(11, board, DRAW);
 
@@ -1397,28 +1398,26 @@ int get_game_state_testLauncher()
     success_count += get_game_state_unittest(13, board, GAME_CONTINUE);
 
     // Insufficient material: Game continue (2 bishops on different square color)
-    board = new Board("8/8/3K4/3B4/3b4/3Q4/3k4/8 b - - 0 0");
+    board = new Board("8/8/3K4/3B4/3b4/3Q4/3k4/8 b - - 0 1");
     board->apply_move(Move("d2d3"));
     success_count += get_game_state_unittest(14, board, GAME_CONTINUE);
 
     // Insufficient material: Game continue (2 knights)
-    board = new Board("8/8/3K4/3N4/3n4/3Q4/3k4/8 b - - 0 0");
+    board = new Board("8/8/3K4/3N4/3n4/3Q4/3k4/8 b - - 0 1");
     board->apply_move(Move("d2d3"));
     success_count += get_game_state_unittest(15, board, GAME_CONTINUE);
 
     // Insufficient material: Game continue (Queen)
-    board = new Board("8/3K4/3q4/3Q4/8/3k4/8/8 w - - 0 0");
+    board = new Board("8/3K4/3q4/3Q4/8/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d6"));
-    success_count +=
-    get_game_state_unittest(16, board, GAME_CONTINUE);
-    
-    // Insufficient material: Game continue (Rook)
-    board = new Board("8/3K4/3q4/8/3r4/3k4/8/8 w - - 0 0");
-    board->apply_move(Move("d7d6"));
-    success_count +=
-        get_game_state_unittest(17, board, GAME_CONTINUE);
+    success_count += get_game_state_unittest(16, board, GAME_CONTINUE);
 
-    board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 0");
+    // Insufficient material: Game continue (Rook)
+    board = new Board("8/3K4/3q4/8/3r4/3k4/8/8 w - - 0 1");
+    board->apply_move(Move("d7d6"));
+    success_count += get_game_state_unittest(17, board, GAME_CONTINUE);
+
+    board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 0 1");
 
     // Threefold Repetition rule fails (Only 1 repetition)
     board->apply_move(Move("d6e6")); // White move right
@@ -1433,6 +1432,38 @@ int get_game_state_testLauncher()
     board->apply_move(Move("e6d6")); // White move left
     board->apply_move(Move("e3d3")); // Black move left
     success_count += get_game_state_unittest(19, board, DRAW);
+
+    board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 5 5");
+
+    // Threefold Repetition rule fails (Only 1 repetition)
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
+    success_count += get_game_state_unittest(180, board, GAME_CONTINUE);
+
+    // Threefold Repetition rule succeed -> 2 repetitions
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
+    success_count += get_game_state_unittest(190, board, DRAW);
+
+    board = new Board("8/3K4/3Q4/8/8/3q4/3k4/8 w - - 10 10");
+
+    // Threefold Repetition rule fails (Only 1 repetition)
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
+    success_count += get_game_state_unittest(1800, board, GAME_CONTINUE);
+
+    // Threefold Repetition rule succeed -> 2 repetitions
+    board->apply_move(Move("d6e6")); // White move right
+    board->apply_move(Move("d3e3")); // Black move right
+    board->apply_move(Move("e6d6")); // White move left
+    board->apply_move(Move("e3d3")); // Black move left
+    success_count += get_game_state_unittest(1900, board, DRAW);
 
     // Make sure the lazy evaluation is working too
     success_count += get_game_state_unittest(200, board, DRAW, true);
@@ -1455,6 +1486,50 @@ int get_game_state_testLauncher()
     success_count += get_game_state_unittest(
         23, new Board("k3NN2/8/8/3b4/8/4K3/8/5n2 w - - 22 128", true, false), GAME_CONTINUE
     );
+
+    // Threefold Repetition rule test - Bug 06/07/2025 - With weveral moves before
+    board = new Board("8/5q2/6r1/3k3K/8/8/2p5/8 w - - 0 60");
+    board->apply_move(Move("h5h4"));
+    board->apply_move(Move("c2c1n"));
+    board->apply_move(Move("h4h5"));
+    board->apply_move(Move("f7e8"));
+    board->apply_move(Move("h5h4"));
+    board->apply_move(Move("e8a8"));
+    board->apply_move(Move("h4h5"));
+    board->apply_move(Move("a8b8"));
+    board->apply_move(Move("h5g6"));
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("g6f7"));
+    board->apply_move(Move("a8b8"));
+
+    board->apply_move(Move("f7e7")); // First seen
+
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("e7d7"));
+    board->apply_move(Move("a8b8"));
+    board->apply_move(Move("d7e7")); // Second seen
+
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("e7f7"));
+    success_count += get_game_state_unittest(24, board, GAME_CONTINUE);
+
+    // Threefold Repetition rule test - Bug 06/07/2025 - With half move = 0
+    board = new Board("1q6/8/6K1/3k4/8/8/8/2n5 b - - 0 60");
+
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("g6f7"));
+    board->apply_move(Move("a8b8"));
+
+    board->apply_move(Move("f7e7")); // First seen
+
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("e7d7"));
+    board->apply_move(Move("a8b8"));
+    board->apply_move(Move("d7e7")); // Second seen
+
+    board->apply_move(Move("b8a8"));
+    board->apply_move(Move("e7f7"));
+    success_count += get_game_state_unittest(25, board, GAME_CONTINUE);
 
     return success_count;
 }

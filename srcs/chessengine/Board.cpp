@@ -376,7 +376,8 @@ void Board::_main_parsing(
     engine_data_updated = false;
     piece_just_captured = false;
 
-    current_sfen_history_index = -1;
+    current_sfen_history_index =
+        _half_turn_rule - 1; // Will be incremented in _update_serialized_fen_history()
     current_sfen = NULL;
     _update_serialized_fen_history();
 }
@@ -1707,12 +1708,12 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 
 board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 {
-    // Resolve wheter the lazy threefold repetition rule should be applied or not
-    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
-        return DRAW;
-
     // Fifty-Move rule + Insufisant material
     if (half_turn_rule >= 99 || _insufficient_material_rule())
+        return DRAW;
+
+    // Resolve wheter the lazy threefold repetition rule should be applied or not
+    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
         return DRAW;
 
     // TODO: Convert this to PRE PROCESSING if ?
@@ -1738,7 +1739,8 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 
 bool Board::_threefold_repetition_rule()
 {
-    // A position can be repeated in 4 half turns
+    // A position can be repeated in 4 half turns, so we need at least 8 half turns for a threefold
+    // repetition
     if (this->half_turn_rule < 8)
         return false;
 
@@ -1749,19 +1751,25 @@ bool Board::_threefold_repetition_rule()
     // Two states are equal only if the same player is playing & Skip last player position because
     // it cannot be the same
     int sfen_index = this->current_sfen_history_index - 4;
+    if (sfen_index < 0)
+        sfen_index += FEN_HISTORY_SIZE;
 
     // Because a capture or pawn move is irreversible, we can loop only over <half_turn_rule> last
-    // moves. (%2 check to make sure we end on one of current player position)
-    int last_capture_or_pawn_move_index =
-        this->current_sfen_history_index -
-        (this->half_turn_rule % 2 ? this->half_turn_rule - 1 : this->half_turn_rule);
+    // moves.
+    //  -> %2 check to make sure we end on one of current player position)
+    //  -> -2 to include the very last move, where a capture or pawn move happened
+    int last_capture_or_pawn_move_index;
+    if (this->half_turn_rule % 2 == 0)
+        last_capture_or_pawn_move_index =
+            this->current_sfen_history_index - this->half_turn_rule - 2;
+    else
+        last_capture_or_pawn_move_index =
+            this->current_sfen_history_index - this->half_turn_rule - 1;
     if (last_capture_or_pawn_move_index < 0)
         last_capture_or_pawn_move_index += FEN_HISTORY_SIZE;
 
     while (sfen_index != last_capture_or_pawn_move_index)
     {
-        if (sfen_index < 0)
-            sfen_index += FEN_HISTORY_SIZE;
 
         if (memcmp(
                 this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN
@@ -1781,6 +1789,8 @@ bool Board::_threefold_repetition_rule()
         // Because two states are equal only if the same player is playing
         // No need to check opponnents states
         sfen_index -= 2;
+        if (sfen_index < 0)
+            sfen_index += FEN_HISTORY_SIZE;
     }
 
     return false;

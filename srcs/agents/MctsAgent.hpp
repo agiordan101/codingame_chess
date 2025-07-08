@@ -16,8 +16,8 @@ struct Node
         float uct_value;
 
         Board resulting_board;
-        bool   is_over;
-        float  end_game_evaluation;
+        bool  is_over;
+        float end_game_evaluation;
 
         std::vector<Node *> children_nodes;
 

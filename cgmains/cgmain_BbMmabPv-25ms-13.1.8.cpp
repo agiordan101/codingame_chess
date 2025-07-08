@@ -258,6 +258,13 @@ typedef struct s_serialized_fen
         uint8_t  serialized_remaining_fen_info;
 } t_serialized_fen;
 
+enum capture_occured_e
+{
+    NO_CAPTURE,
+    CAPTURE,
+    NO_INFORMATION
+};
+
 constexpr int    FEN_HISTORY_SIZE = 100;
 constexpr size_t SIZEOF_T_SERIALIZED_FEN = sizeof(t_serialized_fen);
 
@@ -373,7 +380,9 @@ class Board
         uint64_t capturable_by_white_pawns_mask;
         uint64_t capturable_by_black_pawns_mask;
 
-        bool piece_just_captured;
+        capture_occured_e piece_just_captured;
+
+        int move_played_count;
 
         int               current_sfen_history_index;
         t_serialized_fen  serialized_fen_history[FEN_HISTORY_SIZE];
@@ -1023,6 +1032,9 @@ void Board::log(bool raw)
          << endl;
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
+    cerr << "Board: (move played: " << to_string(this->move_played_count)
+         << ", capture occured: " << (this->piece_just_captured == capture_occured_e::CAPTURE)
+         << ")" << endl;
 
 #if USE_VISUAL_BOARD == 1
     if (raw)
@@ -1039,7 +1051,7 @@ void Board::apply_move(Move move)
     if (!this->engine_data_updated)
         _update_engine_at_turn_start();
 
-    piece_just_captured = false;
+    piece_just_captured = capture_occured_e::NO_CAPTURE;
 
     char piece = move.piece == EMPTY_CELL ? _get_cell(move.src) : move.piece;
     if (piece == 'P')
@@ -1283,9 +1295,10 @@ void Board::_main_parsing(
     moves_computed = false;
     game_state_computed = false;
     engine_data_updated = false;
-    piece_just_captured = false;
+    piece_just_captured = capture_occured_e::NO_INFORMATION;
+    this->move_played_count = 0;
 
-    current_sfen_history_index = -1;
+    current_sfen_history_index = _half_turn_rule - 1;
     current_sfen = NULL;
     _update_serialized_fen_history();
 }
@@ -1640,7 +1653,7 @@ void Board::_capture_white_pieces(uint64_t dst)
     if (all_pieces_mask & dst)
     {
         half_turn_rule = -1;
-        this->piece_just_captured = true;
+        this->piece_just_captured = capture_occured_e::CAPTURE;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -1664,7 +1677,7 @@ void Board::_capture_black_pieces(uint64_t dst)
     if (all_pieces_mask & dst)
     {
         half_turn_rule = -1;
-        this->piece_just_captured = true;
+        this->piece_just_captured = capture_occured_e::CAPTURE;
 
         uint64_t not_dst_mask = ~dst;
 
@@ -1860,6 +1873,7 @@ void Board::_update_engine_at_turn_end()
     next_turn_en_passant = 0UL;
 
     half_turn_rule += 1;
+    this->move_played_count += 1;
 
     if (!white_turn)
         game_turn += 1;
@@ -2471,10 +2485,10 @@ uint64_t Board::_compute_castling_negative_path(uint64_t src, uint64_t dst)
 
 board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 {
-    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
+    if (half_turn_rule >= 99 || _insufficient_material_rule())
         return DRAW;
 
-    if (half_turn_rule >= 99 || _insufficient_material_rule())
+    if ((lazy_threefold ? _threefold_repetition_rule_lazy() : _threefold_repetition_rule()))
         return DRAW;
 
     if (codingame_rule)
@@ -2497,23 +2511,27 @@ board_game_state_e Board::_compute_game_state(bool lazy_threefold)
 
 bool Board::_threefold_repetition_rule()
 {
-    if (this->half_turn_rule < 8)
+    if (this->move_played_count < 8 || this->half_turn_rule < 8)
         return false;
 
     bool sfen_found = false;
 
     int sfen_index = this->current_sfen_history_index - 4;
+    if (sfen_index < 0)
+        sfen_index += FEN_HISTORY_SIZE;
 
-    int last_capture_or_pawn_move_index =
-        this->current_sfen_history_index -
-        (this->half_turn_rule % 2 ? this->half_turn_rule - 1 : this->half_turn_rule);
+    int last_capture_or_pawn_move_index;
+    if (this->half_turn_rule % 2 == 0)
+        last_capture_or_pawn_move_index =
+            this->current_sfen_history_index - this->half_turn_rule - 2;
+    else
+        last_capture_or_pawn_move_index =
+            this->current_sfen_history_index - this->half_turn_rule - 1;
     if (last_capture_or_pawn_move_index < 0)
         last_capture_or_pawn_move_index += FEN_HISTORY_SIZE;
 
     while (sfen_index != last_capture_or_pawn_move_index)
     {
-        if (sfen_index < 0)
-            sfen_index += FEN_HISTORY_SIZE;
 
         if (memcmp(
                 this->current_sfen, &serialized_fen_history[sfen_index], SIZEOF_T_SERIALIZED_FEN
@@ -2528,6 +2546,8 @@ bool Board::_threefold_repetition_rule()
         }
 
         sfen_index -= 2;
+        if (sfen_index < 0)
+            sfen_index += FEN_HISTORY_SIZE;
     }
 
     return false;
@@ -2536,7 +2556,7 @@ bool Board::_threefold_repetition_rule()
 bool Board::_threefold_repetition_rule_lazy()
 {
 
-    if (this->half_turn_rule < 8)
+    if (this->move_played_count < 8 || this->half_turn_rule < 8)
         return false;
 
     int sfen_history_index = current_sfen_history_index - 4;
@@ -2562,8 +2582,8 @@ bool Board::_threefold_repetition_rule_lazy()
 
 bool Board::_insufficient_material_rule()
 {
-    if (!this->piece_just_captured || white_pawns || black_pawns || white_rooks || black_rooks ||
-        white_queens || black_queens)
+    if (this->piece_just_captured == capture_occured_e::NO_CAPTURE || white_pawns || black_pawns ||
+        white_rooks || black_rooks || white_queens || black_queens)
         return false;
 
     int white_knights_count = _count_bits(white_knights);

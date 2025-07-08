@@ -1362,7 +1362,11 @@ int get_game_state_testLauncher()
     // capture was made before
 
     // Insufficient material: King vs king
-    Board *board = new Board("8/3K4/3q4/8/8/3k4/8/8 w - - 0 1");
+    Board *board = new Board("8/8/6k1/8/8/8/3K4/8 b - - 0 115");
+    success_count += get_game_state_unittest(70, board, DRAW);
+
+    // Insufficient material: King vs king
+    board = new Board("8/3K4/3q4/8/8/3k4/8/8 w - - 0 1");
     board->apply_move(Move("d7d6"));
     success_count += get_game_state_unittest(7, board, DRAW);
 

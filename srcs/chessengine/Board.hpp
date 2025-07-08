@@ -172,6 +172,10 @@ class Board
         // Insufisant material can only happen after a capture
         capture_occured_e piece_just_captured;
 
+        // Move playerd: Threefold Repetition rule must not be checked if less than 8 moves were
+        // actually played by this instance
+        int move_played_count;
+
         // serialized FEN history is used to check the Threefold Repetition rule
         // Each serialized FEN is saved in the history after each move
         int               current_sfen_history_index;

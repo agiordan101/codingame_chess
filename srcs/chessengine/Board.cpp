@@ -92,6 +92,9 @@ void Board::log(bool raw)
          << endl;
     cerr << "Board: half_turn_rule: " << to_string(half_turn_rule) << endl;
     cerr << "Board: game_turn: " << to_string(game_turn) << endl;
+    cerr << "Board: (move played: " << to_string(this->move_played_count)
+         << ", capture occured: " << (this->piece_just_captured == capture_occured_e::CAPTURE)
+         << ")" << endl;
 
 #if USE_VISUAL_BOARD == 1
     if (raw)
@@ -375,6 +378,7 @@ void Board::_main_parsing(
     game_state_computed = false;
     engine_data_updated = false;
     piece_just_captured = capture_occured_e::NO_INFORMATION;
+    this->move_played_count = 0;
 
     current_sfen_history_index =
         _half_turn_rule - 1; // Will be incremented in _update_serialized_fen_history()
@@ -1032,6 +1036,7 @@ void Board::_update_engine_at_turn_end()
     next_turn_en_passant = 0UL;
 
     half_turn_rule += 1;
+    this->move_played_count += 1;
 
     // Only increment game turn after black turn
     if (!white_turn)
@@ -1741,7 +1746,7 @@ bool Board::_threefold_repetition_rule()
 {
     // A position can be repeated in 4 half turns, so we need at least 8 half turns for a threefold
     // repetition
-    if (this->half_turn_rule < 8)
+    if (this->move_played_count < 8 || this->half_turn_rule < 8)
         return false;
 
     // Check if the actual sFEN is already 2 times in the history (3 times total with the current
@@ -1802,7 +1807,7 @@ bool Board::_threefold_repetition_rule_lazy()
     // Should be used only for anticipating further than 2 moves away
 
     // A same position cannot be repeated 3 times in less than 6 turns
-    if (this->half_turn_rule < 8)
+    if (this->move_played_count < 8 || this->half_turn_rule < 8)
         return false;
 
     // Compare with last player's position
